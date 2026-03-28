@@ -1,779 +1,690 @@
 """
-PPS Anantam — Bitumen Sales Dashboard v5.0
-============================================
-Slim router (~500 lines): session init, theme, navigation, page dispatch.
-Business logic lives in engine files. UI pages live in pages/ and command_intel/.
+PPS Anantam — Bitumen Sales Dashboard
+Coming Soon / Demo Preview
 """
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# IMPORTS
-# ═══════════════════════════════════════════════════════════════════════════════
-try:
-    from india_localization import format_inr, format_inr_short, format_date, format_datetime_ist, get_financial_year, get_fy_quarter
-except ImportError:
-    import sys, os
-    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-    try:
-        from india_localization import format_inr, format_inr_short, format_date, format_datetime_ist, get_financial_year, get_fy_quarter
-    except Exception:
-        pass
-
 import streamlit as st
-import datetime
-
-# Navigation (lightweight — only config dicts)
-from nav_config import MODULE_NAV, TOPBAR_MODULES, OVERFLOW_MODULES, PAGE_REDIRECTS
-from nav_config import get_tabs, get_module_for_page, get_feature_idx_for_page, resolve_page
-from theme import inject_theme
-from top_bar import render_top_bar
-from subtab_bar import render_sidebar_features
-
-# PDF Export System
-try:
-    from pdf_export_bar import render_export_bar, inject_print_css
-    _PDF_BAR_OK = True
-except Exception:
-    _PDF_BAR_OK = False
-    def render_export_bar(*a, **kw): pass
-    def inject_print_css(): pass
-
-# Data Confidence Engine (lazy — only used on data-heavy pages)
-_CONFIDENCE_OK = False
-def render_confidence_bar(*a, **kw): pass
-def render_data_health_card(*a, **kw): pass
-try:
-    from data_confidence_engine import render_confidence_bar, render_data_health_card
-    _CONFIDENCE_OK = True
-except Exception:
-    pass
-
-# Role Engine
-try:
-    from role_engine import render_login_form, get_current_role, check_role, init_roles
-    init_roles()
-    _ROLE_OK = True
-except Exception:
-    _ROLE_OK = False
-    def render_login_form(): return True
-    def get_current_role(): return "admin"
-    def check_role(r): return True
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# ENGINE STARTUP — lazy, runs ONCE per session (not on every rerun)
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def _init_engines():
-    """Start all background engines once per session."""
-    if st.session_state.get("_engines_started"):
-        return
-    try:
-        from api_manager import init_system, start_auto_health
-        init_system(); start_auto_health()
-    except Exception: pass
-    try:
-        from sre_engine import init_sre, start_sre_background
-        init_sre(); start_sre_background(interval_min=15)
-    except Exception: pass
-    try:
-        from api_hub_engine import init_hub, start_hub_scheduler
-        init_hub(); start_hub_scheduler(interval_min=60)
-    except Exception: pass
-    try:
-        from sync_engine import start_sync_scheduler
-        start_sync_scheduler(interval_minutes=60)
-    except Exception: pass
-    try:
-        from email_engine import start_email_scheduler
-        start_email_scheduler()
-    except Exception: pass
-    try:
-        from whatsapp_engine import start_whatsapp_scheduler
-        start_whatsapp_scheduler()
-    except Exception: pass
-    try:
-        from resilience_manager import HeartbeatMonitor
-        HeartbeatMonitor.start_checker()
-    except Exception: pass
-    try:
-        from port_tracker_engine import init_port_tracker
-        init_port_tracker()
-    except Exception: pass
-    try:
-        from directory_engine import init_directory
-        init_directory()
-    except Exception: pass
-    st.session_state["_engines_started"] = True
-
+import base64
+import os
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PAGE CONFIG
 # ═══════════════════════════════════════════════════════════════════════════════
-
 st.set_page_config(
-    page_title="PPS Anantam — Bitumen Dashboard v6.0",
+    page_title="PPS Anantam — Bitumen Dashboard",
     page_icon="🏛️",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
-# THEME + ENGINES — theme first (instant), engines lazy (background)
+# HIDE STREAMLIT DEFAULTS
 # ═══════════════════════════════════════════════════════════════════════════════
-
-inject_theme()
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# LOGIN GATE — Must authenticate before accessing anything
-# ═══════════════════════════════════════════════════════════════════════════════
-
-from login_page import render_login
-if not render_login():
-    st.stop()
-
-_init_engines()  # skips if already started this session
-
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# CACHED DATA HELPERS
-# ═══════════════════════════════════════════════════════════════════════════════
-
-@st.cache_data(ttl=300)
-def _cached_db_stats():
-    try:
-        from database import get_dashboard_stats
-        return get_dashboard_stats()
-    except Exception:
-        return {"total_suppliers": 63, "total_customers": 3, "total_deals": 0}
-
-@st.cache_data(ttl=600)
-def _cached_forecast_calendar():
-    try:
-        from command_intel.price_prediction import generate_forecast_calendar
-        return generate_forecast_calendar()
-    except Exception:
-        return None
-
-@st.cache_data(ttl=300)
-def _cached_market_signals():
-    try:
-        from market_intelligence_engine import MarketIntelligenceEngine
-        eng = MarketIntelligenceEngine()
-        return eng.compute_all_signals()
-    except Exception:
-        return {}
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# SESSION STATE INIT
-# ═══════════════════════════════════════════════════════════════════════════════
-
-if "selected_page" not in st.session_state:
-    st.session_state["selected_page"] = "🎯 Command Center"
-if "_active_module" not in st.session_state:
-    # Migrate from old key if exists
-    st.session_state["_active_module"] = st.session_state.get("selected_module", "📊 Price & Info")
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# COMMAND CENTER FAST PATH — render clean, skip all nav chrome
-# ═══════════════════════════════════════════════════════════════════════════════
-
-if st.session_state.get("selected_page") == "🎯 Command Center":
-    # Render sidebar even on CC (render_sidebar_features already imported at top)
-    render_sidebar_features("📊 Price & Info")
-    # Render CC content
-    try:
-        from pages.home.command_center import render as render_cc_v5
-        render_cc_v5()
-    except Exception:
-        from command_intel import command_center_home as cmd_command_center
-        cmd_command_center.render()
-    # Handle deferred navigation from CC buttons
-    if st.session_state.get("_nav_goto"):
-        _goto = st.session_state.pop("_nav_goto")
-        st.session_state["selected_page"] = resolve_page(_goto)
-        _owner = get_module_for_page(_goto)
-        if _owner:
-            st.session_state["_active_module"] = _owner
-        st.rerun()
-    st.stop()
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# NAVIGATION — Top Bar + Sidebar Features
-# ═══════════════════════════════════════════════════════════════════════════════
-
-# RBAC Gate
-if not render_login_form():
-    st.stop()
-
-# Top navigation bar (modules)
-render_top_bar()
-
-# Sidebar feature list for active module
-_active_module = st.session_state.get("_active_module", "🏠 Home")
-_sidebar_page = render_sidebar_features(_active_module)
-if _sidebar_page:
-    st.session_state["selected_page"] = _sidebar_page
-
-# Resolve selected page (apply redirects)
-selected_page = resolve_page(st.session_state.get("selected_page", "🎯 Command Center"))
-st.session_state["selected_page"] = selected_page
-
-# Action bar moved to sidebar Quick Actions — no longer rendered in main content
-inject_print_css()
-
-# Data confidence bar — removed from main content (was showing low scores due to
-# unavailable external APIs like UN Comtrade, PPAC). Data health available in System > Health Monitor.
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# PAGE DISPATCH — clean dictionary-based routing
-# ═══════════════════════════════════════════════════════════════════════════════
-
-def _safe_render(render_fn, page_name: str):
-    """Wrap a page render in try/except for graceful error handling."""
-    try:
-        render_fn()
-    except Exception as e:
-        st.error(f"{page_name} failed to load: {e}")
-        st.info("Try reloading the page. If this persists, check Health Monitor.")
-
-
-def _page_home():
-    try:
-        from market_data import get_live_market_data, get_simulated_data
-        api_active = st.session_state.get("_api_toggle_v3", False)
-        mkt = get_live_market_data() if api_active else get_simulated_data()
-        from pages.home.live_market import render
-        render(mkt=mkt, _CONFIDENCE_OK=_CONFIDENCE_OK,
-               render_data_health_card=render_data_health_card if _CONFIDENCE_OK else None)
-    except Exception as e:
-        st.error(f"Home page failed to load: {e}")
-
-def _page_pricing_calc():
-    try:
-        from pages.pricing.pricing_calculator import render
-        render()
-    except Exception as e:
-        st.error(f"Pricing Calculator failed to load: {e}")
-
-def _page_sales_workspace():
-    try:
-        import sales_workspace
-        sales_workspace.render_deal_room()
-    except Exception as e:
-        st.error(f"Sales Workspace failed to load: {e}")
-
-def _page_sales_calendar():
-    try:
-        from pages.sales.sales_calendar import render
-        render()
-    except Exception as e:
-        st.error(f"Sales Calendar failed to load: {e}")
-
-def _page_ecosystem():
-    try:
-        from pages.logistics.ecosystem import render
-        render()
-    except Exception as e:
-        st.error(f"Ecosystem Management failed to load: {e}")
-
-def _page_ai_fallback():
-    _safe_render(lambda: __import__("command_intel.ai_fallback_dashboard", fromlist=["render"]).render(), "AI Fallback")
-
-def _page_ai_assistant():
-    _safe_render(lambda: __import__("command_intel.ai_dashboard_assistant", fromlist=["render"]).render(), "AI Assistant")
-
-def _page_settings():
-    try:
-        from pages.system.settings_page import render
-        render()
-    except Exception as e:
-        st.error(f"Settings failed to load: {e}")
-
-def _page_data_manager():
-    try:
-        from command_intel import data_manager_dashboard
-        data_manager_dashboard.render()
-    except Exception as e:
-        st.error(f"Data Manager failed to load: {e}")
-
-def _page_contact_importer():
-    try:
-        from command_intel import contact_importer
-        contact_importer.render()
-    except Exception as e:
-        st.error(f"Contact Importer failed to load: {e}")
-
-def _page_source_directory():
-    try:
-        from command_intel import directory_dashboard
-        directory_dashboard.render()
-    except Exception as e:
-        st.error(f"Source Directory failed to load: {e}")
-
-def _page_feasibility():
-    from feasibility_engine import get_feasibility_assessment, get_comparison_table, DESTINATION_COORDS
-    st.header("📊 Feasibility Assessment")
-    st.info("Automatic price comparison: **2 Refineries + 2 Import Terminals + 2 Decanters** for any destination")
-    all_destinations = sorted(list(DESTINATION_COORDS.keys()))
-    selected_dest = st.selectbox("🎯 Select Destination City", all_destinations, key="feasibility_dest")
-    if selected_dest:
-        assessment = get_feasibility_assessment(selected_dest, top_n=2)
-        if assessment:
-            st.markdown(f"### 📍 Feasibility Report for: **{selected_dest}**")
-            comparison = get_comparison_table(selected_dest)
-            if comparison is not None:
-                st.dataframe(comparison, use_container_width=True, hide_index=True)
-
-def _page_knowledge_base():
-    try:
-        from pages.system.knowledge_base import render
-        render()
-    except Exception as e:
-        st.error(f"Knowledge Base failed to load: {e}")
-
-def _page_crm_tasks():
-    try:
-        from pages.sales.crm_tasks import render
-        render()
-    except Exception:
-        # Fallback: direct CRM render
-        import crm_engine as crm
-        st.header("🎯 Sales CRM & Daily Worklist")
-        k1, k2, k3, k4 = st.columns(4)
-        tasks_today = crm.get_due_tasks("Today")
-        tasks_overdue = crm.get_due_tasks("Overdue")
-        k1.metric("🔥 Hot Leads", "3", "Active")
-        k2.metric("📅 Tasks Due Today", len(tasks_today))
-        k3.metric("⚠️ Overdue", len(tasks_overdue), delta_color="inverse")
-        k4.metric("💰 Deals Closing", "2", "This Week")
-
-def _page_sos():
-    _safe_render(
-        lambda: __import__("command_intel.sos_dashboard", fromlist=["render"]).render(),
-        "SOS Special Pricing"
-    )
-
-def _page_reports():
-    st.header("📤 Export Reports")
-    st.caption("Generate and download reports as PDF or Excel.")
-
-    report_type = st.selectbox("Report Type", [
-        "Director Briefing (PDF)",
-        "Financial Summary (Excel)",
-        "CRM Contacts (Excel)",
-        "Price History (Excel)",
-        "Market Signals (Excel)",
-        "Full Data Backup (JSON)",
-    ])
-
-    if st.button("Generate Report", type="primary"):
-        import pandas as pd
-        import json as _json
-        from pathlib import Path as _Path
-        _root = _Path(__file__).parent
-
-        try:
-            if "Director Briefing" in report_type:
-                try:
-                    from director_briefing_engine import generate_briefing
-                    briefing = generate_briefing()
-                    st.success("Director Briefing generated!")
-                    st.markdown(briefing.get("summary", "No summary available."))
-                except Exception:
-                    st.warning("Director Briefing engine not available. Check system settings.")
-
-            elif "Financial Summary" in report_type:
-                try:
-                    from database import get_deals
-                    deals = get_deals(limit=500)
-                    if deals:
-                        df = pd.DataFrame(deals)
-                        csv = df.to_csv(index=False)
-                        st.download_button("Download Financial Summary (CSV)", data=csv,
-                                           file_name="pps_financial_summary.csv", mime="text/csv")
-                        st.success(f"Financial summary ready — {len(deals)} deals.")
-                    else:
-                        st.info("No deal data available yet.")
-                except Exception:
-                    st.warning("Financial data not available.")
-
-            elif "CRM Contacts" in report_type:
-                try:
-                    _cf = _root / "tbl_contacts.json"
-                    if _cf.exists():
-                        with open(_cf, "r", encoding="utf-8") as f:
-                            contacts = _json.load(f)
-                        df = pd.DataFrame(contacts)
-                        csv = df.to_csv(index=False)
-                        st.download_button("Download Contacts (CSV)", data=csv,
-                                           file_name="pps_contacts_export.csv", mime="text/csv")
-                        st.success(f"Contacts export ready — {len(contacts)} records.")
-                    else:
-                        st.info("No contacts data file found.")
-                except Exception:
-                    st.warning("Contacts export failed.")
-
-            elif "Price History" in report_type:
-                try:
-                    _pf = _root / "tbl_crude_prices.json"
-                    if _pf.exists():
-                        with open(_pf, "r", encoding="utf-8") as f:
-                            prices = _json.load(f)
-                        df = pd.DataFrame(prices)
-                        csv = df.to_csv(index=False)
-                        st.download_button("Download Price History (CSV)", data=csv,
-                                           file_name="pps_price_history.csv", mime="text/csv")
-                        st.success(f"Price history ready — {len(prices)} records.")
-                    else:
-                        st.info("No price history data available.")
-                except Exception:
-                    st.warning("Price history export failed.")
-
-            elif "Market Signals" in report_type:
-                try:
-                    _sf = _root / "tbl_market_signals.json"
-                    if _sf.exists():
-                        with open(_sf, "r", encoding="utf-8") as f:
-                            signals = _json.load(f)
-                        df = pd.DataFrame(signals if isinstance(signals, list) else [signals])
-                        csv = df.to_csv(index=False)
-                        st.download_button("Download Market Signals (CSV)", data=csv,
-                                           file_name="pps_market_signals.csv", mime="text/csv")
-                        st.success("Market signals export ready.")
-                    else:
-                        st.info("No market signals data available.")
-                except Exception:
-                    st.warning("Market signals export failed.")
-
-            elif "Full Data Backup" in report_type:
-                try:
-                    backup = {}
-                    for jf in _root.glob("tbl_*.json"):
-                        with open(jf, "r", encoding="utf-8") as f:
-                            backup[jf.stem] = _json.load(f)
-                    backup_str = _json.dumps(backup, indent=2, default=str)
-                    st.download_button("Download Full Backup (JSON)", data=backup_str,
-                                       file_name="pps_full_backup.json", mime="application/json")
-                    st.success(f"Full backup ready — {len(backup)} tables.")
-                except Exception:
-                    st.warning("Backup generation failed.")
-
-        except Exception as e:
-            st.error(f"Report generation failed: {e}")
-
-def _page_negotiation():
-    try:
-        from pages.sales.negotiation import render
-        render()
-    except Exception as e:
-        st.error(f"Negotiation Assistant failed to load: {e}")
-
-def _page_crm_automation():
-    try:
-        from command_intel.crm_automation_dashboard import render_crm_automation
-        render_crm_automation()
-    except Exception as e:
-        st.error(f"CRM Automation failed to load: {e}")
-
-def _page_comm_hub():
-    try:
-        from pages.sales.comm_hub import render
-        render()
-    except Exception as e:
-        st.error(f"Communication Hub failed to load: {e}")
-
-def _page_sync_status():
-    try:
-        from pages.system.sync_status import render
-        render()
-    except Exception as e:
-        st.error(f"Sync Status failed to load: {e}")
-
-def _page_opportunities():
-    try:
-        from pages.home.opportunities import render
-        render()
-    except Exception as e:
-        st.error(f"Opportunities failed to load: {e}")
-
-def _page_ai_learning():
-    try:
-        from pages.system.ai_learning import render
-        render()
-    except Exception as e:
-        st.error(f"AI Learning failed to load: {e}")
-
-def _page_contacts_directory():
-    try:
-        from command_intel import contacts_directory_dashboard
-        contacts_directory_dashboard.render()
-    except Exception as e:
-        st.error(f"Contacts Directory failed to load: {e}")
-
-
-# ── Page Dispatch Dict ────────────────────────────────────────────────────────
-
-PAGE_DISPATCH = {
-    # Home
-    "💎 One-Click Quote": lambda: _safe_render(
-        lambda: __import__("pages.home.director_cockpit", fromlist=["render"]).render(),
-        "One-Click Quote"),
-    "🌐 Client Showcase": lambda: _safe_render(
-        lambda: __import__("pages.home.client_showcase", fromlist=["render"]).render(),
-        "Client Showcase"),
-    "💎 Subscription Pricing": lambda: _safe_render(
-        lambda: __import__("pages.home.subscription_pricing", fromlist=["render"]).render(),
-        "Subscription Pricing"),
-    "🏠 Home": _page_home,
-    "🎯 Command Center": lambda: _safe_render(
-        lambda: __import__("command_intel.command_center_home", fromlist=["render"]).render(),
-        "Command Center"),
-    "🔍 Opportunities": _page_opportunities,
-    "🚨 Alert Center": lambda: _safe_render(
-        lambda: __import__("command_intel.alert_center", fromlist=["render"]).render(), "Alert Center"),
-
-    # Pricing
-    "🧮 Pricing Calculator": _page_pricing_calc,
-    "📦 Import Cost Model": lambda: _safe_render(
-        lambda: __import__("command_intel.import_cost_model", fromlist=["render"]).render(), "Import Cost Model"),
-    "🔮 Price Prediction": lambda: _safe_render(
-        lambda: __import__("command_intel.price_prediction", fromlist=["render"]).render(), "Price Prediction"),
-    "📝 Manual Price Entry": lambda: _safe_render(
-        lambda: __import__("command_intel.manual_entry", fromlist=["render"]).render(), "Manual Price Entry"),
-    "🚨 SPECIAL PRICE (SOS)": _page_sos,
-    "⏳ Past Predictions": lambda: _safe_render(
-        lambda: __import__("command_intel.historical_revisions", fromlist=["render"]).render(), "Past Predictions"),
-
-    # Sales & CRM
-    "🎯 CRM & Tasks": _page_crm_tasks,
-    "💼 Sales Workspace": _page_sales_workspace,
-    "🤝 Negotiation Assistant": _page_negotiation,
-    "💬 Communication Hub": _page_comm_hub,
-    "🤖 CRM Automation": _page_crm_automation,
-    "📓 Daily Log": lambda: _safe_render(
-        lambda: __import__("command_intel.daily_log_panel", fromlist=["render"]).render(), "Daily Log"),
-    "📱 Contacts Directory": _page_contacts_directory,
-    "📊 Comm Tracking": lambda: _safe_render(
-        lambda: __import__("command_intel.comm_tracking_dashboard", fromlist=["render"]).render(),
-        "Comm Tracking"),
-    "💬 Client Chat": lambda: _safe_render(
-        lambda: __import__("command_intel.client_chat_dashboard", fromlist=["render"]).render(),
-        "Client Chat"),
-    "💳 Credit & Aging": lambda: _safe_render(
-        lambda: __import__("command_intel.credit_aging_dashboard", fromlist=["render"]).render(),
-        "Credit & Aging"),
-    "📡 Rate Broadcast": lambda: _safe_render(
-        lambda: __import__("command_intel.rate_broadcast_dashboard", fromlist=["render"]).render(),
-        "Rate Broadcast"),
-    "📅 Sales Calendar": _page_sales_calendar,
-
-    # Intelligence
-    "📡 Market Signals": lambda: _safe_render(
-        lambda: __import__("command_intel.market_signals_dashboard", fromlist=["render"]).render(), "Market Signals"),
-    "🔴 Real-time Insights": lambda: _safe_render(
-        lambda: __import__("command_intel.real_time_insights_dashboard", fromlist=["render"]).render(),
-        "Real-time Insights"),
-    "📰 News Intelligence": lambda: _safe_render(
-        lambda: __import__("command_intel.news_dashboard", fromlist=["render"]).render(),
-        "News Intelligence"),
-    "🕵️ Competitor Intelligence": lambda: _safe_render(
-        lambda: __import__("competitor_intelligence", fromlist=["render"]).render(),
-        "Competitor Intel"),
-    "🧑‍💼 Business Advisor": lambda: _safe_render(
-        lambda: __import__("command_intel.business_advisor_dashboard", fromlist=["render"]).render(),
-        "Business Advisor"),
-    "🛒 Purchase Advisor": lambda: _safe_render(
-        lambda: __import__("command_intel.purchase_advisor_dashboard", fromlist=["render"]).render(),
-        "Purchase Advisor"),
-    "💡 Recommendations": lambda: _safe_render(
-        lambda: __import__("command_intel.recommendation_dashboard", fromlist=["render"]).render(),
-        "Recommendations"),
-    "🌐 Global Markets": lambda: _safe_render(
-        lambda: __import__("command_intel.global_market_dashboard", fromlist=["render"]).render(),
-        "Global Markets"),
-    "📡 Telegram Analyzer": lambda: _safe_render(
-        lambda: __import__("pages.intelligence.telegram_analyzer", fromlist=["render"]).render(),
-        "Telegram Analyzer"),
-    "🏗️ NHAI Tenders": lambda: _safe_render(
-        lambda: __import__("command_intel.nhai_tender_dashboard", fromlist=["render"]).render(),
-        "NHAI Tenders"),
-
-    # Documents
-    "📋 Purchase Orders": lambda: _safe_render(
-        lambda: __import__("command_intel.document_management", fromlist=["render_purchase_order"]).render_purchase_order(),
-        "Purchase Orders"),
-    "📋 Sales Orders": lambda: _safe_render(
-        lambda: __import__("command_intel.document_management", fromlist=["render_sales_order"]).render_sales_order(),
-        "Sales Orders"),
-    "💳 Payment Orders": lambda: _safe_render(
-        lambda: __import__("command_intel.document_management", fromlist=["render_payment_order"]).render_payment_order(),
-        "Payment Orders"),
-    "👥 Party Master": lambda: _safe_render(
-        lambda: __import__("command_intel.document_management", fromlist=["render_party_master"]).render_party_master(),
-        "Party Master"),
-    "📁 PDF Archive": lambda: _safe_render(
-        lambda: __import__("command_intel.pdf_archive", fromlist=["render"]).render(),
-        "PDF Archive"),
-
-    # Logistics
-    "🚢 Maritime Logistics": lambda: _safe_render(
-        lambda: __import__("command_intel.maritime_logistics_dashboard", fromlist=["render"]).render(),
-        "Maritime Logistics"),
-    "🚢 Supply Chain": lambda: _safe_render(
-        lambda: __import__("command_intel.supply_chain", fromlist=["render"]).render(), "Supply Chain"),
-    "⚓ Port Import Tracker": lambda: _safe_render(
-        lambda: __import__("command_intel.port_tracker_dashboard", fromlist=["render"]).render(), "Port Tracker"),
-    "🏭 Feasibility": _page_feasibility,
-    "👥 Ecosystem Management": _page_ecosystem,
-    "🏭 Refinery Supply": lambda: _safe_render(
-        lambda: __import__("command_intel.refinery_supply_dashboard", fromlist=["render"]).render(),
-        "Refinery Supply"),
-    "🚛 Tanker Tracking": lambda: _safe_render(
-        lambda: __import__("command_intel.tanker_tracking_dashboard", fromlist=["render"]).render(),
-        "Tanker Tracking"),
-
-    # Reports
-    "💰 Financial Intelligence": lambda: _safe_render(
-        lambda: __import__("command_intel.financial_intel", fromlist=["render"]).render(), "Financial Intelligence"),
-    "🎯 Strategy Panel": lambda: _safe_render(
-        lambda: __import__("command_intel.strategy_panel", fromlist=["render"]).render(), "Strategy Panel"),
-    "👷 Demand Analytics": lambda: _safe_render(
-        lambda: __import__("command_intel.demand_analytics", fromlist=["render"]).render(), "Demand Analytics"),
-    "📈 Demand Correlation": lambda: _safe_render(
-        lambda: __import__("command_intel.correlation_dashboard", fromlist=["render"]).render(), "Demand Correlation"),
-    "🛣️ Road Budget & Demand": lambda: _safe_render(
-        lambda: __import__("command_intel.road_budget_dashboard", fromlist=["render"]).render(),
-        "Road Budget"),
-    "⚡ Risk Scoring": lambda: _safe_render(
-        lambda: __import__("command_intel.risk_scoring", fromlist=["render"]).render(), "Risk Scoring"),
-    "📤 Reports": _page_reports,
-    "📋 Director Briefing": lambda: _safe_render(
-        lambda: __import__("command_intel.director_dashboard", fromlist=["render"]).render(), "Director Briefing"),
-    "💰 Profitability Analytics": lambda: _safe_render(
-        lambda: __import__("command_intel.profitability_dashboard", fromlist=["render"]).render(),
-        "Profitability Analytics"),
-
-    # Compliance
-    "🏗️ Govt Data Hub": lambda: _safe_render(
-        lambda: __import__("command_intel.govt_hub_dashboard", fromlist=["render"]).render(), "Govt Data Hub"),
-    "🛡️ GST & Legal Monitor": lambda: _safe_render(
-        lambda: __import__("command_intel.gst_legal_monitor", fromlist=["render"]).render(), "GST & Legal"),
-    "🔔 Alert System": lambda: _safe_render(
-        lambda: __import__("command_intel.alert_system", fromlist=["render"]).render(), "Alert System"),
-    "🔔 Change Notifications": lambda: _safe_render(
-        lambda: __import__("command_intel.change_log", fromlist=["render"]).render(), "Change Log"),
-    "🗂️ India Procurement Directory": lambda: _safe_render(
-        lambda: __import__("command_intel.directory_dashboard", fromlist=["render"]).render(), "Procurement Dir"),
-    "📄 E-Way Bills": lambda: _safe_render(
-        lambda: __import__("command_intel.eway_bill_dashboard", fromlist=["render"]).render(),
-        "E-Way Bills"),
-    "🛠️ Data Manager": lambda: _safe_render(
-        lambda: __import__("command_intel.data_manager_dashboard", fromlist=["render"]).render(),
-        "Data Manager"),
-
-    # System & AI
-    "💬 Trading Chatbot": lambda: _safe_render(
-        lambda: __import__("command_intel.ai_dashboard_assistant", fromlist=["render"]).render(),
-        "Trading Chatbot"),
-    "🔄 AI Fallback Engine": _page_ai_fallback,
-    "📚 Knowledge Base": _page_knowledge_base,
-    "🤖 AI Learning": _page_ai_learning,
-    "🎛️ System Control Center": lambda: _safe_render(
-        lambda: __import__("command_intel.system_control_center", fromlist=["render"]).render(),
-        "System Control Center"),
-    "🌐 API Dashboard": lambda: _safe_render(
-        lambda: __import__("api_dashboard", fromlist=["render"]).render(), "API Dashboard"),
-    "🔗 API HUB": lambda: _safe_render(
-        lambda: __import__("command_intel.api_hub_dashboard", fromlist=["render"]).render(), "API Hub"),
-    "🏥 Health Monitor": lambda: _safe_render(
-        lambda: __import__("command_intel.health_monitor_dashboard", fromlist=["render"]).render(),
-        "Health Monitor"),
-    "⚙️ Settings": _page_settings,
-    "🐞 Bug Tracker": lambda: _safe_render(
-        lambda: __import__("command_intel.bug_tracker", fromlist=["render"]).render(), "Bug Tracker"),
-    "🛠️ Developer Ops Map": lambda: _safe_render(
-        lambda: __import__("command_intel.developer_ops_dashboard", fromlist=["render"]).render(), "Developer Ops"),
-    "🗺️ Dashboard Flow Map": lambda: _safe_render(
-        lambda: __import__("command_intel.dashboard_flow_map", fromlist=["render"]).render(), "Dashboard Flow"),
-
-    # Legacy pages (still accessible)
-    "🏥 System Health": lambda: _safe_render(
-        lambda: __import__("command_intel.sre_dashboard", fromlist=["render"]).render(), "System Health"),
-    "📋 Source Directory": lambda: _safe_render(
-        lambda: __import__("command_intel.directory_dashboard", fromlist=["render"]).render(), "Source Directory"),
-    "🔭 Contractor OSINT": lambda: _safe_render(
-        lambda: __import__("contractor_osint", fromlist=["render"]).render(),
-        "Contractor OSINT"),
-    "🏛️ Business Intelligence": lambda: _safe_render(
-        lambda: __import__("business_knowledge_base", fromlist=["render"]).render(),
-        "Business Intelligence"),
-    "📋 Discussion Guide": lambda: _safe_render(
-        lambda: __import__("command_intel.discussion_guidance_dashboard", fromlist=["render"]).render(),
-        "Discussion Guide"),
-    "🔄 Sync Status": _page_sync_status,
-    "🏗️ Infra Demand Intelligence": lambda: _safe_render(
-        lambda: __import__("command_intel.infra_demand_dashboard", fromlist=["render"]).render(), "Infra Demand"),
-
-    # Sharing
-    "📤 Share Center": lambda: _safe_render(
-        lambda: __import__("pages.sharing.share_center", fromlist=["render"]).render(),
-        "Share Center"),
-    "✈️ Telegram Dashboard": lambda: _safe_render(
-        lambda: __import__("pages.sharing.telegram_dashboard", fromlist=["render"]).render(),
-        "Telegram Dashboard"),
-}
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# DISPATCH — run the selected page
-# ═══════════════════════════════════════════════════════════════════════════════
-
-handler = PAGE_DISPATCH.get(selected_page)
-if handler:
-    handler()
-else:
-    st.warning(f"Page not found: {selected_page}")
-    st.info("Use the navigation bar to select a page.")
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# FOOTER
-# ═══════════════════════════════════════════════════════════════════════════════
-
 st.markdown("""
-<div style="
-  background: #FFFFFF;
-  border-top: 1px solid #E5E7EB;
-  padding: 20px 32px;
-  margin-top: 64px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  font-family: inherit;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.02);
-">
-  <div style="display:flex; align-items:center; gap:12px;">
-    <span style="font-size:1.0rem; font-weight: 800; color: var(--text-main); letter-spacing: -0.02em;">
-      🏛️ PPS Anantam
-    </span>
-    <span style="font-size:0.75rem; color:var(--text-muted); font-weight: 500; border-left: 1px solid #E5E7EB; padding-left: 12px;">
-      Bitumen Sales Dashboard — HQ: Vadodara, GJ
-    </span>
-  </div>
-  <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:16px; flex-wrap:wrap; font-weight: 600; align-items:center;">
-    <span style="background:#F3F4F6; padding:4px 8px; border-radius:6px; border:1px solid #E5E7EB;">v6.1</span>
-    <span>Build: 28-03-2026</span>
-    <span style="color:#059669;">● Production</span>
-    <span style="color:var(--text-blue); background:#EEF2FF; padding:4px 8px; border-radius:6px; font-weight:800; border:1px solid rgba(79, 70, 229, 0.2);">GST: 24AAHCV1611L2ZD</span>
-  </div>
-</div>
+<style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    header {visibility: hidden;}
+    [data-testid="stSidebar"] {display: none;}
+    [data-testid="collapsedControl"] {display: none;}
+    .stDeployButton {display: none;}
+    .stApp {background: #0f172a;}
+
+    .block-container {
+        padding: 0 !important;
+        max-width: 100% !important;
+    }
+    [data-testid="stAppViewBlockContainer"] {
+        padding: 0 !important;
+    }
+</style>
 """, unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGO HELPER
+# ═══════════════════════════════════════════════════════════════════════════════
+def get_logo_base64():
+    logo_path = os.path.join(os.path.dirname(__file__), "pps_logo_brand.jpg")
+    if os.path.exists(logo_path):
+        with open(logo_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return None
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# LOGIN PAGE
+# ═══════════════════════════════════════════════════════════════════════════════
+def render_login():
+    logo_b64 = get_logo_base64()
+    if logo_b64:
+        logo_html = f'<img src="data:image/jpeg;base64,{logo_b64}" style="width:90px; height:90px; border-radius:20px; object-fit:cover; box-shadow: 0 8px 32px rgba(79, 70, 229, 0.3);">'
+    else:
+        logo_html = '<div style="width:90px; height:90px; border-radius:20px; background: linear-gradient(135deg, #4F46E5, #7C3AED); display:flex; align-items:center; justify-content:center; font-size:2.2rem; color:white; font-weight:900; box-shadow: 0 8px 32px rgba(79, 70, 229, 0.3);">PP</div>'
+
+    st.markdown(f"""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        .login-container {{
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0f172a;
+            font-family: 'Inter', -apple-system, sans-serif;
+            position: relative;
+            overflow: hidden;
+        }}
+
+        .login-container::before {{
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                linear-gradient(rgba(79, 70, 229, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(79, 70, 229, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            animation: gridMove 20s linear infinite;
+        }}
+
+        @keyframes gridMove {{
+            0% {{ transform: translate(0, 0); }}
+            100% {{ transform: translate(60px, 60px); }}
+        }}
+
+        .login-container::after {{
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(79, 70, 229, 0.15), transparent 70%);
+            top: -100px; right: -100px;
+            border-radius: 50%;
+            animation: float 8s ease-in-out infinite;
+        }}
+
+        @keyframes float {{
+            0%, 100% {{ transform: translate(0, 0) scale(1); }}
+            50% {{ transform: translate(-30px, 30px) scale(1.1); }}
+        }}
+
+        .login-card {{
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(79, 70, 229, 0.2);
+            border-radius: 24px;
+            padding: 48px 40px;
+            width: 420px;
+            max-width: 90vw;
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4), 0 0 120px rgba(79, 70, 229, 0.1);
+        }}
+
+        .login-logo {{
+            text-align: center;
+            margin-bottom: 32px;
+        }}
+
+        .login-title {{
+            text-align: center;
+            color: #f8fafc;
+            font-size: 1.6rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin: 16px 0 4px;
+        }}
+
+        .login-subtitle {{
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 36px;
+        }}
+
+        .login-badge {{
+            display: inline-block;
+            background: rgba(79, 70, 229, 0.15);
+            color: #a5b4fc;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.1em;
+            border: 1px solid rgba(79, 70, 229, 0.3);
+            margin-top: 8px;
+        }}
+
+        .login-footer {{
+            text-align: center;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+        }}
+
+        .login-footer-text {{
+            color: #64748b;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }}
+
+        .login-footer-company {{
+            color: #94a3b8;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 4px;
+            letter-spacing: 0.05em;
+        }}
+
+        .login-gst {{
+            display: inline-block;
+            background: rgba(5, 150, 105, 0.1);
+            color: #34d399;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            margin-top: 8px;
+            letter-spacing: 0.05em;
+        }}
+
+        .stTextInput > div > div > input {{
+            background: rgba(15, 23, 42, 0.8) !important;
+            border: 1px solid rgba(79, 70, 229, 0.3) !important;
+            border-radius: 12px !important;
+            color: #f8fafc !important;
+            padding: 14px 16px !important;
+            font-size: 1.1rem !important;
+            font-family: 'Inter', monospace !important;
+            letter-spacing: 0.3em !important;
+            text-align: center !important;
+            font-weight: 600 !important;
+        }}
+
+        .stTextInput > div > div > input:focus {{
+            border-color: #4F46E5 !important;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2) !important;
+        }}
+
+        .stTextInput > div > div > input::placeholder {{
+            color: #475569 !important;
+            letter-spacing: 0.15em !important;
+            font-weight: 400 !important;
+        }}
+
+        .stTextInput label {{
+            color: #94a3b8 !important;
+            font-size: 0.8rem !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.05em !important;
+            text-transform: uppercase !important;
+        }}
+
+        .stButton > button {{
+            background: linear-gradient(135deg, #4F46E5, #7C3AED) !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 12px !important;
+            padding: 14px 32px !important;
+            font-size: 0.95rem !important;
+            font-weight: 700 !important;
+            width: 100% !important;
+            letter-spacing: 0.05em !important;
+            transition: all 0.3s ease !important;
+            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3) !important;
+            font-family: 'Inter', sans-serif !important;
+        }}
+
+        .stButton > button:hover {{
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4) !important;
+        }}
+
+        .stAlert {{
+            background: rgba(239, 68, 68, 0.1) !important;
+            border: 1px solid rgba(239, 68, 68, 0.3) !important;
+            border-radius: 12px !important;
+        }}
+
+        div[data-testid="stForm"] {{
+            border: none !important;
+            padding: 0 !important;
+        }}
+    </style>
+
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-logo">
+                {logo_html}
+                <div class="login-title">PPS Anantams</div>
+                <div class="login-subtitle">Enterprise Bitumen Desk</div>
+                <div class="login-badge">AI COMMANDER v6.1</div>
+            </div>
+    """, unsafe_allow_html=True)
+
+    with st.form("login_form", clear_on_submit=True):
+        pin = st.text_input("Enter Access PIN", type="password", placeholder="* * * *", max_chars=6)
+        submitted = st.form_submit_button("Access Dashboard")
+
+        if submitted:
+            if pin and len(pin) >= 4:
+                st.session_state["authenticated"] = True
+                st.rerun()
+            elif pin:
+                st.error("Invalid PIN. Please try again.")
+
+    st.markdown("""
+            <div class="login-footer">
+                <div class="login-footer-text">Vadodara, Gujarat &bull; India</div>
+                <div class="login-footer-company">PPS Anantams Corporation Pvt Ltd</div>
+                <div class="login-gst">GST: 24AAHCV1611L2ZD</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROCESSING / COMING SOON PAGE
+# ═══════════════════════════════════════════════════════════════════════════════
+def render_coming_soon():
+    logo_b64 = get_logo_base64()
+    if logo_b64:
+        logo_html = f'<img src="data:image/jpeg;base64,{logo_b64}" style="width:70px; height:70px; border-radius:16px; object-fit:cover; box-shadow: 0 4px 20px rgba(79, 70, 229, 0.3);">'
+    else:
+        logo_html = '<div style="width:70px; height:70px; border-radius:16px; background: linear-gradient(135deg, #4F46E5, #7C3AED); display:flex; align-items:center; justify-content:center; font-size:1.8rem; color:white; font-weight:900;">PP</div>'
+
+    messages = [
+        "Initializing AI Commander...",
+        "Connecting to Market Data APIs...",
+        "Loading 25,000+ CRM Contacts...",
+        "Syncing Brent Crude & VG30 Prices...",
+        "Calibrating Price Prediction Engine...",
+        "Loading Refinery Supply Data...",
+        "Processing Market Intelligence Signals...",
+        "Connecting to News Aggregator...",
+        "Loading Logistics & Port Data...",
+        "Syncing NHAI Tender Pipeline...",
+        "Initializing Communication Hub...",
+        "Loading Financial Intelligence...",
+        "Warming up ML Forecast Models...",
+        "Connecting to Telegram Channels...",
+        "Loading Competitor Price Data...",
+        "Almost Ready — Final Checks...",
+    ]
+
+    import json
+    messages_js = json.dumps(messages)
+
+    st.markdown(f"""
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        .cs-wrapper {{
+            min-height: 100vh;
+            background: #0f172a;
+            font-family: 'Inter', -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }}
+
+        .cs-wrapper::before {{
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                linear-gradient(rgba(79, 70, 229, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(79, 70, 229, 0.04) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 25s linear infinite;
+        }}
+
+        @keyframes gridMove {{
+            0% {{ transform: translate(0, 0); }}
+            100% {{ transform: translate(50px, 50px); }}
+        }}
+
+        .cs-orb-1 {{
+            position: absolute;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(79, 70, 229, 0.12), transparent 70%);
+            top: -150px; left: -100px;
+            border-radius: 50%;
+            animation: orbFloat1 10s ease-in-out infinite;
+        }}
+
+        .cs-orb-2 {{
+            position: absolute;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.1), transparent 70%);
+            bottom: -100px; right: -80px;
+            border-radius: 50%;
+            animation: orbFloat2 12s ease-in-out infinite;
+        }}
+
+        @keyframes orbFloat1 {{
+            0%, 100% {{ transform: translate(0, 0) scale(1); }}
+            50% {{ transform: translate(40px, 20px) scale(1.15); }}
+        }}
+
+        @keyframes orbFloat2 {{
+            0%, 100% {{ transform: translate(0, 0) scale(1); }}
+            50% {{ transform: translate(-30px, -20px) scale(1.1); }}
+        }}
+
+        .cs-content {{
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            max-width: 600px;
+            padding: 40px;
+        }}
+
+        .cs-logo {{
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }}
+
+        .cs-logo-text {{ text-align: left; }}
+
+        .cs-logo-title {{
+            color: #f8fafc;
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }}
+
+        .cs-logo-sub {{
+            color: #64748b;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }}
+
+        .cs-spinner-box {{
+            margin: 40px auto;
+            position: relative;
+            width: 120px;
+            height: 120px;
+        }}
+
+        .cs-spinner {{
+            width: 120px; height: 120px;
+            border-radius: 50%;
+            border: 3px solid rgba(79, 70, 229, 0.1);
+            border-top: 3px solid #4F46E5;
+            animation: spin 1.2s linear infinite;
+            position: absolute;
+        }}
+
+        .cs-spinner-2 {{
+            width: 90px; height: 90px;
+            border-radius: 50%;
+            border: 3px solid rgba(124, 58, 237, 0.1);
+            border-top: 3px solid #7C3AED;
+            animation: spin 1.8s linear infinite reverse;
+            position: absolute;
+            top: 15px; left: 15px;
+        }}
+
+        .cs-spinner-3 {{
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            border: 3px solid rgba(99, 102, 241, 0.1);
+            border-top: 3px solid #6366F1;
+            animation: spin 0.9s linear infinite;
+            position: absolute;
+            top: 30px; left: 30px;
+        }}
+
+        .cs-spinner-dot {{
+            width: 12px; height: 12px;
+            background: #4F46E5;
+            border-radius: 50%;
+            position: absolute;
+            top: 54px; left: 54px;
+            box-shadow: 0 0 20px rgba(79, 70, 229, 0.6);
+            animation: pulse 2s ease-in-out infinite;
+        }}
+
+        @keyframes spin {{ to {{ transform: rotate(360deg); }} }}
+
+        @keyframes pulse {{
+            0%, 100% {{ transform: scale(1); opacity: 1; }}
+            50% {{ transform: scale(1.3); opacity: 0.7; }}
+        }}
+
+        .cs-status {{
+            color: #94a3b8;
+            font-size: 0.85rem;
+            font-weight: 500;
+            margin-top: 24px;
+            min-height: 24px;
+        }}
+
+        .cs-status-line {{
+            animation: fadeInUp 0.5s ease forwards;
+            opacity: 0;
+        }}
+
+        @keyframes fadeInUp {{
+            from {{ opacity: 0; transform: translateY(8px); }}
+            to {{ opacity: 1; transform: translateY(0); }}
+        }}
+
+        .cs-progress-track {{
+            width: 300px;
+            height: 4px;
+            background: rgba(79, 70, 229, 0.1);
+            border-radius: 4px;
+            margin: 32px auto 0;
+            overflow: hidden;
+        }}
+
+        .cs-progress-bar {{
+            height: 100%;
+            width: 30%;
+            background: linear-gradient(90deg, #4F46E5, #7C3AED, #4F46E5);
+            background-size: 200% 100%;
+            border-radius: 4px;
+            animation: progressSlide 2s ease-in-out infinite;
+        }}
+
+        @keyframes progressSlide {{
+            0% {{ transform: translateX(-100%); background-position: 0% 0%; }}
+            50% {{ background-position: 100% 0%; }}
+            100% {{ transform: translateX(400%); background-position: 0% 0%; }}
+        }}
+
+        .cs-badge {{
+            display: inline-block;
+            background: rgba(79, 70, 229, 0.15);
+            color: #a5b4fc;
+            font-size: 0.7rem;
+            font-weight: 800;
+            padding: 6px 20px;
+            border-radius: 24px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            border: 1px solid rgba(79, 70, 229, 0.3);
+            margin-top: 40px;
+            animation: badgePulse 3s ease-in-out infinite;
+        }}
+
+        @keyframes badgePulse {{
+            0%, 100% {{ box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.2); }}
+            50% {{ box-shadow: 0 0 0 12px rgba(79, 70, 229, 0); }}
+        }}
+
+        .cs-features {{
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 48px;
+            max-width: 500px;
+        }}
+
+        .cs-feature {{
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(79, 70, 229, 0.1);
+            border-radius: 12px;
+            padding: 16px 12px;
+            text-align: center;
+        }}
+
+        .cs-feature-icon {{ font-size: 1.5rem; margin-bottom: 6px; }}
+
+        .cs-feature-label {{
+            color: #64748b;
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }}
+
+        .cs-footer {{
+            position: absolute;
+            bottom: 24px;
+            left: 0; right: 0;
+            text-align: center;
+            z-index: 10;
+        }}
+
+        .cs-footer-text {{
+            color: #334155;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }}
+
+        .cs-footer-ver {{
+            display: inline-block;
+            background: rgba(30, 41, 59, 0.5);
+            color: #475569;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            margin-top: 4px;
+            border: 1px solid rgba(51, 65, 85, 0.3);
+        }}
+
+        .cs-modules {{
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 48px;
+        }}
+
+        .cs-module-dot {{
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            animation: dotPulse 3s ease-in-out infinite;
+        }}
+
+        .cs-module-dot:nth-child(1) {{ background: #4F46E5; animation-delay: 0s; }}
+        .cs-module-dot:nth-child(2) {{ background: #7C3AED; animation-delay: 0.3s; }}
+        .cs-module-dot:nth-child(3) {{ background: #06b6d4; animation-delay: 0.6s; }}
+        .cs-module-dot:nth-child(4) {{ background: #10b981; animation-delay: 0.9s; }}
+        .cs-module-dot:nth-child(5) {{ background: #f59e0b; animation-delay: 1.2s; }}
+        .cs-module-dot:nth-child(6) {{ background: #ef4444; animation-delay: 1.5s; }}
+
+        @keyframes dotPulse {{
+            0%, 100% {{ opacity: 0.3; transform: scale(1); }}
+            50% {{ opacity: 1; transform: scale(1.5); }}
+        }}
+    </style>
+
+    <div class="cs-wrapper">
+        <div class="cs-orb-1"></div>
+        <div class="cs-orb-2"></div>
+
+        <div class="cs-content">
+            <div class="cs-logo">
+                {logo_html}
+                <div class="cs-logo-text">
+                    <div class="cs-logo-title">PPS Anantams</div>
+                    <div class="cs-logo-sub">Enterprise Bitumen Desk</div>
+                </div>
+            </div>
+
+            <div class="cs-spinner-box">
+                <div class="cs-spinner"></div>
+                <div class="cs-spinner-2"></div>
+                <div class="cs-spinner-3"></div>
+                <div class="cs-spinner-dot"></div>
+            </div>
+
+            <div class="cs-status" id="cs-status-msg">
+                <div class="cs-status-line" style="animation-delay: 0s;">Initializing AI Commander...</div>
+            </div>
+
+            <div class="cs-progress-track">
+                <div class="cs-progress-bar"></div>
+            </div>
+
+            <div class="cs-modules">
+                <div class="cs-module-dot"></div>
+                <div class="cs-module-dot"></div>
+                <div class="cs-module-dot"></div>
+                <div class="cs-module-dot"></div>
+                <div class="cs-module-dot"></div>
+                <div class="cs-module-dot"></div>
+            </div>
+
+            <div class="cs-badge">Coming Soon</div>
+
+            <div class="cs-features">
+                <div class="cs-feature">
+                    <div class="cs-feature-icon">📊</div>
+                    <div class="cs-feature-label">Live Market</div>
+                </div>
+                <div class="cs-feature">
+                    <div class="cs-feature-icon">🧮</div>
+                    <div class="cs-feature-label">Smart Pricing</div>
+                </div>
+                <div class="cs-feature">
+                    <div class="cs-feature-icon">🤖</div>
+                    <div class="cs-feature-label">AI Signals</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cs-footer">
+            <div class="cs-footer-text">PPS Anantams Corporation Pvt Ltd &bull; Vadodara, Gujarat</div>
+            <div class="cs-footer-ver">v6.1 &bull; 2026</div>
+        </div>
+    </div>
+
+    <script>
+        const messages = {messages_js};
+        let idx = 0;
+        function cycleMsg() {{
+            const el = document.getElementById('cs-status-msg');
+            if (el) {{
+                el.innerHTML = '<div class="cs-status-line" style="animation-delay:0s;">' + messages[idx] + '</div>';
+                idx = (idx + 1) % messages.length;
+            }}
+        }}
+        setInterval(cycleMsg, 3000);
+    </script>
+    """, unsafe_allow_html=True)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# MAIN
+# ═══════════════════════════════════════════════════════════════════════════════
+
+if not st.session_state.get("authenticated"):
+    render_login()
+else:
+    render_coming_soon()
