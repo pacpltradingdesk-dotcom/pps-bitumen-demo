@@ -108,62 +108,109 @@ if "_active_module" not in st.session_state:
 PROCESSING_HTML = """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-.px{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:72vh;font-family:'Inter',sans-serif;position:relative;overflow:hidden}
-.px-bg{position:absolute;top:0;left:0;right:0;bottom:0;background-image:linear-gradient(rgba(79,70,229,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(79,70,229,0.03) 1px,transparent 1px);background-size:50px 50px;animation:px-grid 20s linear infinite;pointer-events:none}
-@keyframes px-grid{to{transform:translate(50px,50px)}}
-.px-orb1{position:absolute;width:350px;height:350px;background:radial-gradient(circle,rgba(79,70,229,0.1),transparent 70%);top:-80px;left:-60px;border-radius:50%;animation:px-ob 10s ease-in-out infinite;pointer-events:none}
-.px-orb2{position:absolute;width:300px;height:300px;background:radial-gradient(circle,rgba(124,58,237,0.08),transparent 70%);bottom:-80px;right:-60px;border-radius:50%;animation:px-ob 12s ease-in-out infinite reverse;pointer-events:none}
-@keyframes px-ob{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,20px) scale(1.1)}}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0f172a;overflow:hidden}
+.px{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:'Inter',sans-serif;position:relative;overflow:hidden;background:#0f172a}
+
+/* Moving grid floor */
+.px-floor{position:absolute;bottom:0;left:0;right:0;height:45%;background:linear-gradient(180deg,transparent,rgba(79,70,229,0.03));overflow:hidden}
+.px-floor::before{content:'';position:absolute;top:0;left:-50%;width:200%;height:100%;
+  background-image:linear-gradient(rgba(79,70,229,0.08) 1px,transparent 1px),linear-gradient(90deg,rgba(79,70,229,0.08) 1px,transparent 1px);
+  background-size:80px 40px;transform:perspective(400px) rotateX(60deg);transform-origin:top center;
+  animation:floor-scroll 1.5s linear infinite}
+@keyframes floor-scroll{to{transform:perspective(400px) rotateX(60deg) translateY(40px)}}
+
+/* Speed lines */
+.speed-lines{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden}
+.sp-line{position:absolute;height:2px;background:linear-gradient(90deg,transparent,rgba(79,70,229,0.4),transparent);animation:sp-fly 0.8s linear infinite;border-radius:2px}
+.sp-line:nth-child(1){top:15%;width:120px;left:-120px;animation-delay:0s;animation-duration:0.7s}
+.sp-line:nth-child(2){top:25%;width:80px;left:-80px;animation-delay:0.2s;animation-duration:0.5s}
+.sp-line:nth-child(3){top:40%;width:150px;left:-150px;animation-delay:0.4s;animation-duration:0.6s}
+.sp-line:nth-child(4){top:55%;width:100px;left:-100px;animation-delay:0.1s;animation-duration:0.8s}
+.sp-line:nth-child(5){top:65%;width:60px;left:-60px;animation-delay:0.3s;animation-duration:0.55s}
+.sp-line:nth-child(6){top:78%;width:130px;left:-130px;animation-delay:0.5s;animation-duration:0.65s}
+.sp-line:nth-child(7){top:35%;width:90px;left:-90px;animation-delay:0.15s;animation-duration:0.45s;background:linear-gradient(90deg,transparent,rgba(124,58,237,0.3),transparent)}
+.sp-line:nth-child(8){top:50%;width:110px;left:-110px;animation-delay:0.35s;animation-duration:0.75s;background:linear-gradient(90deg,transparent,rgba(99,102,241,0.3),transparent)}
+@keyframes sp-fly{to{transform:translateX(calc(100vw + 200px))}}
+
 .px-c{position:relative;z-index:10;text-align:center}
 
-/* Robot Character */
-.robot-wrap{margin:0 auto 24px;width:120px;height:140px;position:relative}
-.robot-head{width:70px;height:56px;background:linear-gradient(135deg,#4F46E5,#7C3AED);border-radius:16px 16px 12px 12px;position:absolute;top:10px;left:25px;box-shadow:0 4px 20px rgba(79,70,229,0.4)}
-.robot-eye{width:12px;height:12px;background:#fff;border-radius:50%;position:absolute;top:20px;animation:px-blink 4s ease-in-out infinite}
-.robot-eye.l{left:14px}.robot-eye.r{right:14px}
-.robot-eye::after{content:'';width:6px;height:6px;background:#0f172a;border-radius:50%;position:absolute;top:3px;left:3px}
-@keyframes px-blink{0%,45%,55%,100%{transform:scaleY(1)}50%{transform:scaleY(0.1)}}
-.robot-antenna{width:4px;height:16px;background:#7C3AED;position:absolute;top:-4px;left:33px;border-radius:2px}
-.robot-antenna::after{content:'';width:10px;height:10px;background:#4F46E5;border-radius:50%;position:absolute;top:-8px;left:-3px;animation:px-glow 2s ease-in-out infinite;box-shadow:0 0 12px rgba(79,70,229,0.8)}
-@keyframes px-glow{0%,100%{box-shadow:0 0 8px rgba(79,70,229,0.6);transform:scale(1)}50%{box-shadow:0 0 20px rgba(79,70,229,1);transform:scale(1.2)}}
-.robot-mouth{width:20px;height:3px;background:rgba(255,255,255,0.6);border-radius:2px;position:absolute;bottom:10px;left:25px;animation:px-talk 2s steps(3) infinite}
-@keyframes px-talk{0%,100%{width:20px}33%{width:14px}66%{width:24px}}
-.robot-body{width:56px;height:44px;background:linear-gradient(180deg,#4338CA,#3730A3);border-radius:8px 8px 12px 12px;position:absolute;top:70px;left:32px;box-shadow:0 4px 16px rgba(67,56,202,0.3)}
-.robot-chest{width:24px;height:24px;border:2px solid rgba(255,255,255,0.2);border-radius:6px;position:absolute;top:8px;left:14px}
-.robot-chest::after{content:'';width:8px;height:8px;background:#34d399;border-radius:50%;position:absolute;top:6px;left:6px;animation:px-pulse 1.5s ease-in-out infinite}
-@keyframes px-pulse{0%,100%{opacity:1;box-shadow:0 0 6px #34d399}50%{opacity:0.5;box-shadow:0 0 16px #34d399}}
-.robot-arm{width:10px;height:32px;background:#4338CA;border-radius:6px;position:absolute;top:74px;animation:px-wave 3s ease-in-out infinite}
-.robot-arm.l{left:18px;transform-origin:top center;animation-name:px-wave-l}
-.robot-arm.r{right:18px;transform-origin:top center;animation-name:px-wave-r}
-@keyframes px-wave-l{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(10deg)}}
-@keyframes px-wave-r{0%,100%{transform:rotate(5deg)}50%{transform:rotate(-10deg)}}
-.robot-leg{width:14px;height:18px;background:#3730A3;border-radius:4px 4px 8px 8px;position:absolute;top:116px}
-.robot-leg.l{left:34px}.robot-leg.r{right:34px}
+/* ══ RUNNING ROBOT ══ */
+.runner-stage{width:200px;height:160px;margin:0 auto 20px;position:relative}
 
-/* Scan beam */
-.px-scan{width:100px;height:2px;background:linear-gradient(90deg,transparent,#4F46E5,transparent);position:absolute;top:10px;left:10px;animation:px-scanmove 2.5s ease-in-out infinite;opacity:0.7;border-radius:2px;box-shadow:0 0 10px rgba(79,70,229,0.5)}
-@keyframes px-scanmove{0%{top:10px;opacity:0}10%{opacity:0.7}90%{opacity:0.7}100%{top:130px;opacity:0}}
+/* Whole robot bounces up/down while running */
+.runner{position:absolute;left:50%;top:20px;transform:translateX(-50%);animation:runner-bounce 0.35s ease-in-out infinite}
+@keyframes runner-bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-12px)}}
 
-/* Data particles */
-.px-particles{position:absolute;width:120px;height:140px;top:0;left:0}
-.px-p{position:absolute;width:3px;height:3px;background:#7C3AED;border-radius:50%;opacity:0;animation:px-float 3s ease-in-out infinite}
-.px-p:nth-child(1){left:10px;top:30px;animation-delay:0s}.px-p:nth-child(2){right:10px;top:50px;animation-delay:0.5s}
-.px-p:nth-child(3){left:5px;top:80px;animation-delay:1s}.px-p:nth-child(4){right:5px;top:20px;animation-delay:1.5s}
-.px-p:nth-child(5){left:50px;top:5px;animation-delay:0.7s}.px-p:nth-child(6){right:15px;top:100px;animation-delay:2s}
-@keyframes px-float{0%{opacity:0;transform:translateY(0) scale(0)}30%{opacity:1;transform:translateY(-10px) scale(1)}70%{opacity:0.8}100%{opacity:0;transform:translateY(-40px) scale(0)}}
+/* Lean forward for speed */
+.runner-body-wrap{transform:rotate(12deg);transform-origin:center bottom}
 
-.px-title{color:#f8fafc;font-size:1.1rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px}
-.px-sub{color:#64748b;font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:28px}
+/* Head */
+.r-head{width:52px;height:42px;background:linear-gradient(135deg,#4F46E5,#7C3AED);border-radius:14px 14px 10px 10px;position:relative;margin:0 auto;box-shadow:0 0 24px rgba(79,70,229,0.5)}
+.r-eye{width:10px;height:10px;background:#fff;border-radius:50%;position:absolute;top:14px}
+.r-eye.l{left:10px}.r-eye.r{right:10px}
+.r-eye::after{content:'';width:5px;height:5px;background:#0f172a;border-radius:50%;position:absolute;top:2px;left:4px}
+.r-mouth{width:16px;height:2px;background:rgba(255,255,255,0.5);border-radius:2px;position:absolute;bottom:8px;left:18px}
+.r-antenna{width:3px;height:14px;background:#7C3AED;position:absolute;top:-12px;left:24px;border-radius:2px}
+.r-antenna::after{content:'';width:8px;height:8px;background:#4F46E5;border-radius:50%;position:absolute;top:-6px;left:-2.5px;box-shadow:0 0 14px rgba(79,70,229,1);animation:ant-glow 0.5s ease-in-out infinite alternate}
+@keyframes ant-glow{to{box-shadow:0 0 24px rgba(79,70,229,1);transform:scale(1.3)}}
 
+/* Body */
+.r-torso{width:42px;height:34px;background:linear-gradient(180deg,#4338CA,#3730A3);border-radius:6px 6px 10px 10px;margin:2px auto 0;position:relative;box-shadow:0 0 16px rgba(67,56,202,0.3)}
+.r-core{width:14px;height:14px;border:2px solid rgba(255,255,255,0.2);border-radius:4px;position:absolute;top:8px;left:12px}
+.r-core::after{content:'';width:6px;height:6px;background:#34d399;border-radius:50%;position:absolute;top:2px;left:2px;box-shadow:0 0 8px #34d399;animation:core-p 0.4s ease-in-out infinite alternate}
+@keyframes core-p{to{box-shadow:0 0 18px #34d399}}
+
+/* Running arms — pump fast like sprinting */
+.r-arm{width:8px;height:28px;background:#4338CA;border-radius:5px;position:absolute;top:46px;transform-origin:top center}
+.r-arm.l{left:8px;animation:arm-pump-l 0.35s ease-in-out infinite}
+.r-arm.r{right:8px;animation:arm-pump-r 0.35s ease-in-out infinite}
+@keyframes arm-pump-l{0%{transform:rotate(45deg)}50%{transform:rotate(-45deg)}100%{transform:rotate(45deg)}}
+@keyframes arm-pump-r{0%{transform:rotate(-45deg)}50%{transform:rotate(45deg)}100%{transform:rotate(-45deg)}}
+
+/* Running legs — fast stride */
+.r-leg{width:10px;height:24px;background:#3730A3;border-radius:4px 4px 6px 6px;position:absolute;top:78px;transform-origin:top center}
+.r-leg.l{left:16px;animation:leg-run-l 0.35s ease-in-out infinite}
+.r-leg.r{right:16px;animation:leg-run-r 0.35s ease-in-out infinite}
+@keyframes leg-run-l{0%{transform:rotate(35deg)}50%{transform:rotate(-35deg)}100%{transform:rotate(35deg)}}
+@keyframes leg-run-r{0%{transform:rotate(-35deg)}50%{transform:rotate(35deg)}100%{transform:rotate(-35deg)}}
+
+/* Speed trail behind robot */
+.r-trail{position:absolute;left:50%;top:40px;transform:translateX(-50%)}
+.r-trail-line{position:absolute;height:3px;border-radius:2px;right:40px;animation:trail-fade 0.6s linear infinite}
+.r-trail-line:nth-child(1){top:0;width:40px;background:rgba(79,70,229,0.5);animation-delay:0s}
+.r-trail-line:nth-child(2){top:14px;width:55px;background:rgba(124,58,237,0.4);animation-delay:0.1s}
+.r-trail-line:nth-child(3){top:28px;width:35px;background:rgba(99,102,241,0.3);animation-delay:0.2s}
+.r-trail-line:nth-child(4){top:42px;width:50px;background:rgba(79,70,229,0.35);animation-delay:0.15s}
+.r-trail-line:nth-child(5){top:56px;width:30px;background:rgba(124,58,237,0.25);animation-delay:0.25s}
+@keyframes trail-fade{0%{opacity:1;transform:translateX(0) scaleX(1)}100%{opacity:0;transform:translateX(-60px) scaleX(0.3)}}
+
+/* Dust puffs at feet */
+.r-dust{position:absolute;bottom:10px;left:50%;transform:translateX(-50%)}
+.r-puff{position:absolute;border-radius:50%;background:rgba(148,163,184,0.2);animation:puff-up 0.7s ease-out infinite}
+.r-puff:nth-child(1){width:12px;height:12px;bottom:0;left:-20px;animation-delay:0s}
+.r-puff:nth-child(2){width:8px;height:8px;bottom:4px;left:-10px;animation-delay:0.15s}
+.r-puff:nth-child(3){width:10px;height:10px;bottom:0;left:-30px;animation-delay:0.3s}
+@keyframes puff-up{0%{opacity:0.6;transform:scale(1) translateY(0)}100%{opacity:0;transform:scale(2.5) translateY(-20px)}}
+
+/* Floating energy sparks */
+.r-sparks{position:absolute;width:200px;height:160px;top:0;left:0;pointer-events:none}
+.r-spark{position:absolute;width:3px;height:3px;background:#a5b4fc;border-radius:50%;animation:spark-fly 1s linear infinite}
+.r-spark:nth-child(1){top:30px;left:20px;animation-delay:0s;animation-duration:0.8s}
+.r-spark:nth-child(2){top:60px;left:10px;animation-delay:0.3s;animation-duration:0.6s}
+.r-spark:nth-child(3){top:45px;left:30px;animation-delay:0.5s;animation-duration:0.9s}
+.r-spark:nth-child(4){top:80px;left:15px;animation-delay:0.2s;animation-duration:0.7s}
+@keyframes spark-fly{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(-80px,-20px)}}
+
+.px-title{color:#f8fafc;font-size:1.2rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px}
+.px-sub{color:#64748b;font-size:0.7rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:24px}
 .px-msg{color:#94a3b8;font-size:0.82rem;font-weight:500;min-height:22px}
 .px-msg-line{animation:px-fadein 0.5s ease forwards;opacity:0}
 @keyframes px-fadein{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
-
-.px-track{width:220px;height:3px;background:rgba(79,70,229,0.1);border-radius:3px;margin:20px auto 0;overflow:hidden}
-.px-bar{height:100%;width:30%;background:linear-gradient(90deg,#4F46E5,#7C3AED,#4F46E5);border-radius:3px;animation:px-slide 2s ease-in-out infinite}
+.px-track{width:240px;height:3px;background:rgba(79,70,229,0.1);border-radius:3px;margin:18px auto 0;overflow:hidden}
+.px-bar{height:100%;width:30%;background:linear-gradient(90deg,#4F46E5,#7C3AED,#4F46E5);border-radius:3px;animation:px-slide 1.2s ease-in-out infinite}
 @keyframes px-slide{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
-
-.px-dots{display:flex;gap:6px;justify-content:center;margin-top:24px}
+.px-dots{display:flex;gap:6px;justify-content:center;margin-top:20px}
 .px-dt{width:6px;height:6px;border-radius:50%;animation:px-dp 3s ease-in-out infinite}
 .px-dt:nth-child(1){background:#4F46E5;animation-delay:0s}.px-dt:nth-child(2){background:#7C3AED;animation-delay:0.3s}
 .px-dt:nth-child(3){background:#06b6d4;animation-delay:0.6s}.px-dt:nth-child(4){background:#10b981;animation-delay:0.9s}
@@ -172,26 +219,45 @@ PROCESSING_HTML = """
 </style>
 
 <div class="px">
-  <div class="px-bg"></div>
-  <div class="px-orb1"></div>
-  <div class="px-orb2"></div>
+  <div class="px-floor"></div>
+  <div class="speed-lines">
+    <div class="sp-line"></div><div class="sp-line"></div><div class="sp-line"></div><div class="sp-line"></div>
+    <div class="sp-line"></div><div class="sp-line"></div><div class="sp-line"></div><div class="sp-line"></div>
+  </div>
+
   <div class="px-c">
-    <div class="robot-wrap">
-      <div class="robot-antenna"></div>
-      <div class="robot-head">
-        <div class="robot-eye l"></div>
-        <div class="robot-eye r"></div>
-        <div class="robot-mouth"></div>
+    <div class="runner-stage">
+      <!-- Speed trail -->
+      <div class="r-trail">
+        <div class="r-trail-line"></div><div class="r-trail-line"></div><div class="r-trail-line"></div>
+        <div class="r-trail-line"></div><div class="r-trail-line"></div>
       </div>
-      <div class="robot-arm l"></div>
-      <div class="robot-body"><div class="robot-chest"></div></div>
-      <div class="robot-arm r"></div>
-      <div class="robot-leg l"></div>
-      <div class="robot-leg r"></div>
-      <div class="px-scan"></div>
-      <div class="px-particles">
-        <div class="px-p"></div><div class="px-p"></div><div class="px-p"></div>
-        <div class="px-p"></div><div class="px-p"></div><div class="px-p"></div>
+
+      <!-- Robot -->
+      <div class="runner">
+        <div class="runner-body-wrap">
+          <div class="r-antenna"></div>
+          <div class="r-head">
+            <div class="r-eye l"></div>
+            <div class="r-eye r"></div>
+            <div class="r-mouth"></div>
+          </div>
+          <div class="r-arm l"></div>
+          <div class="r-torso"><div class="r-core"></div></div>
+          <div class="r-arm r"></div>
+          <div class="r-leg l"></div>
+          <div class="r-leg r"></div>
+        </div>
+      </div>
+
+      <!-- Dust puffs -->
+      <div class="r-dust">
+        <div class="r-puff"></div><div class="r-puff"></div><div class="r-puff"></div>
+      </div>
+
+      <!-- Energy sparks -->
+      <div class="r-sparks">
+        <div class="r-spark"></div><div class="r-spark"></div><div class="r-spark"></div><div class="r-spark"></div>
       </div>
     </div>
 
