@@ -770,8 +770,8 @@ st.markdown("""
     </span>
   </div>
   <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:16px; flex-wrap:wrap; font-weight: 600; align-items:center;">
-    <span style="background:#F3F4F6; padding:4px 8px; border-radius:6px; border:1px solid #E5E7EB;">v6.0</span>
-    <span>Build: 24-03-2026</span>
+    <span style="background:#F3F4F6; padding:4px 8px; border-radius:6px; border:1px solid #E5E7EB;">v6.1</span>
+    <span>Build: 28-03-2026</span>
     <span style="color:#059669;">● Production</span>
     <span style="color:var(--text-blue); background:#EEF2FF; padding:4px 8px; border-radius:6px; font-weight:800; border:1px solid rgba(79, 70, 229, 0.2);">GST: 24AAHCV1611L2ZD</span>
   </div>
