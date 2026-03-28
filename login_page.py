@@ -22,8 +22,14 @@ div[data-testid="stToolbar"] { display: none !important; }
 footer { display: none !important; }
 div[data-testid="stStatusWidget"] { display: none !important; }
 .block-container { padding-top: 2rem !important; }
-/* Hide "Press Enter to submit form" helper text */
-div[data-testid="stForm"] .stTextInput div[data-testid="InputInstructions"] { display: none !important; }
+/* Fix helper text position so it doesn't overlap input */
+div[data-testid="stForm"] .stTextInput div[data-testid="InputInstructions"] {
+    position: relative !important;
+    text-align: right !important;
+    margin-top: 4px !important;
+    font-size: 0.7rem !important;
+    color: #94A3B8 !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
