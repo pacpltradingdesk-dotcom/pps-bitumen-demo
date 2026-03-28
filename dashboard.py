@@ -219,7 +219,8 @@ setInterval(function(){var e=document.getElementById("px-msg");if(e){e.innerHTML
 """
 
 def render_processing():
-    st.markdown(PROCESSING_HTML, unsafe_allow_html=True)
+    import streamlit.components.v1 as components
+    components.html(PROCESSING_HTML, height=700, scrolling=False)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
