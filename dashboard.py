@@ -1,690 +1,323 @@
 """
-PPS Anantam — Bitumen Sales Dashboard
-Coming Soon / Demo Preview
+PPS Anantam — Bitumen Sales Dashboard v6.1
+Login → Command Center (real) → Click anything → Processing animation
 """
+
 import streamlit as st
+import datetime
+import json
 import base64
 import os
+
+# Navigation
+from nav_config import MODULE_NAV, TOPBAR_MODULES, OVERFLOW_MODULES, PAGE_REDIRECTS
+from nav_config import get_tabs, get_module_for_page, get_feature_idx_for_page, resolve_page
+from theme import inject_theme
+from top_bar import render_top_bar
+from subtab_bar import render_sidebar_features
+
+try:
+    from pdf_export_bar import render_export_bar, inject_print_css
+    _PDF_BAR_OK = True
+except Exception:
+    _PDF_BAR_OK = False
+    def render_export_bar(*a, **kw): pass
+    def inject_print_css(): pass
+
+_CONFIDENCE_OK = False
+def render_confidence_bar(*a, **kw): pass
+def render_data_health_card(*a, **kw): pass
+try:
+    from data_confidence_engine import render_confidence_bar, render_data_health_card
+    _CONFIDENCE_OK = True
+except Exception:
+    pass
+
+try:
+    from role_engine import render_login_form, get_current_role, check_role, init_roles
+    init_roles()
+    _ROLE_OK = True
+except Exception:
+    _ROLE_OK = False
+    def render_login_form(): return True
+    def get_current_role(): return "admin"
+    def check_role(r): return True
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ENGINE STARTUP
+# ═══════════════════════════════════════════════════════════════════════════════
+def _init_engines():
+    if st.session_state.get("_engines_started"):
+        return
+    for mod, fn in [
+        ("api_manager", lambda m: (m.init_system(), m.start_auto_health())),
+        ("sre_engine", lambda m: (m.init_sre(), m.start_sre_background(interval_min=15))),
+        ("api_hub_engine", lambda m: (m.init_hub(), m.start_hub_scheduler(interval_min=60))),
+        ("sync_engine", lambda m: m.start_sync_scheduler(interval_minutes=60)),
+        ("email_engine", lambda m: m.start_email_scheduler()),
+        ("whatsapp_engine", lambda m: m.start_whatsapp_scheduler()),
+        ("port_tracker_engine", lambda m: m.init_port_tracker()),
+        ("directory_engine", lambda m: m.init_directory()),
+    ]:
+        try:
+            fn(__import__(mod))
+        except Exception:
+            pass
+    try:
+        from resilience_manager import HeartbeatMonitor
+        HeartbeatMonitor.start_checker()
+    except Exception:
+        pass
+    st.session_state["_engines_started"] = True
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PAGE CONFIG
 # ═══════════════════════════════════════════════════════════════════════════════
 st.set_page_config(
-    page_title="PPS Anantam — Bitumen Dashboard",
+    page_title="PPS Anantam — Bitumen Dashboard v6.1",
     page_icon="🏛️",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
+inject_theme()
+
 # ═══════════════════════════════════════════════════════════════════════════════
-# HIDE STREAMLIT DEFAULTS
+# LOGIN GATE
 # ═══════════════════════════════════════════════════════════════════════════════
-st.markdown("""
+from login_page import render_login
+if not render_login():
+    st.stop()
+
+_init_engines()
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# SESSION STATE
+# ═══════════════════════════════════════════════════════════════════════════════
+if "selected_page" not in st.session_state:
+    st.session_state["selected_page"] = "🎯 Command Center"
+if "_active_module" not in st.session_state:
+    st.session_state["_active_module"] = st.session_state.get("selected_module", "📊 Price & Info")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PROCESSING ANIMATION (shown for ALL pages except Command Center)
+# ═══════════════════════════════════════════════════════════════════════════════
+PROCESSING_HTML = """
 <style>
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
-    [data-testid="stSidebar"] {display: none;}
-    [data-testid="collapsedControl"] {display: none;}
-    .stDeployButton {display: none;}
-    .stApp {background: #0f172a;}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+.px{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:72vh;font-family:'Inter',sans-serif;position:relative;overflow:hidden}
+.px-bg{position:absolute;top:0;left:0;right:0;bottom:0;background-image:linear-gradient(rgba(79,70,229,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(79,70,229,0.03) 1px,transparent 1px);background-size:50px 50px;animation:px-grid 20s linear infinite;pointer-events:none}
+@keyframes px-grid{to{transform:translate(50px,50px)}}
+.px-orb1{position:absolute;width:350px;height:350px;background:radial-gradient(circle,rgba(79,70,229,0.1),transparent 70%);top:-80px;left:-60px;border-radius:50%;animation:px-ob 10s ease-in-out infinite;pointer-events:none}
+.px-orb2{position:absolute;width:300px;height:300px;background:radial-gradient(circle,rgba(124,58,237,0.08),transparent 70%);bottom:-80px;right:-60px;border-radius:50%;animation:px-ob 12s ease-in-out infinite reverse;pointer-events:none}
+@keyframes px-ob{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(30px,20px) scale(1.1)}}
+.px-c{position:relative;z-index:10;text-align:center}
 
-    .block-container {
-        padding: 0 !important;
-        max-width: 100% !important;
-    }
-    [data-testid="stAppViewBlockContainer"] {
-        padding: 0 !important;
-    }
+/* Robot Character */
+.robot-wrap{margin:0 auto 24px;width:120px;height:140px;position:relative}
+.robot-head{width:70px;height:56px;background:linear-gradient(135deg,#4F46E5,#7C3AED);border-radius:16px 16px 12px 12px;position:absolute;top:10px;left:25px;box-shadow:0 4px 20px rgba(79,70,229,0.4)}
+.robot-eye{width:12px;height:12px;background:#fff;border-radius:50%;position:absolute;top:20px;animation:px-blink 4s ease-in-out infinite}
+.robot-eye.l{left:14px}.robot-eye.r{right:14px}
+.robot-eye::after{content:'';width:6px;height:6px;background:#0f172a;border-radius:50%;position:absolute;top:3px;left:3px}
+@keyframes px-blink{0%,45%,55%,100%{transform:scaleY(1)}50%{transform:scaleY(0.1)}}
+.robot-antenna{width:4px;height:16px;background:#7C3AED;position:absolute;top:-4px;left:33px;border-radius:2px}
+.robot-antenna::after{content:'';width:10px;height:10px;background:#4F46E5;border-radius:50%;position:absolute;top:-8px;left:-3px;animation:px-glow 2s ease-in-out infinite;box-shadow:0 0 12px rgba(79,70,229,0.8)}
+@keyframes px-glow{0%,100%{box-shadow:0 0 8px rgba(79,70,229,0.6);transform:scale(1)}50%{box-shadow:0 0 20px rgba(79,70,229,1);transform:scale(1.2)}}
+.robot-mouth{width:20px;height:3px;background:rgba(255,255,255,0.6);border-radius:2px;position:absolute;bottom:10px;left:25px;animation:px-talk 2s steps(3) infinite}
+@keyframes px-talk{0%,100%{width:20px}33%{width:14px}66%{width:24px}}
+.robot-body{width:56px;height:44px;background:linear-gradient(180deg,#4338CA,#3730A3);border-radius:8px 8px 12px 12px;position:absolute;top:70px;left:32px;box-shadow:0 4px 16px rgba(67,56,202,0.3)}
+.robot-chest{width:24px;height:24px;border:2px solid rgba(255,255,255,0.2);border-radius:6px;position:absolute;top:8px;left:14px}
+.robot-chest::after{content:'';width:8px;height:8px;background:#34d399;border-radius:50%;position:absolute;top:6px;left:6px;animation:px-pulse 1.5s ease-in-out infinite}
+@keyframes px-pulse{0%,100%{opacity:1;box-shadow:0 0 6px #34d399}50%{opacity:0.5;box-shadow:0 0 16px #34d399}}
+.robot-arm{width:10px;height:32px;background:#4338CA;border-radius:6px;position:absolute;top:74px;animation:px-wave 3s ease-in-out infinite}
+.robot-arm.l{left:18px;transform-origin:top center;animation-name:px-wave-l}
+.robot-arm.r{right:18px;transform-origin:top center;animation-name:px-wave-r}
+@keyframes px-wave-l{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(10deg)}}
+@keyframes px-wave-r{0%,100%{transform:rotate(5deg)}50%{transform:rotate(-10deg)}}
+.robot-leg{width:14px;height:18px;background:#3730A3;border-radius:4px 4px 8px 8px;position:absolute;top:116px}
+.robot-leg.l{left:34px}.robot-leg.r{right:34px}
+
+/* Scan beam */
+.px-scan{width:100px;height:2px;background:linear-gradient(90deg,transparent,#4F46E5,transparent);position:absolute;top:10px;left:10px;animation:px-scanmove 2.5s ease-in-out infinite;opacity:0.7;border-radius:2px;box-shadow:0 0 10px rgba(79,70,229,0.5)}
+@keyframes px-scanmove{0%{top:10px;opacity:0}10%{opacity:0.7}90%{opacity:0.7}100%{top:130px;opacity:0}}
+
+/* Data particles */
+.px-particles{position:absolute;width:120px;height:140px;top:0;left:0}
+.px-p{position:absolute;width:3px;height:3px;background:#7C3AED;border-radius:50%;opacity:0;animation:px-float 3s ease-in-out infinite}
+.px-p:nth-child(1){left:10px;top:30px;animation-delay:0s}.px-p:nth-child(2){right:10px;top:50px;animation-delay:0.5s}
+.px-p:nth-child(3){left:5px;top:80px;animation-delay:1s}.px-p:nth-child(4){right:5px;top:20px;animation-delay:1.5s}
+.px-p:nth-child(5){left:50px;top:5px;animation-delay:0.7s}.px-p:nth-child(6){right:15px;top:100px;animation-delay:2s}
+@keyframes px-float{0%{opacity:0;transform:translateY(0) scale(0)}30%{opacity:1;transform:translateY(-10px) scale(1)}70%{opacity:0.8}100%{opacity:0;transform:translateY(-40px) scale(0)}}
+
+.px-title{color:#f8fafc;font-size:1.1rem;font-weight:800;letter-spacing:-0.02em;margin-bottom:4px}
+.px-sub{color:#64748b;font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:28px}
+
+.px-msg{color:#94a3b8;font-size:0.82rem;font-weight:500;min-height:22px}
+.px-msg-line{animation:px-fadein 0.5s ease forwards;opacity:0}
+@keyframes px-fadein{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+.px-track{width:220px;height:3px;background:rgba(79,70,229,0.1);border-radius:3px;margin:20px auto 0;overflow:hidden}
+.px-bar{height:100%;width:30%;background:linear-gradient(90deg,#4F46E5,#7C3AED,#4F46E5);border-radius:3px;animation:px-slide 2s ease-in-out infinite}
+@keyframes px-slide{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+
+.px-dots{display:flex;gap:6px;justify-content:center;margin-top:24px}
+.px-dt{width:6px;height:6px;border-radius:50%;animation:px-dp 3s ease-in-out infinite}
+.px-dt:nth-child(1){background:#4F46E5;animation-delay:0s}.px-dt:nth-child(2){background:#7C3AED;animation-delay:0.3s}
+.px-dt:nth-child(3){background:#06b6d4;animation-delay:0.6s}.px-dt:nth-child(4){background:#10b981;animation-delay:0.9s}
+.px-dt:nth-child(5){background:#f59e0b;animation-delay:1.2s}.px-dt:nth-child(6){background:#ef4444;animation-delay:1.5s}
+@keyframes px-dp{0%,100%{opacity:0.3;transform:scale(1)}50%{opacity:1;transform:scale(1.5)}}
 </style>
-""", unsafe_allow_html=True)
+
+<div class="px">
+  <div class="px-bg"></div>
+  <div class="px-orb1"></div>
+  <div class="px-orb2"></div>
+  <div class="px-c">
+    <div class="robot-wrap">
+      <div class="robot-antenna"></div>
+      <div class="robot-head">
+        <div class="robot-eye l"></div>
+        <div class="robot-eye r"></div>
+        <div class="robot-mouth"></div>
+      </div>
+      <div class="robot-arm l"></div>
+      <div class="robot-body"><div class="robot-chest"></div></div>
+      <div class="robot-arm r"></div>
+      <div class="robot-leg l"></div>
+      <div class="robot-leg r"></div>
+      <div class="px-scan"></div>
+      <div class="px-particles">
+        <div class="px-p"></div><div class="px-p"></div><div class="px-p"></div>
+        <div class="px-p"></div><div class="px-p"></div><div class="px-p"></div>
+      </div>
+    </div>
+
+    <div class="px-title">PPS Anantams</div>
+    <div class="px-sub">AI Commander Processing</div>
+
+    <div class="px-msg" id="px-msg">
+      <div class="px-msg-line">Initializing AI Commander...</div>
+    </div>
+
+    <div class="px-track"><div class="px-bar"></div></div>
+
+    <div class="px-dots">
+      <div class="px-dt"></div><div class="px-dt"></div><div class="px-dt"></div>
+      <div class="px-dt"></div><div class="px-dt"></div><div class="px-dt"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var pxMsgs=["Initializing AI Commander...","Connecting to Market Data APIs...","Loading 25,000+ CRM Contacts...","Syncing Brent Crude & VG30 Prices...","Calibrating Price Prediction Engine...","Loading Refinery Supply Data...","Processing Market Intelligence Signals...","Connecting to News Aggregator...","Loading Logistics & Port Data...","Syncing NHAI Tender Pipeline...","Initializing Communication Hub...","Loading Financial Intelligence...","Warming up ML Forecast Models...","Connecting to Telegram Channels...","Loading Competitor Price Data...","Almost Ready — Final Checks..."];
+var pxI=0;
+setInterval(function(){var e=document.getElementById("px-msg");if(e){e.innerHTML='<div class="px-msg-line">'+pxMsgs[pxI]+'</div>';pxI=(pxI+1)%pxMsgs.length;}},3000);
+</script>
+"""
+
+def render_processing():
+    st.markdown(PROCESSING_HTML, unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# LOGO HELPER
+# COMMAND CENTER — real page, full render
 # ═══════════════════════════════════════════════════════════════════════════════
-def get_logo_base64():
-    logo_path = os.path.join(os.path.dirname(__file__), "pps_logo_brand.jpg")
-    if os.path.exists(logo_path):
-        with open(logo_path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    return None
+if st.session_state.get("selected_page") == "🎯 Command Center":
+    render_sidebar_features("📊 Price & Info")
+    try:
+        from pages.home.command_center import render as render_cc
+        render_cc()
+    except Exception:
+        try:
+            from command_intel import command_center_home as cmd_cc
+            cmd_cc.render()
+        except Exception as e:
+            st.error(f"Command Center failed: {e}")
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# LOGIN PAGE
-# ═══════════════════════════════════════════════════════════════════════════════
-def render_login():
-    logo_b64 = get_logo_base64()
-    if logo_b64:
-        logo_html = f'<img src="data:image/jpeg;base64,{logo_b64}" style="width:90px; height:90px; border-radius:20px; object-fit:cover; box-shadow: 0 8px 32px rgba(79, 70, 229, 0.3);">'
-    else:
-        logo_html = '<div style="width:90px; height:90px; border-radius:20px; background: linear-gradient(135deg, #4F46E5, #7C3AED); display:flex; align-items:center; justify-content:center; font-size:2.2rem; color:white; font-weight:900; box-shadow: 0 8px 32px rgba(79, 70, 229, 0.3);">PP</div>'
-
-    st.markdown(f"""
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
-        .login-container {{
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #0f172a;
-            font-family: 'Inter', -apple-system, sans-serif;
-            position: relative;
-            overflow: hidden;
-        }}
-
-        .login-container::before {{
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image:
-                linear-gradient(rgba(79, 70, 229, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(79, 70, 229, 0.03) 1px, transparent 1px);
-            background-size: 60px 60px;
-            animation: gridMove 20s linear infinite;
-        }}
-
-        @keyframes gridMove {{
-            0% {{ transform: translate(0, 0); }}
-            100% {{ transform: translate(60px, 60px); }}
-        }}
-
-        .login-container::after {{
-            content: '';
-            position: absolute;
-            width: 400px; height: 400px;
-            background: radial-gradient(circle, rgba(79, 70, 229, 0.15), transparent 70%);
-            top: -100px; right: -100px;
-            border-radius: 50%;
-            animation: float 8s ease-in-out infinite;
-        }}
-
-        @keyframes float {{
-            0%, 100% {{ transform: translate(0, 0) scale(1); }}
-            50% {{ transform: translate(-30px, 30px) scale(1.1); }}
-        }}
-
-        .login-card {{
-            background: rgba(30, 41, 59, 0.8);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(79, 70, 229, 0.2);
-            border-radius: 24px;
-            padding: 48px 40px;
-            width: 420px;
-            max-width: 90vw;
-            position: relative;
-            z-index: 10;
-            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4), 0 0 120px rgba(79, 70, 229, 0.1);
-        }}
-
-        .login-logo {{
-            text-align: center;
-            margin-bottom: 32px;
-        }}
-
-        .login-title {{
-            text-align: center;
-            color: #f8fafc;
-            font-size: 1.6rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
-            margin: 16px 0 4px;
-        }}
-
-        .login-subtitle {{
-            text-align: center;
-            color: #94a3b8;
-            font-size: 0.85rem;
-            font-weight: 500;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            margin-bottom: 36px;
-        }}
-
-        .login-badge {{
-            display: inline-block;
-            background: rgba(79, 70, 229, 0.15);
-            color: #a5b4fc;
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 4px 12px;
-            border-radius: 20px;
-            letter-spacing: 0.1em;
-            border: 1px solid rgba(79, 70, 229, 0.3);
-            margin-top: 8px;
-        }}
-
-        .login-footer {{
-            text-align: center;
-            margin-top: 32px;
-            padding-top: 24px;
-            border-top: 1px solid rgba(148, 163, 184, 0.1);
-        }}
-
-        .login-footer-text {{
-            color: #64748b;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }}
-
-        .login-footer-company {{
-            color: #94a3b8;
-            font-size: 0.7rem;
-            font-weight: 600;
-            margin-top: 4px;
-            letter-spacing: 0.05em;
-        }}
-
-        .login-gst {{
-            display: inline-block;
-            background: rgba(5, 150, 105, 0.1);
-            color: #34d399;
-            font-size: 0.65rem;
-            font-weight: 700;
-            padding: 3px 10px;
-            border-radius: 6px;
-            margin-top: 8px;
-            letter-spacing: 0.05em;
-        }}
-
-        .stTextInput > div > div > input {{
-            background: rgba(15, 23, 42, 0.8) !important;
-            border: 1px solid rgba(79, 70, 229, 0.3) !important;
-            border-radius: 12px !important;
-            color: #f8fafc !important;
-            padding: 14px 16px !important;
-            font-size: 1.1rem !important;
-            font-family: 'Inter', monospace !important;
-            letter-spacing: 0.3em !important;
-            text-align: center !important;
-            font-weight: 600 !important;
-        }}
-
-        .stTextInput > div > div > input:focus {{
-            border-color: #4F46E5 !important;
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2) !important;
-        }}
-
-        .stTextInput > div > div > input::placeholder {{
-            color: #475569 !important;
-            letter-spacing: 0.15em !important;
-            font-weight: 400 !important;
-        }}
-
-        .stTextInput label {{
-            color: #94a3b8 !important;
-            font-size: 0.8rem !important;
-            font-weight: 600 !important;
-            letter-spacing: 0.05em !important;
-            text-transform: uppercase !important;
-        }}
-
-        .stButton > button {{
-            background: linear-gradient(135deg, #4F46E5, #7C3AED) !important;
-            color: white !important;
-            border: none !important;
-            border-radius: 12px !important;
-            padding: 14px 32px !important;
-            font-size: 0.95rem !important;
-            font-weight: 700 !important;
-            width: 100% !important;
-            letter-spacing: 0.05em !important;
-            transition: all 0.3s ease !important;
-            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3) !important;
-            font-family: 'Inter', sans-serif !important;
-        }}
-
-        .stButton > button:hover {{
-            transform: translateY(-2px) !important;
-            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4) !important;
-        }}
-
-        .stAlert {{
-            background: rgba(239, 68, 68, 0.1) !important;
-            border: 1px solid rgba(239, 68, 68, 0.3) !important;
-            border-radius: 12px !important;
-        }}
-
-        div[data-testid="stForm"] {{
-            border: none !important;
-            padding: 0 !important;
-        }}
-    </style>
-
-    <div class="login-container">
-        <div class="login-card">
-            <div class="login-logo">
-                {logo_html}
-                <div class="login-title">PPS Anantams</div>
-                <div class="login-subtitle">Enterprise Bitumen Desk</div>
-                <div class="login-badge">AI COMMANDER v6.1</div>
-            </div>
-    """, unsafe_allow_html=True)
-
-    with st.form("login_form", clear_on_submit=True):
-        pin = st.text_input("Enter Access PIN", type="password", placeholder="* * * *", max_chars=6)
-        submitted = st.form_submit_button("Access Dashboard")
-
-        if submitted:
-            if pin and len(pin) >= 4:
-                st.session_state["authenticated"] = True
-                st.rerun()
-            elif pin:
-                st.error("Invalid PIN. Please try again.")
-
+    # Block news modals and hide any popups — clicks still work for navigation
     st.markdown("""
-            <div class="login-footer">
-                <div class="login-footer-text">Vadodara, Gujarat &bull; India</div>
-                <div class="login-footer-company">PPS Anantams Corporation Pvt Ltd</div>
-                <div class="login-gst">GST: 24AAHCV1611L2ZD</div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# PROCESSING / COMING SOON PAGE
-# ═══════════════════════════════════════════════════════════════════════════════
-def render_coming_soon():
-    logo_b64 = get_logo_base64()
-    if logo_b64:
-        logo_html = f'<img src="data:image/jpeg;base64,{logo_b64}" style="width:70px; height:70px; border-radius:16px; object-fit:cover; box-shadow: 0 4px 20px rgba(79, 70, 229, 0.3);">'
-    else:
-        logo_html = '<div style="width:70px; height:70px; border-radius:16px; background: linear-gradient(135deg, #4F46E5, #7C3AED); display:flex; align-items:center; justify-content:center; font-size:1.8rem; color:white; font-weight:900;">PP</div>'
-
-    messages = [
-        "Initializing AI Commander...",
-        "Connecting to Market Data APIs...",
-        "Loading 25,000+ CRM Contacts...",
-        "Syncing Brent Crude & VG30 Prices...",
-        "Calibrating Price Prediction Engine...",
-        "Loading Refinery Supply Data...",
-        "Processing Market Intelligence Signals...",
-        "Connecting to News Aggregator...",
-        "Loading Logistics & Port Data...",
-        "Syncing NHAI Tender Pipeline...",
-        "Initializing Communication Hub...",
-        "Loading Financial Intelligence...",
-        "Warming up ML Forecast Models...",
-        "Connecting to Telegram Channels...",
-        "Loading Competitor Price Data...",
-        "Almost Ready — Final Checks...",
-    ]
-
-    import json
-    messages_js = json.dumps(messages)
-
-    st.markdown(f"""
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
-        .cs-wrapper {{
-            min-height: 100vh;
-            background: #0f172a;
-            font-family: 'Inter', -apple-system, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }}
-
-        .cs-wrapper::before {{
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image:
-                linear-gradient(rgba(79, 70, 229, 0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(79, 70, 229, 0.04) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: gridMove 25s linear infinite;
-        }}
-
-        @keyframes gridMove {{
-            0% {{ transform: translate(0, 0); }}
-            100% {{ transform: translate(50px, 50px); }}
-        }}
-
-        .cs-orb-1 {{
-            position: absolute;
-            width: 500px; height: 500px;
-            background: radial-gradient(circle, rgba(79, 70, 229, 0.12), transparent 70%);
-            top: -150px; left: -100px;
-            border-radius: 50%;
-            animation: orbFloat1 10s ease-in-out infinite;
-        }}
-
-        .cs-orb-2 {{
-            position: absolute;
-            width: 400px; height: 400px;
-            background: radial-gradient(circle, rgba(124, 58, 237, 0.1), transparent 70%);
-            bottom: -100px; right: -80px;
-            border-radius: 50%;
-            animation: orbFloat2 12s ease-in-out infinite;
-        }}
-
-        @keyframes orbFloat1 {{
-            0%, 100% {{ transform: translate(0, 0) scale(1); }}
-            50% {{ transform: translate(40px, 20px) scale(1.15); }}
-        }}
-
-        @keyframes orbFloat2 {{
-            0%, 100% {{ transform: translate(0, 0) scale(1); }}
-            50% {{ transform: translate(-30px, -20px) scale(1.1); }}
-        }}
-
-        .cs-content {{
-            position: relative;
-            z-index: 10;
-            text-align: center;
-            max-width: 600px;
-            padding: 40px;
-        }}
-
-        .cs-logo {{
-            margin-bottom: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-        }}
-
-        .cs-logo-text {{ text-align: left; }}
-
-        .cs-logo-title {{
-            color: #f8fafc;
-            font-size: 1.5rem;
-            font-weight: 800;
-            letter-spacing: -0.02em;
-        }}
-
-        .cs-logo-sub {{
-            color: #64748b;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }}
-
-        .cs-spinner-box {{
-            margin: 40px auto;
-            position: relative;
-            width: 120px;
-            height: 120px;
-        }}
-
-        .cs-spinner {{
-            width: 120px; height: 120px;
-            border-radius: 50%;
-            border: 3px solid rgba(79, 70, 229, 0.1);
-            border-top: 3px solid #4F46E5;
-            animation: spin 1.2s linear infinite;
-            position: absolute;
-        }}
-
-        .cs-spinner-2 {{
-            width: 90px; height: 90px;
-            border-radius: 50%;
-            border: 3px solid rgba(124, 58, 237, 0.1);
-            border-top: 3px solid #7C3AED;
-            animation: spin 1.8s linear infinite reverse;
-            position: absolute;
-            top: 15px; left: 15px;
-        }}
-
-        .cs-spinner-3 {{
-            width: 60px; height: 60px;
-            border-radius: 50%;
-            border: 3px solid rgba(99, 102, 241, 0.1);
-            border-top: 3px solid #6366F1;
-            animation: spin 0.9s linear infinite;
-            position: absolute;
-            top: 30px; left: 30px;
-        }}
-
-        .cs-spinner-dot {{
-            width: 12px; height: 12px;
-            background: #4F46E5;
-            border-radius: 50%;
-            position: absolute;
-            top: 54px; left: 54px;
-            box-shadow: 0 0 20px rgba(79, 70, 229, 0.6);
-            animation: pulse 2s ease-in-out infinite;
-        }}
-
-        @keyframes spin {{ to {{ transform: rotate(360deg); }} }}
-
-        @keyframes pulse {{
-            0%, 100% {{ transform: scale(1); opacity: 1; }}
-            50% {{ transform: scale(1.3); opacity: 0.7; }}
-        }}
-
-        .cs-status {{
-            color: #94a3b8;
-            font-size: 0.85rem;
-            font-weight: 500;
-            margin-top: 24px;
-            min-height: 24px;
-        }}
-
-        .cs-status-line {{
-            animation: fadeInUp 0.5s ease forwards;
-            opacity: 0;
-        }}
-
-        @keyframes fadeInUp {{
-            from {{ opacity: 0; transform: translateY(8px); }}
-            to {{ opacity: 1; transform: translateY(0); }}
-        }}
-
-        .cs-progress-track {{
-            width: 300px;
-            height: 4px;
-            background: rgba(79, 70, 229, 0.1);
-            border-radius: 4px;
-            margin: 32px auto 0;
-            overflow: hidden;
-        }}
-
-        .cs-progress-bar {{
-            height: 100%;
-            width: 30%;
-            background: linear-gradient(90deg, #4F46E5, #7C3AED, #4F46E5);
-            background-size: 200% 100%;
-            border-radius: 4px;
-            animation: progressSlide 2s ease-in-out infinite;
-        }}
-
-        @keyframes progressSlide {{
-            0% {{ transform: translateX(-100%); background-position: 0% 0%; }}
-            50% {{ background-position: 100% 0%; }}
-            100% {{ transform: translateX(400%); background-position: 0% 0%; }}
-        }}
-
-        .cs-badge {{
-            display: inline-block;
-            background: rgba(79, 70, 229, 0.15);
-            color: #a5b4fc;
-            font-size: 0.7rem;
-            font-weight: 800;
-            padding: 6px 20px;
-            border-radius: 24px;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            border: 1px solid rgba(79, 70, 229, 0.3);
-            margin-top: 40px;
-            animation: badgePulse 3s ease-in-out infinite;
-        }}
-
-        @keyframes badgePulse {{
-            0%, 100% {{ box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.2); }}
-            50% {{ box-shadow: 0 0 0 12px rgba(79, 70, 229, 0); }}
-        }}
-
-        .cs-features {{
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
-            margin-top: 48px;
-            max-width: 500px;
-        }}
-
-        .cs-feature {{
-            background: rgba(30, 41, 59, 0.5);
-            border: 1px solid rgba(79, 70, 229, 0.1);
-            border-radius: 12px;
-            padding: 16px 12px;
-            text-align: center;
-        }}
-
-        .cs-feature-icon {{ font-size: 1.5rem; margin-bottom: 6px; }}
-
-        .cs-feature-label {{
-            color: #64748b;
-            font-size: 0.65rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }}
-
-        .cs-footer {{
-            position: absolute;
-            bottom: 24px;
-            left: 0; right: 0;
-            text-align: center;
-            z-index: 10;
-        }}
-
-        .cs-footer-text {{
-            color: #334155;
-            font-size: 0.7rem;
-            font-weight: 500;
-        }}
-
-        .cs-footer-ver {{
-            display: inline-block;
-            background: rgba(30, 41, 59, 0.5);
-            color: #475569;
-            font-size: 0.65rem;
-            font-weight: 700;
-            padding: 3px 10px;
-            border-radius: 6px;
-            margin-top: 4px;
-            border: 1px solid rgba(51, 65, 85, 0.3);
-        }}
-
-        .cs-modules {{
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            margin-top: 48px;
-        }}
-
-        .cs-module-dot {{
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            animation: dotPulse 3s ease-in-out infinite;
-        }}
-
-        .cs-module-dot:nth-child(1) {{ background: #4F46E5; animation-delay: 0s; }}
-        .cs-module-dot:nth-child(2) {{ background: #7C3AED; animation-delay: 0.3s; }}
-        .cs-module-dot:nth-child(3) {{ background: #06b6d4; animation-delay: 0.6s; }}
-        .cs-module-dot:nth-child(4) {{ background: #10b981; animation-delay: 0.9s; }}
-        .cs-module-dot:nth-child(5) {{ background: #f59e0b; animation-delay: 1.2s; }}
-        .cs-module-dot:nth-child(6) {{ background: #ef4444; animation-delay: 1.5s; }}
-
-        @keyframes dotPulse {{
-            0%, 100% {{ opacity: 0.3; transform: scale(1); }}
-            50% {{ opacity: 1; transform: scale(1.5); }}
-        }}
+        #pps-news-modal,
+        [data-testid="stDialog"],
+        [data-testid="stModal"],
+        div[role="dialog"] {
+            display: none !important;
+        }
     </style>
-
-    <div class="cs-wrapper">
-        <div class="cs-orb-1"></div>
-        <div class="cs-orb-2"></div>
-
-        <div class="cs-content">
-            <div class="cs-logo">
-                {logo_html}
-                <div class="cs-logo-text">
-                    <div class="cs-logo-title">PPS Anantams</div>
-                    <div class="cs-logo-sub">Enterprise Bitumen Desk</div>
-                </div>
-            </div>
-
-            <div class="cs-spinner-box">
-                <div class="cs-spinner"></div>
-                <div class="cs-spinner-2"></div>
-                <div class="cs-spinner-3"></div>
-                <div class="cs-spinner-dot"></div>
-            </div>
-
-            <div class="cs-status" id="cs-status-msg">
-                <div class="cs-status-line" style="animation-delay: 0s;">Initializing AI Commander...</div>
-            </div>
-
-            <div class="cs-progress-track">
-                <div class="cs-progress-bar"></div>
-            </div>
-
-            <div class="cs-modules">
-                <div class="cs-module-dot"></div>
-                <div class="cs-module-dot"></div>
-                <div class="cs-module-dot"></div>
-                <div class="cs-module-dot"></div>
-                <div class="cs-module-dot"></div>
-                <div class="cs-module-dot"></div>
-            </div>
-
-            <div class="cs-badge">Coming Soon</div>
-
-            <div class="cs-features">
-                <div class="cs-feature">
-                    <div class="cs-feature-icon">📊</div>
-                    <div class="cs-feature-label">Live Market</div>
-                </div>
-                <div class="cs-feature">
-                    <div class="cs-feature-icon">🧮</div>
-                    <div class="cs-feature-label">Smart Pricing</div>
-                </div>
-                <div class="cs-feature">
-                    <div class="cs-feature-icon">🤖</div>
-                    <div class="cs-feature-label">AI Signals</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="cs-footer">
-            <div class="cs-footer-text">PPS Anantams Corporation Pvt Ltd &bull; Vadodara, Gujarat</div>
-            <div class="cs-footer-ver">v6.1 &bull; 2026</div>
-        </div>
-    </div>
-
     <script>
-        const messages = {messages_js};
-        let idx = 0;
-        function cycleMsg() {{
-            const el = document.getElementById('cs-status-msg');
-            if (el) {{
-                el.innerHTML = '<div class="cs-status-line" style="animation-delay:0s;">' + messages[idx] + '</div>';
-                idx = (idx + 1) % messages.length;
-            }}
-        }}
-        setInterval(cycleMsg, 3000);
+        // Override news modal: instantly remove it if it ever appears
+        const _mo = new MutationObserver(function(mutations) {
+            const m = document.getElementById('pps-news-modal');
+            if (m) m.remove();
+        });
+        _mo.observe(document.body, {childList: true, subtree: true});
     </script>
     """, unsafe_allow_html=True)
 
+    # Handle nav clicks from CC buttons → go to processing
+    if st.session_state.get("_nav_goto"):
+        _goto = st.session_state.pop("_nav_goto")
+        st.session_state["selected_page"] = resolve_page(_goto)
+        _owner = get_module_for_page(_goto)
+        if _owner:
+            st.session_state["_active_module"] = _owner
+        st.rerun()
+    st.stop()
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# MAIN
+# ALL OTHER PAGES → Top bar + Sidebar + Processing Animation
 # ═══════════════════════════════════════════════════════════════════════════════
+if not render_login_form():
+    st.stop()
 
-if not st.session_state.get("authenticated"):
-    render_login()
-else:
-    render_coming_soon()
+render_top_bar()
+
+_active_module = st.session_state.get("_active_module", "📊 Price & Info")
+_sidebar_page = render_sidebar_features(_active_module)
+if _sidebar_page:
+    st.session_state["selected_page"] = _sidebar_page
+
+selected_page = resolve_page(st.session_state.get("selected_page", "🎯 Command Center"))
+st.session_state["selected_page"] = selected_page
+
+inject_print_css()
+
+# If somehow back to CC, rerun
+if selected_page == "🎯 Command Center":
+    st.rerun()
+
+# Everything else → Processing animation
+render_processing()
+
+# Footer
+st.markdown("""
+<div style="
+  background: #FFFFFF;
+  border-top: 1px solid #E5E7EB;
+  padding: 20px 32px;
+  margin-top: 64px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px;
+  font-family: inherit;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.02);
+">
+  <div style="display:flex; align-items:center; gap:12px;">
+    <span style="font-size:1.0rem; font-weight:800; color:var(--text-main); letter-spacing:-0.02em;">
+      🏛️ PPS Anantam
+    </span>
+    <span style="font-size:0.75rem; color:var(--text-muted); font-weight:500; border-left:1px solid #E5E7EB; padding-left:12px;">
+      Bitumen Sales Dashboard — HQ: Vadodara, GJ
+    </span>
+  </div>
+  <div style="font-size:0.75rem; color:var(--text-muted); display:flex; gap:16px; flex-wrap:wrap; font-weight:600; align-items:center;">
+    <span style="background:#F3F4F6; padding:4px 8px; border-radius:6px; border:1px solid #E5E7EB;">v6.1</span>
+    <span>Build: 28-03-2026</span>
+    <span style="color:#059669;">● Production</span>
+    <span style="color:var(--text-blue); background:#EEF2FF; padding:4px 8px; border-radius:6px; font-weight:800; border:1px solid rgba(79, 70, 229, 0.2);">GST: 24AAHCV1611L2ZD</span>
+  </div>
+</div>
+""", unsafe_allow_html=True)
