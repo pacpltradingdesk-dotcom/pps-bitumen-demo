@@ -1,0 +1,102 @@
+[
+  {
+    "worker": "system",
+    "event": "start_workers",
+    "timestamp": "03-03-2026 17:16:14 IST",
+    "data": {
+      "tier": "MEDIUM",
+      "results": {
+        "summarizer": "started",
+        "extractor": "started",
+        "forecast": "started",
+        "scoring": "started",
+        "alert": "started",
+        "report_writer": "started"
+      }
+    }
+  },
+  {
+    "worker": "extractor",
+    "event": "completed",
+    "timestamp": "03-03-2026 17:16:14 IST",
+    "data": {
+      "extracted": 0,
+      "details": "Extracted entities from 0 articles"
+    }
+  },
+  {
+    "worker": "alert",
+    "event": "completed",
+    "timestamp": "03-03-2026 17:16:14 IST",
+    "data": {
+      "anomalies": 4,
+      "alert_level": "warning",
+      "details": "4 anomalies, level: warning"
+    }
+  },
+  {
+    "worker": "scoring",
+    "event": "completed",
+    "timestamp": "03-03-2026 17:16:15 IST",
+    "data": {
+      "model": "rule",
+      "score": 58.0,
+      "details": "Scoring active, model: rule"
+    }
+  },
+  {
+    "worker": "system",
+    "event": "start_workers",
+    "timestamp": "2026-03-25 15:43:17 IST",
+    "data": {
+      "tier": "MEDIUM",
+      "results": {
+        "summarizer": "started",
+        "extractor": "started",
+        "forecast": "started",
+        "scoring": "started",
+        "alert": "started",
+        "report_writer": "started",
+        "market_signals": "started"
+      }
+    }
+  },
+  {
+    "worker": "alert",
+    "event": "completed",
+    "timestamp": "2026-03-25 15:43:19 IST",
+    "data": {
+      "anomalies": 62,
+      "alert_level": "warning",
+      "details": "62 anomalies, level: warning"
+    }
+  },
+  {
+    "worker": "forecast",
+    "event": "completed",
+    "timestamp": "2026-03-25 15:43:19 IST",
+    "data": {
+      "forecast_days": 0,
+      "error": "cannot import name 'forecast_price' from 'ml_forecast_engine' (D:\\rahul\\sirs project\\bitumen-sales-dashboard\\ml_forecast_engine.py)"
+    }
+  },
+  {
+    "worker": "scoring",
+    "event": "completed",
+    "timestamp": "2026-03-25 15:43:20 IST",
+    "data": {
+      "model": "lightgbm",
+      "score": 16.3,
+      "details": "Scoring active, model: lightgbm"
+    }
+  },
+  {
+    "worker": "extractor",
+    "event": "completed",
+    "timestamp": "2026-03-25 15:43:22 IST",
+    "data": {
+      "extracted": 0,
+      "details": "Extracted entities from 0 articles"
+    }
+  }
+]

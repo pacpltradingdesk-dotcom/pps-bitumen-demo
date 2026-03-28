@@ -1,0 +1,382 @@
+[
+  {
+    "origin_country": "Saudi Arabia",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Kandla (KPCT)",
+    "split_pct": 45,
+    "effective_from": "2023-01-01",
+    "confidence_score": 78,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Saudi Arabia",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Mumbai (JNPT)",
+    "split_pct": 25,
+    "effective_from": "2023-01-01",
+    "confidence_score": 72,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Saudi Arabia",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Mangalore (NMPT)",
+    "split_pct": 20,
+    "effective_from": "2023-01-01",
+    "confidence_score": 68,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Saudi Arabia",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Cochin (CPT)",
+    "split_pct": 10,
+    "effective_from": "2023-01-01",
+    "confidence_score": 65,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Iran",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Kandla (KPCT)",
+    "split_pct": 68,
+    "effective_from": "2023-01-01",
+    "confidence_score": 80,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Iran",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Mumbai (JNPT)",
+    "split_pct": 22,
+    "effective_from": "2023-01-01",
+    "confidence_score": 72,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Iran",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Mangalore (NMPT)",
+    "split_pct": 10,
+    "effective_from": "2023-01-01",
+    "confidence_score": 60,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Kuwait",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Kandla (KPCT)",
+    "split_pct": 50,
+    "effective_from": "2023-01-01",
+    "confidence_score": 75,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Kuwait",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Mumbai (JNPT)",
+    "split_pct": 30,
+    "effective_from": "2023-01-01",
+    "confidence_score": 70,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Kuwait",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Mangalore (NMPT)",
+    "split_pct": 20,
+    "effective_from": "2023-01-01",
+    "confidence_score": 65,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Iraq",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Kandla (KPCT)",
+    "split_pct": 42,
+    "effective_from": "2023-01-01",
+    "confidence_score": 70,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Iraq",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Mumbai (JNPT)",
+    "split_pct": 33,
+    "effective_from": "2023-01-01",
+    "confidence_score": 68,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Iraq",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Mangalore (NMPT)",
+    "split_pct": 25,
+    "effective_from": "2023-01-01",
+    "confidence_score": 65,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "UAE",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Kandla (KPCT)",
+    "split_pct": 40,
+    "effective_from": "2023-01-01",
+    "confidence_score": 72,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "UAE",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Mumbai (JNPT)",
+    "split_pct": 35,
+    "effective_from": "2023-01-01",
+    "confidence_score": 70,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "UAE",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Cochin (CPT)",
+    "split_pct": 15,
+    "effective_from": "2023-01-01",
+    "confidence_score": 65,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "UAE",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Mangalore (NMPT)",
+    "split_pct": 10,
+    "effective_from": "2023-01-01",
+    "confidence_score": 60,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Singapore",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Chennai (CCTPL)",
+    "split_pct": 35,
+    "effective_from": "2023-01-01",
+    "confidence_score": 72,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Singapore",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Vizag (VPT)",
+    "split_pct": 30,
+    "effective_from": "2023-01-01",
+    "confidence_score": 68,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Singapore",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Paradip (PPT)",
+    "split_pct": 20,
+    "effective_from": "2023-01-01",
+    "confidence_score": 65,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Singapore",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Haldia (HDC)",
+    "split_pct": 15,
+    "effective_from": "2023-01-01",
+    "confidence_score": 62,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "China",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Haldia (HDC)",
+    "split_pct": 30,
+    "effective_from": "2023-01-01",
+    "confidence_score": 68,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "China",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Paradip (PPT)",
+    "split_pct": 28,
+    "effective_from": "2023-01-01",
+    "confidence_score": 65,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "China",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Chennai (CCTPL)",
+    "split_pct": 22,
+    "effective_from": "2023-01-01",
+    "confidence_score": 65,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "China",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Vizag (VPT)",
+    "split_pct": 20,
+    "effective_from": "2023-01-01",
+    "confidence_score": 62,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Russia",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Kandla (KPCT)",
+    "split_pct": 38,
+    "effective_from": "2023-01-01",
+    "confidence_score": 65,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Russia",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Mumbai (JNPT)",
+    "split_pct": 28,
+    "effective_from": "2023-01-01",
+    "confidence_score": 62,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Russia",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Paradip (PPT)",
+    "split_pct": 20,
+    "effective_from": "2023-01-01",
+    "confidence_score": 60,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Russia",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Haldia (HDC)",
+    "split_pct": 14,
+    "effective_from": "2023-01-01",
+    "confidence_score": 58,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Netherlands",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Kandla (KPCT)",
+    "split_pct": 35,
+    "effective_from": "2023-01-01",
+    "confidence_score": 62,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Netherlands",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Mumbai (JNPT)",
+    "split_pct": 30,
+    "effective_from": "2023-01-01",
+    "confidence_score": 60,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Netherlands",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Chennai (CCTPL)",
+    "split_pct": 20,
+    "effective_from": "2023-01-01",
+    "confidence_score": 58,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Netherlands",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Mangalore (NMPT)",
+    "split_pct": 15,
+    "effective_from": "2023-01-01",
+    "confidence_score": 55,
+    "method": "allocation_rule",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Default",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Kandla (KPCT)",
+    "split_pct": 40,
+    "effective_from": "2023-01-01",
+    "confidence_score": 52,
+    "method": "default_distribution",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Default",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Mumbai (JNPT)",
+    "split_pct": 25,
+    "effective_from": "2023-01-01",
+    "confidence_score": 50,
+    "method": "default_distribution",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Default",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Chennai (CCTPL)",
+    "split_pct": 15,
+    "effective_from": "2023-01-01",
+    "confidence_score": 48,
+    "method": "default_distribution",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Default",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Paradip (PPT)",
+    "split_pct": 10,
+    "effective_from": "2023-01-01",
+    "confidence_score": 48,
+    "method": "default_distribution",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  },
+  {
+    "origin_country": "Default",
+    "product": "Bitumen (HS 271320)",
+    "port_name": "Mangalore (NMPT)",
+    "split_pct": 10,
+    "effective_from": "2023-01-01",
+    "confidence_score": 46,
+    "method": "default_distribution",
+    "notes": "Based on known trade routes and PPAC import data patterns"
+  }
+]

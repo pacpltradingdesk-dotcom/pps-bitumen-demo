@@ -1,0 +1,679 @@
+[
+  {
+    "name": "Prince P Shah (Test)",
+    "type": "owner",
+    "category": "Director",
+    "city": "Vadodara",
+    "state": "Gujarat",
+    "contact": "9969562424",
+    "email": "princepshah20@gmail.com",
+    "gstin": "24AAHCV1611L2ZD",
+    "source": "manual_add",
+    "imported_at": "27-03-2026 14:28:39 IST",
+    "vip_tier": "platinum",
+    "whatsapp_opted_in": true
+  },
+  {
+    "name": "L&T Construction (Hyderabad)",
+    "type": "customer",
+    "category": "Contractor - NHAI",
+    "city": "Hyderabad",
+    "state": "Telangana",
+    "contact": "9876543210",
+    "gstin": "36AAACL1234A1Z5",
+    "source": "sales_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Dilip Buildcon (Bhopal)",
+    "type": "customer",
+    "category": "Contractor - NHAI",
+    "city": "Bhopal",
+    "state": "Madhya Pradesh",
+    "contact": "9988776655",
+    "gstin": "23AAACD5678B1Z2",
+    "source": "sales_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Tata Projects (Pune)",
+    "type": "customer",
+    "category": "Contractor - State/PWD",
+    "city": "Pune",
+    "state": "Maharashtra",
+    "contact": "9123456789",
+    "gstin": "27AAACT9012C1Z8",
+    "source": "sales_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "KOTAK PETROLEUM LLP",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Mumbai",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "AGARWAL INDUSTRIAL CORPORATION LTD",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Mumbai",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "NEPTUNE PETROCHEMICALS LTD",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Mumbai",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "PREMIUM PETRO AND INFRA PROJECTS PVT LTD",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Kandla",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "SADASHIVA OVERSEAS LTD",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Kandla",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "INDIAN OIL CORPORATION LTD",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Multiple",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "FINE LUBRICANTS",
+    "type": "supplier",
+    "category": "Indian Importer - Drum",
+    "city": "Mumbai",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "PRAKRUTEES INFRA IMPEX INDIA PVT LTD",
+    "type": "supplier",
+    "category": "Indian Importer - Drum",
+    "city": "Mumbai",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "CHER LIFE HEALTHCARE PVT LTD",
+    "type": "supplier",
+    "category": "Indian Importer - Drum",
+    "city": "Mumbai",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "TOTAL VENTURE SOLUTIONS",
+    "type": "supplier",
+    "category": "Indian Importer - Drum",
+    "city": "Mumbai",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "FUTURE UNIVERSAL PETROCHEM PVT LTD",
+    "type": "supplier",
+    "category": "Indian Importer - Drum",
+    "city": "Kandla",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Indian Oil Corporation Ltd (IOCL)",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "New Delhi (HQ) / Panipat",
+    "contact": "1800-2333-555",
+    "gstin": "06AAACI1681G1Z0",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Bharat Petroleum Corporation Ltd (BPCL)",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Mumbai (HQ) / Kochi",
+    "contact": "1800 22 4344",
+    "gstin": "27AAACB2902M1Z6",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Hindustan Petroleum Corporation Ltd (HPCL)",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Mumbai (HQ) / Visakhapatnam",
+    "contact": "1800 2333 555",
+    "gstin": "27AAACH1118B1ZC",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Mangalore Refinery (MRPL)",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Mangalore",
+    "contact": "0824-2882000",
+    "gstin": "29AAACM3560G1Z5",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Nayara Energy (formerly Essar Oil)",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Vadinar, Gujarat",
+    "contact": "(+91) 22 71320000",
+    "gstin": "24AAACE5648E1Z2",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "HINCOL (Hindustan Colas Ltd)",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mumbai (HQ)",
+    "contact": "022-2302 3250",
+    "gstin": "27AAACH2861H1Z9",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Tiki Tar Industries",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Vadodara",
+    "contact": "0265-2331185",
+    "gstin": "24AAACT4996F1Z8",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Agarwal Industrial Corporation Ltd (AICL)",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mumbai (Chembur)",
+    "contact": "+91-22-25291149",
+    "gstin": "27AAACA3996G1Z5",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "RoadStar Bitumen",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "New Delhi",
+    "contact": "+91 9871855136",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Classic Bitumen (CGOC)",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mohali / Chandigarh",
+    "contact": "+91 80 41011570",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Bitumen Corporation India (BITCOL)",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Mumbai (Nariman Point)",
+    "contact": "info@bitcol.in",
+    "gstin": "27AACCA6654J1Z8",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Kotak Petroleum LLP",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Jamnagar",
+    "contact": "+91-9824850777",
+    "gstin": "24AAHFK4298J1Z6",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Maruti Bitumen Pvt Ltd",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Ahmedabad",
+    "contact": "http://www.marutigroup.in",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Atlas Engineering",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Ahmedabad",
+    "contact": "9825073095",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Aaspa Equipment Pvt Ltd",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Ahmedabad",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Krish Impex",
+    "type": "supplier",
+    "category": "Indian Importer - Drum",
+    "city": "Mumbai",
+    "contact": "Contact via IndiaMart",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Floatantide Commodities",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Mumbai",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Blue Jay Petro Pvt Ltd",
+    "type": "supplier",
+    "category": "Indian Importer - Drum",
+    "city": "Mumbai",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Jay Ambe Petro Chem",
+    "type": "supplier",
+    "category": "Indian Importer - Drum",
+    "city": "Navi Mumbai",
+    "contact": "022-49797074",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Cauvery Bituchem Pvt Ltd",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Chennai",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Muthoos Enterprises",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Chennai",
+    "contact": "+918044566500",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "IWL India Limited",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Chennai",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "KM Chemicals",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mathura",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "DRG Bitumen",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mathura",
+    "contact": "+91 9910558183",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Shiv Sons",
+    "type": "supplier",
+    "category": "Indian Importer - Drum",
+    "city": "Delhi",
+    "contact": "www.shivson.com",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Bitchem Asphalt Technologies",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Kolkata",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "SAPCO Bitumen Company Ltd",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Kolkata",
+    "contact": "s.agarwal@sapco.in",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Choudhary Bitumen & Allied Products",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Kolkata",
+    "contact": "contact@cbap.co.in",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Shiv Shakti Tar Chem Products",
+    "type": "supplier",
+    "category": "Indian Importer - Drum",
+    "city": "Vadodara",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Swastik Tar Industries",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Vadodara",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Rajeshree Tar Industries",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Vadodara",
+    "contact": "9725040804",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Spectrum Dyes And Chemicals",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Surat",
+    "contact": "",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Venkateshwara Bitumens",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Hyderabad",
+    "contact": "9731742757",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Rinkey Enterprises",
+    "type": "supplier",
+    "category": "Indian Importer - Drum",
+    "city": "Hyderabad",
+    "contact": "08046054733",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Shree Sai Chemicals",
+    "type": "supplier",
+    "category": "Indian Importer - Drum",
+    "city": "Bangalore",
+    "contact": "08046061090",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Krush Tar Industries",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Bangalore",
+    "contact": "www.krushtarindustries.com",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "BitChem Asphalt Technologies (Guwahati)",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Guwahati",
+    "contact": "+91 88769 20128",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "GWC Asphalt",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Guwahati",
+    "contact": "+91-75770 10777",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "HINCOL (Vizag Plant)",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Visakhapatnam",
+    "contact": "022-2302 3250",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "HINCOL (Mangalore Plant)",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mangalore",
+    "contact": "022-2302 3250",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "HINCOL (Haldia Plant)",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Haldia",
+    "contact": "022-2302 3250",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "HINCOL (Savli Plant)",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Vadodara",
+    "contact": "022-2302 3250",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "HINCOL (Chennai Plant)",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Chennai",
+    "contact": "022-2302 3250",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Tiki Tar (Taloja Plant)",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mumbai",
+    "contact": "022-2302 3250",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Tiki Tar (Halol Plant)",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Vadodara",
+    "contact": "0265-2331185",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "AICL (Karwar Terminal)",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Karwar",
+    "contact": "+91-22-25291149",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "AICL (Mangalore Terminal)",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Mangalore",
+    "contact": "+91-22-25291149",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "AICL (Hazira/Dahej Terminal)",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Surat",
+    "contact": "+91-22-25291149",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "AICL (Kakinada Terminal)",
+    "type": "supplier",
+    "category": "Indian Importer - Bulk",
+    "city": "Kakinada",
+    "contact": "+91-22-25291149",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "BITCOL (Mathura Plant)",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mathura",
+    "contact": "info@bitcol.in",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "BITCOL (Dindigul Plant)",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Dindigul",
+    "contact": "info@bitcol.in",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "name": "Venkateshwara Bitumens (Uppal Plant)",
+    "type": "supplier",
+    "category": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Hyderabad",
+    "contact": "9731742757",
+    "gstin": "",
+    "source": "purchase_parties.json",
+    "imported_at": "21-03-2026 09:48:56 IST"
+  }
+]

@@ -1,0 +1,33 @@
+[
+  {
+    "bug_id": "BUG-20260302-105551-8E61",
+    "severity": "P2",
+    "entity": "test_e2e",
+    "title": "E2E test bug",
+    "component_owner": "backend",
+    "reproduction_steps": [
+      "1. Run test",
+      "2. Check result"
+    ],
+    "logs_attached": [],
+    "status": "Verified",
+    "auto_created": true,
+    "created_ist": "02-03-2026 10:55:51 IST",
+    "updated_ist": "02-03-2026 10:55:51 IST"
+  },
+  {
+    "bug_id": "BUG-20260302-110406-FFD7",
+    "severity": "P2",
+    "entity": "test_t05",
+    "title": "[TEST] t05 bug",
+    "component_owner": "backend",
+    "reproduction_steps": [
+      "step1"
+    ],
+    "logs_attached": [],
+    "status": "Verified",
+    "auto_created": true,
+    "created_ist": "02-03-2026 11:04:06 IST",
+    "updated_ist": "02-03-2026 11:04:06 IST"
+  }
+]

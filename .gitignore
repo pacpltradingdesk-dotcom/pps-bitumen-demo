@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Environment
+.env
+.venv/
+venv/
+env/
+
+# Database
+*.db-shm
+*.db-wal
+
+# Node modules
+node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Exports
+pdf_exports/
+*.pdf
+
+# ML models
+ml_models/
+rag_index/
+
+# Logs
+logs/
+
+# Session files
+*.session
+
+# Secrets
+telegram_account_config.json
+whatsapp_config.json
+
+# Heavy cache (not needed for demo)
+api_cache.json

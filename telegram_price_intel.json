@@ -1,0 +1,529 @@
+{
+  "summary": {
+    "total_messages": 51,
+    "translated": 51,
+    "price_related": 37,
+    "channels_analyzed": 2,
+    "channels_with_prices": 2,
+    "unique_prices_found": 4,
+    "top_prices": [
+      "$545",
+      "$540",
+      "545/MT",
+      "540/MT"
+    ],
+    "analyzed_at": "2026-03-25 14:31 IST",
+    "conclusion": {
+      "headline": "$540 – $545/MT range detected | Grades: Bitumen 200/300, Bitumen 40/60, Bitumen 60/70 | USD/IRR: 1,403,083 Rials (→ 0.0% vs prev)",
+      "key_prices": [
+        "$540 – $545/MT range detected",
+        "540 – 545 per MT range",
+        "Brent Crude: $73"
+      ],
+      "fx_update": "USD/IRR: 1,403,083 Rials (→ 0.0% vs prev)",
+      "supply_signals": [
+        {
+          "type": "export",
+          "mentions": 7
+        },
+        {
+          "type": "domestic",
+          "mentions": 3
+        },
+        {
+          "type": "tender",
+          "mentions": 12
+        },
+        {
+          "type": "delivery",
+          "mentions": 3
+        }
+      ],
+      "bitumen_grades": [
+        "Bitumen 200/300",
+        "Bitumen 40/60",
+        "Bitumen 60/70",
+        "Bitumen Emulsion",
+        "Oxidized Bitumen"
+      ],
+      "product_mentions": {
+        "LPG/Gas": 5,
+        "Naphtha": 4,
+        "Bitumen": 21,
+        "Crude Oil": 1,
+        "Petrochemicals": 10
+      },
+      "channel_insights": [
+        {
+          "channel": "پتروشیمی و انرژی کارگزاری پ...",
+          "messages": 26,
+          "price_msgs": 21,
+          "focus": "Bitumen, Crude Oil, LPG/Gas, Naphtha, Petrochemicals"
+        },
+        {
+          "channel": "HEMT Bitumen Hub",
+          "messages": 25,
+          "price_msgs": 16,
+          "focus": "Bitumen"
+        }
+      ],
+      "market_mood": "neutral",
+      "action_items": [
+        "Track FOB pricing around $545/MT",
+        "Active grades in market: Bitumen 200/300, Bitumen 40/60, Bitumen 60/70, Bitumen Emulsion",
+        "Heavy export supply activity — check import parity impact"
+      ]
+    }
+  },
+  "price_messages": [
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "🚨\"لیست کالاهای موجود در سامانه مچینگ تالار پتروشیمی و فرآورده های نفتی مورخ 1404/12/09\n\n #مچینگ             \n🆔@pouyan_PetroEnergy",
+      "text_english": "🚨 \"The list of goods available in the matching system of the Petrochemical and Petroleum Products Hall dated 12/09/1404\n\n #matching             \n🆔@pouyan_PetroEnergy",
+      "date": "2026-02-28 11:03",
+      "timestamp": 1772256807.0,
+      "message_id": 18704,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "**🟢****نمای بازارهای جهانی** \n\n#نفت **برنت بر فراز 73 دلار** 🔼\n\n@pouyan_PetroEnergy",
+      "text_english": "**🟢****view of global markets** \n\n#Oil **Brent above 73 dollars** 🔼\n\n@pouyan_PetroEnergy",
+      "date": "2026-02-28 10:26",
+      "timestamp": 1772254587.0,
+      "message_id": 18702,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "**💵**** نرخ دلار فروش حواله مبلغ 1,403,083 ریال\n\nقیمت روز قبل 1,403,083 ریال\n\n****◀️****09 اسفند 1404**\n\n🆔@pouyan_PetroEnergy",
+      "text_english": "**💵**** Dollar rate of remittance sales amounting to 1,403,083 Rials\n\nThe previous day's price was 1,403,083 Rials\n\n****◀️****09 March 1404**\n\n🆔@pouyan_PetroEnergy",
+      "date": "2026-02-28 10:21",
+      "timestamp": 1772254310.0,
+      "message_id": 18701,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "📣📣 عدم تغییر نرخ  LPG سی پی آرامکو ماه مارس 2026\n\n❇️ CP Aramco price for March 2026\n\n- Propane  :   545 $/MT  🔸   +0 $\n- Butane  :     540 $/MT  🔸   +0 $\n\n✅ CP price based on LPG Ratio\n\n50% P- 50% B :    542.5 $/MT   +0 $  ⏸    \n70% P- 30% B :    543.5 $/MT   +0 $ ⏸\n30% P- 70% B :    541.5 $/MT   +0 $ ⏸\n\nhttps://t.me/pouyan_PetroEnergy",
+      "text_english": "📣📣 No change in CP Aramco LPG price in March 2026\n\n❇️ CP Aramco price for March 2026\n\n- Propane: $545/MT +0 $\n- Butane: $540/MT +0 $\n\n✅ CP price based on LPG Ratio\n\n50% P- 50% B : 542.5 $/MT +0 $ ⏸    \n70% P- 30% B : 543.5 $/MT +0 $ ⏸\n30% P- 70% B : 541.5 $/MT +0 $ ⏸\n\nhttps://t.me/pouyan_PetroEnergy",
+      "date": "2026-02-27 21:19",
+      "timestamp": 1772207379.0,
+      "message_id": 18699,
+      "prices_found": [
+        "$545",
+        "$540",
+        "545/MT",
+        "540/MT"
+      ],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "📌#آمار_معاملات_بورس_انرژی_رینگ_صادراتی_چهارشنبه_06_12_1404_تا_ساعت_18\n\n#فول_رنج_نفتا_نفت_ستاره_خلیج_فارس\n\n#گاز_مایع_ملی_پخش_فرآورده_های_نفتی_ایراناز_انبار_نفت_اصفهان\n\n#پنتان_پلاس_پالایش_گاز_هویزه_خلیج_فارس\n\n#بایواتانول_سوختی_گسترش_سوخت_سبز_زاگرس\n\n#رافینیت_پتروشیمی_بندر_امام\n\n#گاز_مایع__ملی_پخش_فرآورده_های_نفتی_ایران_از_انبار_نفت_اصفهان\n\n#نرمال_بوتان_بوتان_پالایش_گاز_بیدبلند_خلیج_فارس\n\n#نفتای_سبک__پالايش_نفت_آبادان\n\n#پروپان_پالایش_گاز_بیدبلند_خلیج_فارس\n\n#نفتای_سنگین__پالايش_نفت_آبادان\n\n#برش_پنتان_پالایش_گاز_بیدبلند_خلیج_فارس\n\n#گازمایع__پالایش_نفت_آبادان\n\n#متانول_پتروشیمی_فن_آوران\n\n\n🆔@pouyan_PetroEnergy",
+      "text_english": "📌# Амар_Мааемалат_Борс_энержи_ренги_садрати_чаршанбе_06_12_1404_та_саат_18\n\n#Ful_Range_Nafta_Stare_Persian_Gulf_Oil\n\n#Iran's_National_Liquid_Gas_Distribution_of_Oil_Products_from_Esfahan_Oil_Depot\n\n#pentane_plus_gas_refinement_of_the_Persian_Gulf\n\n#bioethanol_fuel_expansion_of_green_fuel_of_Zagros\n\n#Bandar_Imam Petrochemical Refinery\n\n#liquefied_gas_national_distribution_of_oil_products_of_Iran_from_the_oil_storage_of Isfahan\n\n#Normal_Butane_Butane_Refining_Gas_Bidebland_Persian_Gulf\n\n#Naftai_Sabak__Abadan_Oil_Refinery\n\n#propane_refining_gas_bidbland_of_the_Persian_Gulf\n\n#Heavy_oil_refining_of_Abadan_oil\n\n#Pentane_cut",
+      "date": "2026-02-25 22:32",
+      "timestamp": 1772038955.0,
+      "message_id": 18698,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "📌#آمار_معاملات_بورس_انرژی_رینگ_داخلی_چهارشنبه_06_12_1404_تا_ساعت_18\n\n#میعانات_گازی_مرکاپتان_زدایی_شده_آرین_تجارت_مانا\n\n#برش_کربنی_هیدروکربور_هیدروژنه_شده_با_درجه_مرغوبیتON_PGH_پتروشیمی_شازند\n\n#رافینیت_پتروشیمی_بندر_امام\n\n#برش_کربنی_هیدروکربور_هیدروژنه_شده_با_درجه_مرغوبیت_ON_PGH_پتروشیمی_شازند\n\n#اCFO_پتروشیمی_ایلام\n\n#بنزین_پیرولیز_PYG_پتروشیمی_ایلام\n\n#برش_شش_کربنه_پلاس_C6_پتروشیمی_لرستان\n\n#اLCO_ال_سی_او__پالايش_نفت_آبادان\n\n#اکسیژن_مایع__صنایع_فولاد_آلیاژی_پاسارگاد\n\n#پلاس_C6_پتروشیمی_مهاباد\n\n#اMTBE_پتروشیمی_شیمی_بافت\n\n#رافینت2__پتروشیمی_شیمی_بافت\n\n#میعانات_گازی__پالایش_گاز_خانگیران_S_500\n\n#پنتان_پلاس_پتروشیمی_بوشهر\n\n#دی_اکسید_کربن_کربن_بارد\n\n#حلال_502_پالايش_نفت_اصفهان\n\n\n🆔@pouyan_PetroEnergy",
+      "text_english": "📌#Амар_Мааемалат_Борс_Енржи_Ринги_Дахали_Чаршанбел_06_12_1404_та_саат_18\n\n#Mercaptan_Gas_Condensation_Detected_Arin_Tjarat_Mana\n\n#Carbon_cut_hydrocarbon_hydrogenated_with_quality_grade ON_PGH_Shazand_Petrochemical\n\n#Bandar_Imam Petrochemical Refinery\n\n#Carbon_cut_hydrocarbon_hydrogenated_with_quality_grade_ON_PGH_Shazand_Petrochemical\n\n#Elam_Petrochemical_CFO\n\n#Benzin_Pyroliz_PYG_Petrochemical_Ilam\n\n#Cutting_six_carbons_plus_C6_Lorestan_Petrochemicals\n\n#Abadan Oil Refinery\n\n#Liquid_Oxygen__Pasargad_Alloy_Steel_Industries\n\n#Plus_C6_Petrochemical_of Mahabad\n\n#MTB",
+      "date": "2026-02-25 22:30",
+      "timestamp": 1772038821.0,
+      "message_id": 18697,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "توضیحات عرضه های #صادراتی روزهای پیش رو #بورس_انرژی :👆👆👆\n\n🆔 @pouyan_PetroEnergy",
+      "text_english": "Description of the #export offers in the coming days of the #Energy_Exchange: 👆👆👆\n\n🆔 @pouyan_PetroEnergy",
+      "date": "2026-02-25 22:28",
+      "timestamp": 1772038708.0,
+      "message_id": 18696,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "📌عرضه های #صادراتی روزهای پیش رو #بورس_انرژی :👆👆👆👆\n\n1-گاز مایع  ملی پخش فرآورده های نفتی ایران از انبار نفت تهران\n\n2-نفتا (حاصل از پالایشگاه نفت و پتروشیمی)  پارس بهین پالایش نفت قشم \n\n3-گاز مایع  پالایش نفت آبادان\n\n4-گاز مایع  پالایش نفت بندرعباس\n\n5-گاز مایع  پالایش نفت امام شازند \n\n6-نرمال بوتان  پالایش نفت اصفهان \n\n\n\n\n🆔 @pouyan_PetroEnergy",
+      "text_english": "📌Export supplies for the coming days of #Energy_Exchange: 👆👆👆👆\n\n1- National liquefied gas distribution of Iranian petroleum products from Tehran oil depot\n\n2- Naphtha (obtained from oil and petrochemical refinery) Pars Behin Qeshm Oil Refinery \n\n3- Abadan oil refining liquefied gas\n\n4-Liquid gas from Bandar Abbas oil refining\n\n5- Liquefied petroleum gas of Imam Shazand \n\n6-Normal Butane Oil Refinery in Isfahan \n\n\n\n\n🆔 @pouyan_PetroEnergy",
+      "date": "2026-02-25 22:26",
+      "timestamp": 1772038599.0,
+      "message_id": 18694,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "توضیحات عرضه های #داخلی روزهای پیش رو #بورس_انرژی :👆👆👆\n\n🆔 @pouyan_PetroEnergy",
+      "text_english": "Description of the #domestic supply in the coming days of the #Energy_Exchange: 👆👆👆\n\n🆔 @pouyan_PetroEnergy",
+      "date": "2026-02-25 22:25",
+      "timestamp": 1772038534.0,
+      "message_id": 18693,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "📌عرضه های #داخلی روزهای پیش رو #بورس_انرژی :👆👆👆👆\n\n1-اکستراکت  نفت سپاهان \n\n2-نرمال هگزان پالایش نفت امام شازند \n\n3-اکسیژن مایع فولاد البرز ناب آرش\n \n4-نیتروژن مایع  فولاد البرز ناب آرش \n\n5-اکسیژن مایع  فولاد سیرجان ایرانیان \n\n6-نیتروژن مایع  فولاد سیرجان ایرانیان \n\n7-آيزوفيد  پالايش نفت تبريز \n\n8-اکسیژن مایع فولاد خوزستان \n\n9-نیتروژن مایع  فولاد خوزستان \n\n🆔 @pouyan_PetroEnergy",
+      "text_english": "📌 Domestic #supplies for the coming days of the #Energy_Exchange: 👆👆👆👆\n\n1- Sepahan oil extract \n\n2- Normal hexane of Imam Shazand oil refining \n\n3-Alborz Nab Arash steel liquid oxygen\n \n4-Alborz Nab Arash steel liquid nitrogen \n\n5-Liquid oxygen steel Sirjan Iranian \n\n6-Liquid Nitrogen Steel Sirjan Iranian \n\n7-Izofid Tabriz Oil Refining \n\n8-Khuzestan steel liquid oxygen \n\n9-Khuzestan steel liquid nitrogen \n\n🆔 @pouyan_PetroEnergy",
+      "date": "2026-02-25 22:23",
+      "timestamp": 1772038396.0,
+      "message_id": 18690,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "🔖عرضه های مورخ1404/12/09\n#تالار_صادراتی\n\nقیر 6070\nعایق رطوبتی BPP\nقیر 200300\nقیر 4060\n\n👇👇👇\nhttps://t.me/pouyan_PetroEnergy",
+      "text_english": "🔖 Supplies dated 12/09/1404\n#Export_Hall\n\nBitumen 6070\nBPP waterproofing\nBitumen 200300\nBitumen 4060\n\n👇👇👇\nhttps://t.me/pouyan_PetroEnergy",
+      "date": "2026-02-25 20:50",
+      "timestamp": 1772032838.0,
+      "message_id": 18688,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "🔖عرضه های مورخ1404/12/09\n#تالار_فرآورده_های_نفتی\n\nقیر 6070\n\n👇👇👇\nhttps://t.me/pouyan_PetroEnergy",
+      "text_english": "🔖 Supplies dated 12/09/1404\n#Oil_Products_Hall\n\nBitumen 6070\n\n👇👇👇\nhttps://t.me/pouyan_PetroEnergy",
+      "date": "2026-02-25 20:50",
+      "timestamp": 1772032801.0,
+      "message_id": 18687,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "📌عرضه های قیر مورخ 1404/12/09\n#تالار_صادراتی\n\nبله : 👇👇\n🆔https://ble.ir/pouyan_petroenergy\n\nتلگرام : 👇👇\n🆔https://t.me/pouyan_PetroEnergy",
+      "text_english": "Bitumen supplies dated 12/09/1404\n#Export_Hall\n\nYes: 👇👇\n🆔https://ble.ir/pouyan_petroenergy\n\nTelegram: 👇👇\n🆔https://t.me/pouyan_PetroEnergy",
+      "date": "2026-02-25 20:48",
+      "timestamp": 1772032722.0,
+      "message_id": 18685,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "#آمار_معاملات\nقاب پایانی معاملات  عرضه های پتروشیمی و فرآورده های نفتی \nچهارشنبه1404/12/06👆👆👆\n\n👇👇👇\n🆔@pouyan_PetroEnergy",
+      "text_english": "#Transactions statistics\nThe final frame of transactions for petrochemical supplies and oil products \nWednesday 12/06/1404 👆👆👆\n\n👇👇👇\n🆔@pouyan_PetroEnergy",
+      "date": "2026-02-25 18:30",
+      "timestamp": 1772024441.0,
+      "message_id": 18684,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "📌#آمار_معاملات_بورس_انرژی_صادراتی_داخلی_چهارشنبه_06_12_1404_تا_ساعت_00_14\n\n#فول_رنج_نفتا_نفت_ستاره_خلیج_فارس\n\n#گاز_مایع__ملی_پخش_فرآورده_های_نفتی_ایران__از_انبار_نفت_اصفهان\n\n#پنتان_پلاس_پالایش_گاز_هویزه_خلیج_فارس\n\n#بایواتانول_سوختی_گسترش_سوخت_سبز_زاگرس\n\n#رافینیت_پتروشیمی_بندر_امام\n\n#گاز_مایع__ملی_پخش_فرآورده_های_نفتی_ایران_از_انبار_نفت_اصفهان\n\n#نرمال_بوتان_بوتان_پالایش_گاز_بیدبلند_خلیج_فارس\n\n#نفتای_سبک__پالايش_نفت_آبادان\n\n#پروپان_پالایش_گاز_بیدبلند_خلیج_فارس\n\n#نفتای_سنگین__پالايش_نفت_آبادان\n\n#برش_پنتان_پالایش_گاز_بیدبلند_خلیج_فارس\n\n#گازمایع__پالایش_نفت_آبادان\n\n#متانول_پتروشیمی_فن_آوران\n\n\n🆔@pouyan_PetroEnergy",
+      "text_english": "📌# Амар_Мааемалат_Борс_Енржи_Дашрати_Дахали_чаршанбе_06_12_1404_та_саат_00_14\n\n#Ful_Range_Nafta_Stare_Persian_Gulf_Oil\n\n#liquefied_gas_national_distribution_of_oil_products_of_Iran__from_the_oil_storage_of Isfahan\n\n#pentane_plus_gas_refinement_of_the_Persian_Gulf\n\n#bioethanol_fuel_expansion_of_green_fuel_of_Zagros\n\n#Bandar_Imam Petrochemical Refinery\n\n#liquefied_gas_national_distribution_of_oil_products_of_Iran_from_the_oil_storage_of Isfahan\n\n#Normal_Butane_Butane_Refining_Gas_Bidebland_Persian_Gulf\n\n#Naftai_Sabak__Abadan_Oil_Refinery\n\n#propane_refining_gas_bidbland_of_the_Persian_Gulf\n\n#Heavy_oil_refining_of_Abadan_oil\n\n# Go",
+      "date": "2026-02-25 17:22",
+      "timestamp": 1772020354.0,
+      "message_id": 18683,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "📌#آمار_معاملات_بورس_انرژی_رینگ_داخلی_چهارشنبه_06_12_1404_تا_ساعت_00_14\n\n#میعانات_گازی_مرکاپتان_زدایی_شده_آرین_تجارت_مانا\n\n#برش_کربنی_هیدروکربور_هیدروژنه_شده_با_درجه_مرغوبیتON_PGH_پتروشیمی_شازند\n\n#رافینیت_پتروشیمی_بندر_امام\n\n#برش_کربنی_هیدروکربور_هیدروژنه_شده_با_درجه_مرغوبیت_ON_PGH_پتروشیمی_شازند\n\n#اCFO_پتروشیمی_ایلام\n\n#بنزین_پیرولیز_PYG_پتروشیمی_ایلام\n\n#برش_شش_کربنه_پلاس_C6_پتروشیمی_لرستان\n\n#اLCO_ال_سی_او__پالايش_نفت_آبادان\n\n#اکسیژن_مایع__صنایع_فولاد_آلیاژی_پاسارگاد\n\n#پلاس_C6_پتروشیمی_مهاباد\n\n#اMTBE_پتروشیمی_شیمی_بافت\n\n#رافینت2__پتروشیمی_شیمی_بافت\n\n#میعانات_گازی__پالایش_گاز_خانگیران_S_500\n\n#پنتان_پلاس_پتروشیمی_بوشهر\n\n#دی_اکسید_کربن_کربن_بارد\n\n#حلال_502_پالايش_نفت_اصفهان\n\n\n🆔@pouyan_PetroEnergy",
+      "text_english": "📌#Амар_Мааемалат_Борс_Енржи_Ринги_Дахали_чаршанбе_06_12_1404_та_саат_00_14\n\n#Mercaptan_Gas_Condensation_Detected_Arin_Tjarat_Mana\n\n#Carbon_cut_hydrocarbon_hydrogenated_with_quality_grade ON_PGH_Shazand_Petrochemical\n\n#Bandar_Imam Petrochemical Refinery\n\n#Carbon_cut_hydrocarbon_hydrogenated_with_quality_grade_ON_PGH_Shazand_Petrochemical\n\n#Elam_Petrochemical_CFO\n\n#Benzin_Pyroliz_PYG_Petrochemical_Ilam\n\n#Cutting_six_carbons_plus_C6_Lorestan_Petrochemicals\n\n#Abadan Oil Refinery\n\n#Liquid_Oxygen__Pasargad_Alloy_Steel_Industries\n\n#Plus_C6_Petrochemical_of Mahabad\n\n#A",
+      "date": "2026-02-25 17:22",
+      "timestamp": 1772020354.0,
+      "message_id": 18682,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "📌آمار معاملات قیر صادراتی\nچهارشنبه 1404/12/06👆👆👆\n\n👇👇👇\n@pouyan_PetroEnergy",
+      "text_english": "Statistics of export bitumen transactions\nWednesday 12/06/1404 👆👆👆\n\n👇👇👇\n@pouyan_PetroEnergy",
+      "date": "2026-02-25 15:25",
+      "timestamp": 1772013352.0,
+      "message_id": 18681,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "**💵**** نرخ دلار فروش حواله مبلغ 1,394,052 ریال\n\nقیمت روز قبل 1,385,962 ریال\n\n****◀️****06 اسفند 1404**\n\n@pouyan_PetroEnergy",
+      "text_english": "**💵**** Dollar rate of remittance sales amounting to 1,394,052 Rials\n\nThe previous day's price was 1,385,962 Rials\n\n****◀️****06 March 1404**\n\n@pouyan_PetroEnergy",
+      "date": "2026-02-25 10:15",
+      "timestamp": 1771994742.0,
+      "message_id": 18679,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "توضیحات عرضه های #صادراتی روزهای پیش رو #بورس_انرژی :👆👆👆\n\n🆔 @pouyan_PetroEnergy",
+      "text_english": "Description of the #export offers in the coming days of the #Energy_Exchange: 👆👆👆\n\n🆔 @pouyan_PetroEnergy",
+      "date": "2026-02-24 23:49",
+      "timestamp": 1771957169.0,
+      "message_id": 18678,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "📌عرضه های #صادراتی روزهای پیش رو #بورس_انرژی :👆👆👆👆\n\n1-گاز مایع  پالایش نفت امام شازند \n\n2-فول رنج نفتا  نفت ستاره خلیج فارس \n\n3-گاز مایع  ملی پخش فرآورده های نفتی ایران  از انبار نفت اصفهان\n\n4-پنتان پلاس پالایش گاز هویزه خلیج فارس \n\n5-بایواتانول سوختی  گسترش سوخت سبز زاگرس \n\n6-رافینیت پتروشیمی بندر امام \n\n7-گاز مایع  ملی پخش فرآورده های نفتی ایران  از انبار نفت اصفهان\n\n8-نرمال بوتان (بوتان)  پالایش گاز بیدبلند خلیج فارس \n\n9-نفتای سبک  پالايش نفت آبادان \n\n10-پروپان  پالایش گاز بیدبلند خلیج فارس\n\n11-نفتای سنگین  پالايش نفت آبادان\n \n12-برش پنتان  پالایش گاز بیدبلند خلیج فارس\n \n13-گاز مایع  پالایش نفت آبادان \n\n14-متانول  پتروشیمی فن آوران \n\n\n🆔 @pouyan_PetroEnergy",
+      "text_english": "📌Export supplies for the coming days of #Energy_Exchange: 👆👆👆👆\n\n1- Liquefied petroleum gas of Imam Shazand \n\n2- Full range Nafta Nafta Persian Gulf Star \n\n3- National liquefied gas distribution of Iranian petroleum products from Isfahan oil depot\n\n4-Pentane plus gas refining in the Persian Gulf \n\n5- Fuel bioethanol expansion of Zagros green fuel \n\n6- Bandar Imam petrochemical raffinate \n\n7- National liquefied gas distribution of Iran's petroleum products from Isfahan oil depot\n\n8-Normal Butan (Bhutan) gas refining in the Persian Gulf \n\n9- Light oil from Abadan oil refinery \n\n10- Propane gas refining in the Persian Gulf",
+      "date": "2026-02-24 23:45",
+      "timestamp": 1771956905.0,
+      "message_id": 18674,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "پتروشیمی و انرژی کارگزاری پویان",
+      "channel_id": -1001815452612,
+      "sender": "",
+      "text_original": "توضیحات عرضه های #داخلی روزهای پیش رو #بورس_انرژی :👆👆👆\n\n🆔 @pouyan_PetroEnergy",
+      "text_english": "Description of the #domestic supply in the coming days of the #Energy_Exchange: 👆👆👆\n\n🆔 @pouyan_PetroEnergy",
+      "date": "2026-02-24 23:42",
+      "timestamp": 1771956723.0,
+      "message_id": 18673,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "**__Product Range__**\nOur product range includes various functional bitumen, oxidized bitumen, emulsions, and solutions in bulk, barrels, and jumbo bags. We guarantee the quality of all our products, even at the destination.\n——————————————-\n**__Aina ya Bidhaa__**\nAina mbalimbali za bidhaa zetu zinajumuisha lami mbalimbali zinazofanya kazi, lami iliyooksidishwa, emulsion, na miyeyusho kwa wingi, mapipa na mifuko ya jumbo. Tunahakikisha ubora wa bidhaa zetu zote, hata mahali tunapoenda.",
+      "text_english": "**__Product Range__**\nOur product range includes various functional bitumen, oxidized bitumen, emulsions, and solutions in bulk, barrels, and jumbo bags. We guarantee the quality of all our products, even at the destination.\n——————————————-\n**__Aina ya Bidhaa__**\nAina mbalimbali za bidhaa zetu zinajumuisha lami mbalimbali zinazofanya kazi, lami iliyooksidishwa, emulsion, na miyeyusho kwa wingi, mapipa na mifuko ya jumbo. Tunahakikisha ubora wa bidhaa zetu zote, hata mahali tunapoenda.",
+      "date": "2024-10-13 11:35",
+      "timestamp": 1728799551.0,
+      "message_id": 165,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "Unlock the potential of your projects with our premium bitumen supplies! Enjoy flexible FOB and CFR delivery options, packing barrel / jumbo bag and convenient payment via TT or LC. Your success starts with us!\n——————————————-\nFungua uwezo wa miradi yako ukitumia vifaa vyetu vya juu vya lami! Furahia chaguo rahisi za uwasilishaji za FOB na CFR, kufunga pipa/begi kubwa na malipo rahisi kupitia TT au LC. Mafanikio yako yanaanza na sisi!",
+      "text_english": "Unlock the potential of your projects with our premium bitumen supplies! Enjoy flexible FOB and CFR delivery options, packing barrel / jumbo bag and convenient payment via TT or LC. Your success starts with us!\n——————————————-\nFungua uwezo wa miradi yako ukitumia vifaa vyetu vya juu vya lami! Furahia chaguo rahisi za uwasilishaji za FOB na CFR, kufunga pipa/begi kubwa na malipo rahisi kupitia TT au LC. Mafanikio yako yanaanza na sisi!",
+      "date": "2024-10-12 17:35",
+      "timestamp": 1728734756.0,
+      "message_id": 164,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "**__Bitumen Emulsion description__**\n•  It's also identified by its breaking behavior, which is the process where the emulsion releases the bitumen to form a continuous film.\nGeneral Specifications:\n•  The specifications of bitumen emulsion can vary, but generally, it contains about 60% bitumen and 40% water.\n•  The emulsion's properties, such as viscosity, setting time, and breaking behavior, are controlled by the type and amount of emulsifier used.\nBitumen emulsion is widely used in road construction and maintenance because it can be applied at lower temperatures, reducing energy consumption and emissions. It also has good adhesive properties, especially cationic emulsions, which improve the bonding between bitumen and aggregates\nIf you need more detailed information or have any questions, feel free to contact the JCEC sales department.! louis@jcec-mecc.com; zhang@jcec-mecc.com",
+      "text_english": "**__Bitumen Emulsion description__**\n•  It's also identified by its breaking behavior, which is the process where the emulsion releases the bitumen to form a continuous film.\nGeneral Specifications:\n•  The specifications of bitumen emulsion can vary, but generally, it contains about 60% bitumen and 40% water.\n•  The emulsion's properties, such as viscosity, setting time, and breaking behavior, are controlled by the type and amount of emulsifier used.\nBitumen emulsion is widely used in road construction and maintenance because it can be applied at lower temperatures, reducing energy consumption and emissions. It also has good adhesive properties, especially cationic emulsions, which improve the bonding between bitumen and aggregates\nIf you need more detailed information or have any questions, feel free to contact the JCEC sales department.! louis@jcec-mecc.com; zhang@jcec-mecc.com",
+      "date": "2024-10-08 13:01",
+      "timestamp": 1728372666.0,
+      "message_id": 163,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "**__Good Morning, Esteemed Managers and Experts in Road Construction,__**\n\nAs we embark on another productive day, I want to extend my warmest greetings to each of you.** Jambo**!\n\nYour dedication and hard work in building and maintaining our roads are truly commendable. As we continue with our operations, I would like to remind everyone of the utmost importance of observing **safety** precautions. Ensuring the **safety** of both yourselves and your personnel is not only a matter of compliance but also a critical aspect of our collective well-being.\n\nAccidents and injuries can be costly, both in terms of human life and financial resources. By adhering to **safety** protocols, we can prevent unnecessary risks and ensure that our projects are completed efficiently and **safely**.\n\nLet's work together to create a safe and productive environment for everyone involved. Thank you for your attention and commitment to safety.\n\n**Habari za asubuhi! (Good morning!)**",
+      "text_english": "**__Good Morning, Esteemed Managers and Experts in Road Construction,__**\n\nAs we embark on another productive day, I want to extend my warmest greetings to each of you.** Jambo**!\n\nYour dedication and hard work in building and maintaining our roads are truly commendable. As we continue with our operations, I would like to remind everyone of the utmost importance of observing **safety** precautions. Ensuring the **safety** of both yourselves and your personnel is not only a matter of compliance but also a critical aspect of our collective well-being.\n\nAccidents and injuries can be costly, both in terms of human life and financial resources. By adhering to **safety** protocols, we can prevent unnecessary risks and ensure that our projects are completed efficiently and **safely**.\n\nLet's work together to create a safe and productive environment for everyone involved. Thank you for your attention and commitment to safety.\n\n**Habari za asubuhi! (Good morning!)**",
+      "date": "2024-09-28 12:30",
+      "timestamp": 1727506824.0,
+      "message_id": 156,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "**__HEMT__**: Precision in Every Step, Excellence in Every Delivery.  Order Now and Enjoy Unmatched Quality!\n———————————————\n**__HEMT:__ **Usahihi katika Kila Hatua, Ubora katika Kila Uwasilishaji. Agiza Sasa na Ufurahie Ubora Usiolinganishwa!",
+      "text_english": "**__HEMT__**: Precision in Every Step, Excellence in Every Delivery.  Order Now and Enjoy Unmatched Quality!\n———————————————\n**__HEMT:__ **Usahihi katika Kila Hatua, Ubora katika Kila Uwasilishaji. Agiza Sasa na Ufurahie Ubora Usiolinganishwa!",
+      "date": "2024-09-22 18:37",
+      "timestamp": 1727010445.0,
+      "message_id": 151,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "D113 Standard Test Method for Ductility of Asphalt Materials",
+      "text_english": "D113 Standard Test Method for Ductility of Asphalt Materials",
+      "date": "2024-09-22 17:41",
+      "timestamp": 1727007067.0,
+      "message_id": 150,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "Experts must be well-versed in professional standards, and HEMT, as a reputable company, provides valid bitumen standards to ensure high quality.\n———————-\nTafadhali andika maandishi mafupi kuhusu hitaji la wataalam kufahamu viwango vya kitaaluma, na HEMT, kama kampuni ya kitaaluma, hutoa viwango halali vya lami ili kukuza ubora wa juu.",
+      "text_english": "Experts must be well-versed in professional standards, and HEMT, as a reputable company, provides valid bitumen standards to ensure high quality.\n———————-\nTafadhali andika maandishi mafupi kuhusu hitaji la wataalam kufahamu viwango vya kitaaluma, na HEMT, kama kampuni ya kitaaluma, hutoa viwango halali vya lami ili kukuza ubora wa juu.",
+      "date": "2024-09-22 17:21",
+      "timestamp": 1727005910.0,
+      "message_id": 149,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "SUSTAINABLE IN-SITU HEAVY OIL AND BITUMEN RECOVERY",
+      "text_english": "SUSTAINABLE IN-SITU HEAVY OIL AND BITUMEN RECOVERY",
+      "date": "2024-09-21 12:26",
+      "timestamp": 1726901784.0,
+      "message_id": 148,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "Dear Group Members,\n\nOne of our main goals is to raise the level of knowledge and awareness regarding the uses of bitumen. To support this mission, we are pleased to present you with the **__SUSTAINABLE IN-SITU HEAVY OIL AND BITUMEN RECOVERY book__**. We hope it will be both useful and beneficial for all.\n\nBest regards,",
+      "text_english": "Dear Group Members,\n\nOne of our main goals is to raise the level of knowledge and awareness regarding the uses of bitumen. To support this mission, we are pleased to present you with the **__SUSTAINABLE IN-SITU HEAVY OIL AND BITUMEN RECOVERY book__**. We hope it will be both useful and beneficial for all.\n\nBest regards,",
+      "date": "2024-09-21 12:24",
+      "timestamp": 1726901677.0,
+      "message_id": 147,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "Good morning, esteemed Group members!\n\nWe hope this message finds you well and energized for the day ahead. As managers and experts in the road construction industry, your dedication and hard work are truly commendable. We wish you continued success and significant progress in all your projects.\n\nTo achieve the highest quality and best results, we recommend considering the use of HEMT bitumen. Its superior properties can greatly enhance the durability and performance of your constructions.\n\nHere's to more successful projects and outstanding achievements!\n\nBest regards,",
+      "text_english": "Good morning, esteemed Group members!\n\nWe hope this message finds you well and energized for the day ahead. As managers and experts in the road construction industry, your dedication and hard work are truly commendable. We wish you continued success and significant progress in all your projects.\n\nTo achieve the highest quality and best results, we recommend considering the use of HEMT bitumen. Its superior properties can greatly enhance the durability and performance of your constructions.\n\nHere's to more successful projects and outstanding achievements!\n\nBest regards,",
+      "date": "2024-09-18 11:59",
+      "timestamp": 1726640984.0,
+      "message_id": 141,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "Chagua kampuni ya HEMT Bitumen\nHii ndiyo sababu HEMT Bitumen ndio chaguo bora zaidi kwa mradi wako unaofuata.\n\n**__Ubora Usio na Kifani:__** Lami yetu imetolewa kwa uangalifu na kusafishwa kwa utendakazi usio na kifani.\n**__Uimara wa Muda Mrefu__**: Barabara zilizojengwa kwa lami hustahimili mtihani wa wakati, na kupunguza mahitaji ya matengenezo.\n**__Inaaminika kwa Vizazi:__** Urithi wa ubora, Lami ya HEMT imekuwa msingi wa miradi ya miundombinu kwa miongo kadhaa.\nUsitulie kwa chochote kidogo. Wasiliana na HTME leo na ufungue njia ya mafanikio!\n\nTunatazamia kushirikiana nawe!",
+      "text_english": "Chagua kampuni ya HEMT Bitumen\nHii ndiyo sababu HEMT Bitumen ndio chaguo bora zaidi kwa mradi wako unaofuata.\n\n**__Ubora Usio na Kifani:__** Lami yetu imetolewa kwa uangalifu na kusafishwa kwa utendakazi usio na kifani.\n**__Uimara wa Muda Mrefu__**: Barabara zilizojengwa kwa lami hustahimili mtihani wa wakati, na kupunguza mahitaji ya matengenezo.\n**__Inaaminika kwa Vizazi:__** Urithi wa ubora, Lami ya HEMT imekuwa msingi wa miradi ya miundombinu kwa miongo kadhaa.\nUsitulie kwa chochote kidogo. Wasiliana na HTME leo na ufungue njia ya mafanikio!\n\nTunatazamia kushirikiana nawe!",
+      "date": "2024-09-17 16:31",
+      "timestamp": 1726570901.0,
+      "message_id": 140,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "Choose **HEMT Bitumen** company\nHere's why HEMT Bitumen is the superior choice for your next project.\n\n**__Unmatched Quality:__** Our bitumen is meticulously sourced and refined for unparalleled performance.\n**__Long-lasting Durability:__** Roads built with our bitumen stand the test of time, minimizing maintenance needs.\n**__Trusted for Generations:__** A legacy of excellence, HEMT Bitumen has been a cornerstone of infrastructure projects for decades.\nDon't settle for anything less. Contact HTME today and pave the way for success!\n\nWe look forward to partnering with you!",
+      "text_english": "Choose **HEMT Bitumen** company\nHere's why HEMT Bitumen is the superior choice for your next project.\n\n**__Unmatched Quality:__** Our bitumen is meticulously sourced and refined for unparalleled performance.\n**__Long-lasting Durability:__** Roads built with our bitumen stand the test of time, minimizing maintenance needs.\n**__Trusted for Generations:__** A legacy of excellence, HEMT Bitumen has been a cornerstone of infrastructure projects for decades.\nDon't settle for anything less. Contact HTME today and pave the way for success!\n\nWe look forward to partnering with you!",
+      "date": "2024-09-17 16:31",
+      "timestamp": 1726570886.0,
+      "message_id": 139,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "Good morning team! Hope everyone is doing well and ready for a productive day. Let's continue striving for excellence in our bitumen and road construction operations. Have a great day💡🌿\n————————————-\nHabari za asubuhi timu! Natumai kila mtu anaendelea vyema na tayari kwa siku yenye tija. Tuendelee kujitahidi kupata ubora katika shughuli zetu za ujenzi wa lami na barabara. Uwe na siku njema💡🌿",
+      "text_english": "Good morning team! Hope everyone is doing well and ready for a productive day. Let's continue striving for excellence in our bitumen and road construction operations. Have a great day💡🌿\n————————————-\nHabari za asubuhi timu! Natumai kila mtu anaendelea vyema na tayari kwa siku yenye tija. Tuendelee kujitahidi kupata ubora katika shughuli zetu za ujenzi wa lami na barabara. Uwe na siku njema💡🌿",
+      "date": "2024-09-16 11:49",
+      "timestamp": 1726467593.0,
+      "message_id": 137,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "Je, unatafuta lami ya ubora wa juu kwenye mapipa, jumbobags au wingi? Tumekushughulikia! ✨\n\nKwa nini tuchague? 💡\n\n□ Chaguo zinazonyumbulika: 💧 alama zote na vifungashio—chaguo lako! ✔️\n■ Malipo salama: 💰 T/T au L/C kwa amani yako ya akili.\n□ Usafirishaji wa haraka: 🚚 FOB au CFR ili utimize agizo haraka.\n■ Mtoa huduma anayeaminika: ⭐️ Inatoa ubora kila wakati!\n\nJe, uko tayari kuagiza? 〽️\n\nWasiliana nasi leo!\n+98 9122003787 kwenye WhatsApp au Telegramu\n\n□ Usaidizi wa kitaalamu: 🛠 Timu yetu iko hapa kukusaidia kwa mahitaji yako yote ya lami! Kuanzia uteuzi wa bidhaa hadi uwasilishaji, tumekupa mgongo wako.\n■ Uhakikisho wa ubora: 🏆 Tunapata lami bora zaidi pekee, na kuhakikisha kuwa unapokea bidhaa za hali ya juu kila wakati.\n□ Bei shindani: 💲 Pata pesa nyingi zaidi kwa bei yako na viwango vyetu vya kuvutia! Bajeti yako ni muhimu kwetu.\n■ Suluhisho maalum: 🔧 Je, unahitaji kitu mahususi? Tunaweza kurekebisha huduma zetu ili kukidhi mahitaji yako ya kipekee!\n\nUsingoje tena - furahia bora zaidi katika lami leo! 🌍\nTutumie ujumbe sasa kwa +98 9122003787 kwenye WhatsApp au Telegram na tuanze! 🚀",
+      "text_english": "Je, unatafuta lami ya ubora wa juu kwenye mapipa, jumbobags au wingi? Tumekushughulikia! ✨\n\nKwa nini tuchague? 💡\n\n□ Chaguo zinazonyumbulika: 💧 alama zote na vifungashio—chaguo lako! ✔️\n■ Malipo salama: 💰 T/T au L/C kwa amani yako ya akili.\n□ Usafirishaji wa haraka: 🚚 FOB au CFR ili utimize agizo haraka.\n■ Mtoa huduma anayeaminika: ⭐️ Inatoa ubora kila wakati!\n\nJe, uko tayari kuagiza? 〽️\n\nWasiliana nasi leo!\n+98 9122003787 kwenye WhatsApp au Telegramu\n\n□ Usaidizi wa kitaalamu: 🛠 Timu yetu iko hapa kukusaidia kwa mahitaji yako yote ya lami! Kuanzia uteuzi wa bidhaa hadi uwasilishaji, tumekupa mgongo wako.\n■ Uhakikisho wa ubora: 🏆 Tunapata lami bora zaidi pekee, na kuhakikisha kuwa unapokea bidhaa za hali ya juu kila wakati.\n□ Bei shindani: 💲 Pata pesa nyingi zaidi kwa bei yako na viwango vyetu vya kuvutia! Bajeti yako ni muhimu kwetu.\n■ Suluhisho maalum: 🔧 Je, unahitaji kitu mahususi? Tunaweza kurekebisha huduma zetu ili kukidhi mahitaji yako ya kipekee!\n\nUsingoje tena - furahia bora zaidi katika lami leo! 🌍\nTutumie ujumbe sasa kwa +98 9122003787 kwenye WhatsApp au Telegram na tuanze! 🚀",
+      "date": "2024-09-15 15:19",
+      "timestamp": 1726393748.0,
+      "message_id": 135,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "Looking for high-quality bitumen in barrels, jumbobags, or bulk? We’ve got you covered! ✨\n\nWhy choose us? 💡\n\n□ Flexible options: 💧 all grades and packaging—your choice! ✔️  \n■ Secure payment: 💰 T/T or L/C for your peace of mind.  \n□ Fast delivery: 🚚 FOB or CFR for quick order fulfillment.  \n■ Trusted supplier: ⭐️ Delivering excellence every time!\n\nReady to place your order? 〽️ \n\nContact us today!  \n+98 9122003787 on WhatsApp or Telegram\n\n□ Expert support: 🛠 Our team is here to help you with all your bitumen needs! From product selection to delivery, we’ve got your back.  \n■ Quality assurance: 🏆 We source only the finest bitumen, ensuring you receive top-notch products every time.  \n□ Competitive pricing: 💲 Get the best bang for your buck with our attractive rates! Your budget matters to us.  \n■ Custom solutions: 🔧 Need something specific? We can tailor our services to meet your unique requirements!  \n\nDon’t wait any longer—experience the best in bitumen today! 🌍  \nMessage us now at +98 9122003787 on WhatsApp or Telegram and let’s get started! 🚀",
+      "text_english": "Looking for high-quality bitumen in barrels, jumbobags, or bulk? We’ve got you covered! ✨\n\nWhy choose us? 💡\n\n□ Flexible options: 💧 all grades and packaging—your choice! ✔️  \n■ Secure payment: 💰 T/T or L/C for your peace of mind.  \n□ Fast delivery: 🚚 FOB or CFR for quick order fulfillment.  \n■ Trusted supplier: ⭐️ Delivering excellence every time!\n\nReady to place your order? 〽️ \n\nContact us today!  \n+98 9122003787 on WhatsApp or Telegram\n\n□ Expert support: 🛠 Our team is here to help you with all your bitumen needs! From product selection to delivery, we’ve got your back.  \n■ Quality assurance: 🏆 We source only the finest bitumen, ensuring you receive top-notch products every time.  \n□ Competitive pricing: 💲 Get the best bang for your buck with our attractive rates! Your budget matters to us.  \n■ Custom solutions: 🔧 Need something specific? We can tailor our services to meet your unique requirements!  \n\nDon’t wait any longer—experience the best in bitumen today! 🌍  \nMessage us now at +98 9122003787 on WhatsApp or Telegram and let’s get started! 🚀",
+      "date": "2024-09-15 15:18",
+      "timestamp": 1726393703.0,
+      "message_id": 134,
+      "prices_found": [],
+      "is_price": true
+    },
+    {
+      "channel": "HEMT Bitumen Hub",
+      "channel_id": -1002231508722,
+      "sender": "",
+      "text_original": "D36 Standard Test Method for Softening Point of Bitumen ...",
+      "text_english": "D36 Standard Test Method for Softening Point of Bitumen ...",
+      "date": "2024-09-14 23:53",
+      "timestamp": 1726338198.0,
+      "message_id": 130,
+      "prices_found": [],
+      "is_price": true
+    }
+  ]
+}

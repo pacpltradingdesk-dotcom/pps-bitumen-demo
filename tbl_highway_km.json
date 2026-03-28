@@ -1,0 +1,222 @@
+[
+  {
+    "state": "Uttar Pradesh",
+    "nhai_km_target": 2850,
+    "completed_km": 1900,
+    "bitumen_demand_mt": 28500,
+    "completion_pct": 66.7,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Rajasthan",
+    "nhai_km_target": 2200,
+    "completed_km": 1500,
+    "bitumen_demand_mt": 22000,
+    "completion_pct": 68.2,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "nhai_km_target": 1800,
+    "completed_km": 1200,
+    "bitumen_demand_mt": 18000,
+    "completion_pct": 66.7,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Maharashtra",
+    "nhai_km_target": 1700,
+    "completed_km": 1100,
+    "bitumen_demand_mt": 17000,
+    "completion_pct": 64.7,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Gujarat",
+    "nhai_km_target": 1500,
+    "completed_km": 1050,
+    "bitumen_demand_mt": 15000,
+    "completion_pct": 70.0,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Karnataka",
+    "nhai_km_target": 1400,
+    "completed_km": 900,
+    "bitumen_demand_mt": 14000,
+    "completion_pct": 64.3,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Tamil Nadu",
+    "nhai_km_target": 1200,
+    "completed_km": 800,
+    "bitumen_demand_mt": 12000,
+    "completion_pct": 66.7,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Andhra Pradesh",
+    "nhai_km_target": 1100,
+    "completed_km": 750,
+    "bitumen_demand_mt": 11000,
+    "completion_pct": 68.2,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Bihar",
+    "nhai_km_target": 1000,
+    "completed_km": 600,
+    "bitumen_demand_mt": 10000,
+    "completion_pct": 60.0,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Odisha",
+    "nhai_km_target": 900,
+    "completed_km": 550,
+    "bitumen_demand_mt": 9000,
+    "completion_pct": 61.1,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Telangana",
+    "nhai_km_target": 850,
+    "completed_km": 600,
+    "bitumen_demand_mt": 8500,
+    "completion_pct": 70.6,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "West Bengal",
+    "nhai_km_target": 800,
+    "completed_km": 500,
+    "bitumen_demand_mt": 8000,
+    "completion_pct": 62.5,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Punjab",
+    "nhai_km_target": 750,
+    "completed_km": 500,
+    "bitumen_demand_mt": 7500,
+    "completion_pct": 66.7,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Haryana",
+    "nhai_km_target": 700,
+    "completed_km": 500,
+    "bitumen_demand_mt": 7000,
+    "completion_pct": 71.4,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Jharkhand",
+    "nhai_km_target": 650,
+    "completed_km": 400,
+    "bitumen_demand_mt": 6500,
+    "completion_pct": 61.5,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Chhattisgarh",
+    "nhai_km_target": 600,
+    "completed_km": 380,
+    "bitumen_demand_mt": 6000,
+    "completion_pct": 63.3,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Kerala",
+    "nhai_km_target": 500,
+    "completed_km": 350,
+    "bitumen_demand_mt": 5000,
+    "completion_pct": 70.0,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Assam",
+    "nhai_km_target": 450,
+    "completed_km": 280,
+    "bitumen_demand_mt": 4500,
+    "completion_pct": 62.2,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Uttarakhand",
+    "nhai_km_target": 400,
+    "completed_km": 250,
+    "bitumen_demand_mt": 4000,
+    "completion_pct": 62.5,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Himachal Pradesh",
+    "nhai_km_target": 350,
+    "completed_km": 200,
+    "bitumen_demand_mt": 3500,
+    "completion_pct": 57.1,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "J&K",
+    "nhai_km_target": 300,
+    "completed_km": 180,
+    "bitumen_demand_mt": 3000,
+    "completion_pct": 60.0,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Goa",
+    "nhai_km_target": 80,
+    "completed_km": 60,
+    "bitumen_demand_mt": 800,
+    "completion_pct": 75.0,
+    "bitumen_per_km_mt": 10,
+    "source": "NHAI Annual Report FY2025-26 (estimated)",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  }
+]

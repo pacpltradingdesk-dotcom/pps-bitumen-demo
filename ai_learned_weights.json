@@ -1,0 +1,11 @@
+{
+  "weights": {
+    "crude_trend": 0.35,
+    "fx_trend": 0.2,
+    "seasonal_pattern": 0.15,
+    "refinery_utilization": 0.15,
+    "import_volume": 0.15
+  },
+  "updated_at": "2026-03-28 13:18:09",
+  "version": 388
+}

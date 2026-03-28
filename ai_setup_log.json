@@ -1,0 +1,362 @@
+[
+  {
+    "event": "health_tests",
+    "timestamp": "03-03-2026 17:15:35 IST",
+    "data": {
+      "results": [
+        {
+          "module": "ai_fallback_engine",
+          "display_name": "LLM Chain (Ollama/HF/GPT4All)",
+          "status": "pass",
+          "engine_used": "ollama",
+          "response_ms": 2040,
+          "error": null,
+          "details": "3 providers ready, active: Ollama Llama3"
+        },
+        {
+          "module": "ml_forecast_engine",
+          "display_name": "Prophet + sklearn Forecasting",
+          "status": "degraded",
+          "engine_used": "heuristic",
+          "response_ms": 486,
+          "error": null,
+          "details": "Using heuristic fallbacks"
+        },
+        {
+          "module": "ml_boost_engine",
+          "display_name": "LightGBM/XGBoost Scoring",
+          "status": "degraded",
+          "engine_used": "rule",
+          "response_ms": 2,
+          "error": null,
+          "details": "Using rule-based scoring"
+        },
+        {
+          "module": "anomaly_engine",
+          "display_name": "Anomaly Detection",
+          "status": "pass",
+          "engine_used": "zscore",
+          "response_ms": 1,
+          "error": null,
+          "details": "IsolationForest: no"
+        },
+        {
+          "module": "rag_engine",
+          "display_name": "RAG Search (FAISS/TF-IDF)",
+          "status": "degraded",
+          "engine_used": "keyword",
+          "response_ms": 2,
+          "error": null,
+          "details": "0 documents indexed, engine: keyword"
+        },
+        {
+          "module": "finbert_engine",
+          "display_name": "Financial Sentiment (FinBERT)",
+          "status": "degraded",
+          "engine_used": "keyword",
+          "response_ms": 1,
+          "error": null,
+          "details": "Active engine: keyword"
+        },
+        {
+          "module": "nlp_extraction_engine",
+          "display_name": "NLP Entity Extraction",
+          "status": "degraded",
+          "engine_used": "regex",
+          "response_ms": 1,
+          "error": null,
+          "details": "Using regex fallback (spaCy not installed)"
+        },
+        {
+          "module": "auto_insight_engine",
+          "display_name": "Auto Insight Generator",
+          "status": "pass",
+          "engine_used": "llm+rule",
+          "response_ms": 1,
+          "error": null,
+          "details": "0 insights in last 7 days"
+        }
+      ]
+    }
+  },
+  {
+    "event": "health_tests",
+    "timestamp": "03-03-2026 17:15:46 IST",
+    "data": {
+      "results": [
+        {
+          "module": "ai_fallback_engine",
+          "display_name": "LLM Chain (Ollama/HF/GPT4All)",
+          "status": "pass",
+          "engine_used": "ollama",
+          "response_ms": 1611,
+          "error": null,
+          "details": "3 providers ready, active: Ollama Llama3"
+        },
+        {
+          "module": "ml_forecast_engine",
+          "display_name": "Prophet + sklearn Forecasting",
+          "status": "degraded",
+          "engine_used": "heuristic",
+          "response_ms": 490,
+          "error": null,
+          "details": "Using heuristic fallbacks"
+        },
+        {
+          "module": "ml_boost_engine",
+          "display_name": "LightGBM/XGBoost Scoring",
+          "status": "degraded",
+          "engine_used": "rule",
+          "response_ms": 3,
+          "error": null,
+          "details": "Using rule-based scoring"
+        },
+        {
+          "module": "anomaly_engine",
+          "display_name": "Anomaly Detection",
+          "status": "pass",
+          "engine_used": "zscore",
+          "response_ms": 1,
+          "error": null,
+          "details": "IsolationForest: no"
+        },
+        {
+          "module": "rag_engine",
+          "display_name": "RAG Search (FAISS/TF-IDF)",
+          "status": "degraded",
+          "engine_used": "keyword",
+          "response_ms": 2,
+          "error": null,
+          "details": "0 documents indexed, engine: keyword"
+        },
+        {
+          "module": "finbert_engine",
+          "display_name": "Financial Sentiment (FinBERT)",
+          "status": "degraded",
+          "engine_used": "keyword",
+          "response_ms": 1,
+          "error": null,
+          "details": "Active engine: keyword"
+        },
+        {
+          "module": "nlp_extraction_engine",
+          "display_name": "NLP Entity Extraction",
+          "status": "degraded",
+          "engine_used": "regex",
+          "response_ms": 1,
+          "error": null,
+          "details": "Using regex fallback (spaCy not installed)"
+        },
+        {
+          "module": "auto_insight_engine",
+          "display_name": "Auto Insight Generator",
+          "status": "pass",
+          "engine_used": "llm+rule",
+          "response_ms": 1,
+          "error": null,
+          "details": "0 insights in last 7 days"
+        }
+      ]
+    }
+  },
+  {
+    "event": "health_tests",
+    "timestamp": "03-03-2026 17:33:36 IST",
+    "data": {
+      "results": [
+        {
+          "module": "ai_fallback_engine",
+          "display_name": "LLM Chain (Ollama/HF/GPT4All)",
+          "status": "pass",
+          "engine_used": "ollama",
+          "response_ms": 2237,
+          "error": null,
+          "details": "3 providers ready, active: Ollama Llama3"
+        },
+        {
+          "module": "ml_forecast_engine",
+          "display_name": "Prophet + sklearn Forecasting",
+          "status": "degraded",
+          "engine_used": "heuristic",
+          "response_ms": 947,
+          "error": null,
+          "details": "Using heuristic fallbacks"
+        },
+        {
+          "module": "ml_boost_engine",
+          "display_name": "LightGBM/XGBoost Scoring",
+          "status": "degraded",
+          "engine_used": "rule",
+          "response_ms": 3,
+          "error": null,
+          "details": "Using rule-based scoring"
+        },
+        {
+          "module": "anomaly_engine",
+          "display_name": "Anomaly Detection",
+          "status": "pass",
+          "engine_used": "zscore",
+          "response_ms": 0,
+          "error": null,
+          "details": "IsolationForest: no"
+        },
+        {
+          "module": "rag_engine",
+          "display_name": "RAG Search (FAISS/TF-IDF)",
+          "status": "degraded",
+          "engine_used": "keyword",
+          "response_ms": 0,
+          "error": null,
+          "details": "0 documents indexed, engine: keyword"
+        },
+        {
+          "module": "finbert_engine",
+          "display_name": "Financial Sentiment (FinBERT)",
+          "status": "degraded",
+          "engine_used": "keyword",
+          "response_ms": 4,
+          "error": null,
+          "details": "Active engine: keyword"
+        },
+        {
+          "module": "nlp_extraction_engine",
+          "display_name": "NLP Entity Extraction",
+          "status": "degraded",
+          "engine_used": "regex",
+          "response_ms": 0,
+          "error": null,
+          "details": "Using regex fallback (spaCy not installed)"
+        },
+        {
+          "module": "auto_insight_engine",
+          "display_name": "Auto Insight Generator",
+          "status": "pass",
+          "engine_used": "llm+rule",
+          "response_ms": 3,
+          "error": null,
+          "details": "1 insights in last 7 days"
+        }
+      ]
+    }
+  },
+  {
+    "event": "install_packages",
+    "timestamp": "2026-03-25 15:48:59 IST",
+    "data": {
+      "tier": "MEDIUM",
+      "results": {
+        "psutil": "already",
+        "ollama": "installed",
+        "huggingface-hub": "already",
+        "scikit-learn": "already",
+        "numpy": "already",
+        "sentence-transformers": "already",
+        "lightgbm": "already",
+        "faiss-cpu": "already",
+        "shap": "installed"
+      }
+    }
+  },
+  {
+    "event": "ollama_setup",
+    "timestamp": "2026-03-25 15:48:59 IST",
+    "data": {
+      "status": "not_found",
+      "models": [],
+      "port": 11434,
+      "binary": "",
+      "details": "Ollama not found. Install from https://ollama.com/download. After installing, restart this setup."
+    }
+  },
+  {
+    "event": "health_tests",
+    "timestamp": "2026-03-25 15:49:00 IST",
+    "data": {
+      "results": [
+        {
+          "module": "ai_fallback_engine",
+          "display_name": "LLM Chain (Ollama/HF/GPT4All)",
+          "status": "pass",
+          "engine_used": "ollama",
+          "response_ms": 847,
+          "error": null,
+          "details": "2 providers ready, active: Ollama Llama3"
+        },
+        {
+          "module": "ml_forecast_engine",
+          "display_name": "Prophet + sklearn Forecasting",
+          "status": "pass",
+          "engine_used": "Prophet+sklearn",
+          "response_ms": 181,
+          "error": null,
+          "details": "8 models trained"
+        },
+        {
+          "module": "ml_boost_engine",
+          "display_name": "LightGBM/XGBoost Scoring",
+          "status": "pass",
+          "engine_used": "lightgbm",
+          "response_ms": 6,
+          "error": null,
+          "details": "SHAP: yes"
+        },
+        {
+          "module": "anomaly_engine",
+          "display_name": "Anomaly Detection",
+          "status": "pass",
+          "engine_used": "isolation_forest",
+          "response_ms": 0,
+          "error": null,
+          "details": "IsolationForest: yes"
+        },
+        {
+          "module": "rag_engine",
+          "display_name": "RAG Search (FAISS/TF-IDF)",
+          "status": "degraded",
+          "engine_used": "faiss",
+          "response_ms": 0,
+          "error": null,
+          "details": "0 documents indexed, engine: faiss"
+        },
+        {
+          "module": "finbert_engine",
+          "display_name": "Financial Sentiment (FinBERT)",
+          "status": "pass",
+          "engine_used": "finbert",
+          "response_ms": 0,
+          "error": null,
+          "details": "Active engine: finbert"
+        },
+        {
+          "module": "nlp_extraction_engine",
+          "display_name": "NLP Entity Extraction",
+          "status": "degraded",
+          "engine_used": "regex",
+          "response_ms": 61,
+          "error": null,
+          "details": "Using regex fallback (spaCy not installed)"
+        },
+        {
+          "module": "auto_insight_engine",
+          "display_name": "Auto Insight Generator",
+          "status": "pass",
+          "engine_used": "llm+rule",
+          "response_ms": 2,
+          "error": null,
+          "details": "6 insights in last 7 days"
+        }
+      ]
+    }
+  },
+  {
+    "event": "full_setup",
+    "timestamp": "2026-03-25 15:49:00 IST",
+    "data": {
+      "tier": "MEDIUM",
+      "packages_installed": 2,
+      "ollama_status": "not_found",
+      "health_passed": 6,
+      "health_total": 8
+    }
+  }
+]

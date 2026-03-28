@@ -1,0 +1,59 @@
+<h2>Mobile Responsive Approach</h2>
+<p class="subtitle">How should the dashboard behave on mobile devices?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>CSS-Only Responsive (Recommended)</h3>
+      <p>Add <code>@media</code> queries to existing theme.py, top_bar.py, subtab_bar.py. Same codebase, same pages — just rearranged for small screens.</p>
+      <ul style="margin:8px 0;font-size:0.9em;color:#6b7280">
+        <li>Top bar → hamburger menu on mobile</li>
+        <li>3-column layouts → single column stack</li>
+        <li>KPI cards → 2-per-row grid</li>
+        <li>Tables → horizontal scroll with card view</li>
+        <li>Sidebar → slide-in drawer</li>
+        <li>Touch-friendly buttons (min 44px)</li>
+      </ul>
+      <div style="margin-top:8px;padding:6px 12px;background:#ecfdf5;border-radius:6px;font-size:0.85em;color:#065f46">
+        Fastest to build. No new files. Works instantly on all devices.
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Separate Mobile Layout Mode</h3>
+      <p>Detect screen width via JavaScript. Switch between desktop layout and a mobile-optimized layout with different component arrangement.</p>
+      <ul style="margin:8px 0;font-size:0.9em;color:#6b7280">
+        <li>Bottom tab bar (like apps) instead of top nav</li>
+        <li>Swipe navigation between modules</li>
+        <li>Collapsed cards with expand on tap</li>
+        <li>Dedicated mobile KPI cards</li>
+        <li>Pull-to-refresh for data sync</li>
+      </ul>
+      <div style="margin-top:8px;padding:6px 12px;background:#fef3c7;border-radius:6px;font-size:0.85em;color:#92400e">
+        More app-like feel. More work. Some features need mobile-specific code.
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Progressive Web App (PWA)</h3>
+      <p>Option A + add PWA manifest so it can be "installed" on phone home screen. Looks like a native app with splash screen and no browser chrome.</p>
+      <ul style="margin:8px 0;font-size:0.9em;color:#6b7280">
+        <li>Everything from Option A</li>
+        <li>Add to Home Screen support</li>
+        <li>Full-screen mode (no address bar)</li>
+        <li>Custom app icon & splash screen</li>
+        <li>Offline fallback page</li>
+      </ul>
+      <div style="margin-top:8px;padding:6px 12px;background:#ede9fe;border-radius:6px;font-size:0.85em;color:#5b21b6">
+        Best experience. Feels like a real app. Option A + small extra work.
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,238 @@
+[
+  {
+    "insights": [
+      {
+        "title": "Anomalies detected in data",
+        "body": "Anomaly alert (warning): 4 anomalies detected, 2 high severity",
+        "severity": "action_required",
+        "category": "risk"
+      }
+    ],
+    "generated_at": "03-03-2026 17:19:33 IST",
+    "date": "2026-03-03",
+    "model": "rule",
+    "data_points_used": 6
+  },
+  {
+    "insights": [
+      {
+        "title": "Anomaly Alert - High Severity in Uttar Pradesh",
+        "body": "Two high severity anomalies detected, potentially impacting sales. Investigate the causes and implications for bitumen demand.",
+        "severity": "warning",
+        "category": "risk"
+      },
+      {
+        "title": "Stable Market Sentiment - Opportunity Analysis",
+        "body": "Neutral market sentiment with stable trend suggests a consistent demand. Explore opportunities for sales growth in high-scoring states.",
+        "severity": "info",
+        "category": "opportunity"
+      },
+      {
+        "title": "Demand Peaks - Uttar Pradesh & Maharashtra Focus",
+        "body": "Uttar Pradesh and Maharashtra have the highest demand scores. Prioritize these states for sales initiatives.",
+        "severity": "info",
+        "category": "demand"
+      },
+      {
+        "title": "FX Rate Data Unavailable - Pricing Strategy Impacted",
+        "body": "Lack of current FX rates could affect international pricing strategies. Seek updated exchange rate information.",
+        "severity": "info",
+        "category": "pricing"
+      }
+    ],
+    "generated_at": "04-03-2026 11:02:15 IST",
+    "date": "2026-03-04",
+    "model": "ai",
+    "data_points_used": 6
+  },
+  {
+    "insights": [
+      {
+        "title": "Demand Trends in Maharashtra and Uttar Pradesh",
+        "body": "Maharashtra (score: 57.1) and Uttar Pradesh (score: 57.8) are leading demand states for bitumen, indicating a strong market presence.",
+        "severity": "info",
+        "category": "demand"
+      },
+      {
+        "title": "Monitor FX Rate Fluctuations",
+        "body": "With the current data health showing degraded information, it's crucial to monitor currency exchange rates for better pricing strategy.",
+        "severity": "warning",
+        "category": "pricing"
+      },
+      {
+        "title": "Explore Opportunities in Gujarat and Telangana",
+        "body": "Gujarat (score: 52.2) and Telangana (score: 55.1), though lower than top states, still present potential market opportunities.",
+        "severity": "info",
+        "category": "opportunity"
+      }
+    ],
+    "generated_at": "05-03-2026 08:19:23 IST",
+    "date": "2026-03-05",
+    "model": "ai",
+    "data_points_used": 6
+  },
+  {
+    "insights": [
+      {
+        "title": "Anomalies detected in data",
+        "body": "Anomaly alert (warning): 8 anomalies detected, 2 high severity",
+        "severity": "action_required",
+        "category": "risk"
+      },
+      {
+        "title": "Market sentiment turning negative",
+        "body": "News sentiment analysis shows bearish trend. Monitor for demand slowdown signals.",
+        "severity": "warning",
+        "category": "market"
+      }
+    ],
+    "generated_at": "19-03-2026 10:33:34 IST",
+    "date": "2026-03-19",
+    "model": "rule",
+    "data_points_used": 6
+  },
+  {
+    "insights": [
+      {
+        "title": "Anomalies detected in data",
+        "body": "Anomaly alert (critical): 7 anomalies detected, 3 high severity",
+        "severity": "action_required",
+        "category": "risk"
+      },
+      {
+        "title": "Market sentiment turning negative",
+        "body": "News sentiment analysis shows bearish trend. Monitor for demand slowdown signals.",
+        "severity": "warning",
+        "category": "market"
+      }
+    ],
+    "generated_at": "20-03-2026 15:45:35 IST",
+    "date": "2026-03-20",
+    "model": "rule",
+    "data_points_used": 6
+  },
+  {
+    "insights": [
+      {
+        "title": "Anomalies detected in data",
+        "body": "Anomaly alert (warning): 10 anomalies detected, 0 high severity",
+        "severity": "action_required",
+        "category": "risk"
+      },
+      {
+        "title": "Market sentiment turning negative",
+        "body": "News sentiment analysis shows bearish trend. Monitor for demand slowdown signals.",
+        "severity": "warning",
+        "category": "market"
+      }
+    ],
+    "generated_at": "21-03-2026 09:41:42 IST",
+    "date": "2026-03-21",
+    "model": "rule",
+    "data_points_used": 6
+  },
+  {
+    "insights": [
+      {
+        "title": "Anomalies detected in data",
+        "body": "Anomaly alert (warning): 19 anomalies detected, 0 high severity",
+        "severity": "action_required",
+        "category": "risk"
+      },
+      {
+        "title": "Market sentiment turning negative",
+        "body": "News sentiment analysis shows bearish trend. Monitor for demand slowdown signals.",
+        "severity": "warning",
+        "category": "market"
+      }
+    ],
+    "generated_at": "23-03-2026 09:58:35 IST",
+    "date": "2026-03-23",
+    "model": "rule",
+    "data_points_used": 6
+  },
+  {
+    "insights": [
+      {
+        "title": "Anomalies detected in data",
+        "body": "Anomaly alert (warning): 46 anomalies detected, 0 high severity",
+        "severity": "action_required",
+        "category": "risk"
+      }
+    ],
+    "generated_at": "24-03-2026 09:14:06 IST",
+    "date": "2026-03-24",
+    "model": "rule",
+    "data_points_used": 6
+  },
+  {
+    "insights": [
+      {
+        "title": "Anomalies detected in data",
+        "body": "Anomaly alert (warning): 63 anomalies detected, 0 high severity",
+        "severity": "action_required",
+        "category": "risk"
+      }
+    ],
+    "generated_at": "25-03-2026 09:34:48 IST",
+    "date": "2026-03-25",
+    "model": "rule",
+    "data_points_used": 6
+  },
+  {
+    "insights": [
+      {
+        "title": "Anomalies detected in data",
+        "body": "Anomaly alert (warning): 62 anomalies detected, 0 high severity",
+        "severity": "action_required",
+        "category": "risk"
+      }
+    ],
+    "generated_at": "2026-03-25 15:49:14 IST",
+    "date": "2026-03-25",
+    "model": "rule",
+    "data_points_used": 6
+  },
+  {
+    "insights": [
+      {
+        "title": "Anomalies detected in data",
+        "body": "Anomaly alert (critical): 62 anomalies detected, 3 high severity",
+        "severity": "action_required",
+        "category": "risk"
+      }
+    ],
+    "generated_at": "2026-03-26 11:54:18 IST",
+    "date": "2026-03-26",
+    "model": "rule",
+    "data_points_used": 6
+  },
+  {
+    "insights": [
+      {
+        "title": "Anomalies detected in data",
+        "body": "Anomaly alert (critical): 59 anomalies detected, 7 high severity",
+        "severity": "action_required",
+        "category": "risk"
+      }
+    ],
+    "generated_at": "2026-03-27 09:08:48 IST",
+    "date": "2026-03-27",
+    "model": "rule",
+    "data_points_used": 6
+  },
+  {
+    "insights": [
+      {
+        "title": "Anomalies detected in data",
+        "body": "Anomaly alert (warning): 63 anomalies detected, 0 high severity",
+        "severity": "action_required",
+        "category": "risk"
+      }
+    ],
+    "generated_at": "2026-03-28 08:55:53 IST",
+    "date": "2026-03-28",
+    "model": "rule",
+    "data_points_used": 6
+  }
+]

@@ -1,0 +1,479 @@
+{
+  "latest": {
+    "urgency_index": 77,
+    "recommendation": "PRE-BUY",
+    "recommendation_detail": "Favorable window — start procurement within 7 days.",
+    "recommendation_color": "#f59e0b",
+    "sub_signals": {
+      "price_trend": 85,
+      "demand_season": 100,
+      "inventory_level": 40,
+      "crude_momentum": 70,
+      "fx_pressure": 80,
+      "supply_risk": 75
+    },
+    "weights": {
+      "price_trend": 0.25,
+      "demand_season": 0.2,
+      "inventory_level": 0.15,
+      "crude_momentum": 0.2,
+      "fx_pressure": 0.1,
+      "supply_risk": 0.1
+    },
+    "stock_recommendation": "Stock 20+ days of inventory — peak season + rising costs",
+    "timestamp": "2026-03-28 13:19 IST",
+    "has_live_data": true
+  },
+  "history": [
+    {
+      "timestamp": "2026-03-28 11:34 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 11:34 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 11:34 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 11:34 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 11:34 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 11:34 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 11:35 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 11:35 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 11:35 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 11:39 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 11:39 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 11:39 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 11:39 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 11:39 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 11:39 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 11:43 IST",
+      "urgency_index": 77,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 11:43 IST",
+      "urgency_index": 77,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 11:44 IST",
+      "urgency_index": 77,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 11:52 IST",
+      "urgency_index": 75,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 11:52 IST",
+      "urgency_index": 75,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 11:53 IST",
+      "urgency_index": 75,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:03 IST",
+      "urgency_index": 75,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:03 IST",
+      "urgency_index": 75,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:03 IST",
+      "urgency_index": 75,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:10 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:10 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:10 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:12 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:12 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:12 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:12 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:12 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:12 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:14 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:14 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:14 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:16 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:16 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:17 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:17 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:17 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:17 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:31 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:31 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:31 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:36 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:36 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:36 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:36 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:36 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:37 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:37 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:37 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:37 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:40 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:40 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:41 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:41 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:41 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:41 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:45 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:45 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:45 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:55 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:55 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:55 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:59 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:59 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 12:59 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 13:05 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 13:05 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 13:05 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 13:12 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 13:12 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 13:12 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 13:14 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 13:14 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 13:14 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 13:14 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 13:14 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 13:15 IST",
+      "urgency_index": 51,
+      "recommendation": "HOLD"
+    },
+    {
+      "timestamp": "2026-03-28 13:16 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 13:16 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 13:16 IST",
+      "urgency_index": 61,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 13:18 IST",
+      "urgency_index": 77,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 13:18 IST",
+      "urgency_index": 77,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 13:18 IST",
+      "urgency_index": 77,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 13:19 IST",
+      "urgency_index": 77,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 13:19 IST",
+      "urgency_index": 77,
+      "recommendation": "PRE-BUY"
+    },
+    {
+      "timestamp": "2026-03-28 13:19 IST",
+      "urgency_index": 77,
+      "recommendation": "PRE-BUY"
+    }
+  ]
+}

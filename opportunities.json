@@ -1,0 +1,41 @@
+[
+  {
+    "type": "cheapest_route_change",
+    "title": "Route Optimization: Bhopal — Save ₹1,807/MT",
+    "description": "Best source: Local Decanter (Bhopal) at ₹48,291/MT. Next best: Kandla Port Import at ₹50,098/MT. Savings: ₹1,807/MT.",
+    "customer_city": "Bhopal",
+    "best_source": "Local Decanter (Bhopal)",
+    "new_landed_cost": 48291.0,
+    "old_landed_cost": 50098.0,
+    "savings_per_mt": 1807.0,
+    "priority": "P2",
+    "status": "new",
+    "created_at": "03-03-2026 10:57:01 IST"
+  },
+  {
+    "type": "cheapest_route_change",
+    "title": "Route Optimization: Hyderabad — Save ₹516/MT",
+    "description": "Best source: Local Decanter (Hyderabad) at ₹49,167/MT. Next best: Karwar Port Import at ₹49,683/MT. Savings: ₹516/MT.",
+    "customer_city": "Hyderabad",
+    "best_source": "Local Decanter (Hyderabad)",
+    "new_landed_cost": 49167.0,
+    "old_landed_cost": 49683.5,
+    "savings_per_mt": 516.5,
+    "priority": "P2",
+    "status": "new",
+    "created_at": "03-03-2026 10:57:01 IST"
+  },
+  {
+    "type": "cheapest_route_change",
+    "title": "Route Optimization: Pune — Save ₹1,848/MT",
+    "description": "Best source: Local Decanter (Pune) at ₹45,255/MT. Next best: VVF Mumbai Terminal at ₹47,103/MT. Savings: ₹1,848/MT.",
+    "customer_city": "Pune",
+    "best_source": "Local Decanter (Pune)",
+    "new_landed_cost": 45255.0,
+    "old_landed_cost": 47103.0,
+    "savings_per_mt": 1848.0,
+    "priority": "P2",
+    "status": "new",
+    "created_at": "03-03-2026 10:57:01 IST"
+  }
+]

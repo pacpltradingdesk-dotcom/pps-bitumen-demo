@@ -1,0 +1,182 @@
+[
+  {
+    "source_id": "eia_crude",
+    "name": "EIA Crude & Petroleum Prices",
+    "category": "Crude",
+    "provider": "US Energy Information Administration",
+    "status": "Disabled",
+    "output_tables": [
+      "tbl_crude_prices"
+    ],
+    "refresh_frequency": "1d",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "source_id": "un_comtrade",
+    "name": "UN Comtrade Trade Data",
+    "category": "Trade",
+    "provider": "United Nations Statistics Division",
+    "status": "Static",
+    "output_tables": [
+      "tbl_trade_imports"
+    ],
+    "refresh_frequency": "1d",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "source_id": "openweather",
+    "name": "OpenWeatherMap Current Weather",
+    "category": "Weather",
+    "provider": "OpenWeather Ltd",
+    "status": "Disabled",
+    "output_tables": [
+      "tbl_weather"
+    ],
+    "refresh_frequency": "1h",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "source_id": "newsapi",
+    "name": "NewsAPI Global Headlines",
+    "category": "News",
+    "provider": "NewsAPI.org",
+    "status": "Disabled",
+    "output_tables": [
+      "tbl_news_feed"
+    ],
+    "refresh_frequency": "1h",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "source_id": "frankfurter_fx",
+    "name": "Frankfurter FX Rates (ECB)",
+    "category": "FX",
+    "provider": "Frankfurter.app (European Central Bank data)",
+    "status": "Live",
+    "output_tables": [
+      "tbl_fx_rates"
+    ],
+    "refresh_frequency": "1h",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "source_id": "open_meteo_hub",
+    "name": "Open-Meteo Weather (No-key fallback)",
+    "category": "Weather",
+    "provider": "Open-Meteo.com",
+    "status": "Live",
+    "output_tables": [
+      "tbl_weather"
+    ],
+    "refresh_frequency": "1h",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "source_id": "gnews_rss",
+    "name": "Google News RSS (Bitumen/Crude headlines)",
+    "category": "News",
+    "provider": "Google News RSS",
+    "status": "Live",
+    "output_tables": [
+      "tbl_news_feed"
+    ],
+    "refresh_frequency": "1h",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "source_id": "fawazahmed0_fx",
+    "name": "fawazahmed0 Currency API (CDN)",
+    "category": "FX",
+    "provider": "fawazahmed0 GitHub CDN",
+    "status": "Live",
+    "output_tables": [
+      "tbl_fx_rates"
+    ],
+    "refresh_frequency": "1d",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "source_id": "comtrade_hs271320",
+    "name": "UN Comtrade — HS 271320 Country-wise Imports",
+    "category": "Trade / Govt",
+    "provider": "United Nations Statistics Division",
+    "status": "Live",
+    "output_tables": [
+      "tbl_imports_countrywise"
+    ],
+    "refresh_frequency": "1d",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "source_id": "rbi_fx_historical",
+    "name": "RBI Reference Rate — USD/INR Historical (ECB proxy)",
+    "category": "FX / Govt",
+    "provider": "Frankfurter.app (ECB data) — RBI proxy",
+    "status": "Live",
+    "output_tables": [
+      "tbl_fx_rates"
+    ],
+    "refresh_frequency": "1d",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "source_id": "ppac_proxy",
+    "name": "PPAC Refinery Production (Static Ref + EIA Proxy)",
+    "category": "Refinery / Govt",
+    "provider": "PPAC (static) + EIA (live proxy)",
+    "status": "Live",
+    "output_tables": [
+      "tbl_refinery_production"
+    ],
+    "refresh_frequency": "1d",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "source_id": "data_gov_in_highways",
+    "name": "data.gov.in — NHAI Road Construction Progress",
+    "category": "Infrastructure / Govt",
+    "provider": "data.gov.in (Govt of India)",
+    "status": "Disabled",
+    "output_tables": [
+      "tbl_highway_km"
+    ],
+    "refresh_frequency": "1d",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "source_id": "fred_macro",
+    "name": "FRED — USD/INR + Brent Crude History",
+    "category": "Macro / Govt",
+    "provider": "Federal Reserve Bank of St. Louis",
+    "status": "Disabled",
+    "output_tables": [
+      "tbl_demand_proxy"
+    ],
+    "refresh_frequency": "1d",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "source_id": "world_bank_india",
+    "name": "World Bank — India Economic Indicators",
+    "category": "Macro / Govt",
+    "provider": "World Bank Group",
+    "status": "Live",
+    "output_tables": [
+      "tbl_world_bank"
+    ],
+    "refresh_frequency": "1d",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "source_id": "maritime_intel",
+    "name": "Maritime Intelligence — Vessel Tracking & Port Activity",
+    "category": "Maritime / Logistics",
+    "provider": "Open-Meteo Marine + RSS + Simulation",
+    "status": "Live",
+    "output_tables": [
+      "tbl_maritime_intel"
+    ],
+    "refresh_frequency": "15m",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  }
+]

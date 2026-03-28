@@ -1,0 +1,75 @@
+{
+  "timestamp": "2026-03-05 09:48:52 IST",
+  "test_results": {
+    "2A_Sentiment": "FAIL",
+    "2B_Forecast": "PASS",
+    "2C_RAG": "PASS",
+    "2D_SignalWeights": "PASS",
+    "2E_MarketIntel": "FAIL",
+    "2F_ModelMonitor": "PASS",
+    "2G_Anomaly": "FAIL",
+    "2H_NLP": "FAIL",
+    "2I_Fallback": "FAIL",
+    "2J_Learning": "FAIL",
+    "2K_Backtest": "PASS",
+    "2L_Boost": "PASS",
+    "2M_Setup": "PASS",
+    "3_ModelHealth": {
+      "transformers": "NOT_INSTALLED",
+      "torch": "NOT_INSTALLED",
+      "prophet": "NOT_INSTALLED",
+      "sklearn": "INSTALLED",
+      "vader": "INSTALLED",
+      "faiss": "NOT_INSTALLED",
+      "sentence_transformers": "NOT_INSTALLED",
+      "lightgbm": "NOT_INSTALLED",
+      "xgboost": "NOT_INSTALLED",
+      "statsmodels": "INSTALLED",
+      "spacy": "NOT_INSTALLED",
+      "ollama_pkg": "INSTALLED",
+      "ollama_endpoint": "OFFLINE",
+      "huggingface": "INSTALLED",
+      "gpt4all": "INSTALLED",
+      "shap": "NOT_INSTALLED"
+    },
+    "4_Quality": {
+      "accuracy": "PARTIAL",
+      "speed": "PASS",
+      "error_handling": "PASS",
+      "hallucination": "NO_DATA"
+    },
+    "5_Wiring": {
+      "key_storage": "PASS (config files, not hardcoded)",
+      "central_router": "PASS",
+      "news_sentiment": "PASS",
+      "caching": "FAIL: cannot import name 'get_full_intelligence' from 'unified_intelligence_engine' (C:\\Users\\HP\\Desktop\\project_bitumen sales\\bitumen sales dashboard\\unified_intelligence_engine.py)",
+      "workers": "PASS (1 threads)"
+    }
+  },
+  "model_health": {
+    "transformers": "NOT_INSTALLED",
+    "torch": "NOT_INSTALLED",
+    "prophet": "NOT_INSTALLED",
+    "sklearn": "INSTALLED",
+    "vader": "INSTALLED",
+    "faiss": "NOT_INSTALLED",
+    "sentence_transformers": "NOT_INSTALLED",
+    "lightgbm": "NOT_INSTALLED",
+    "xgboost": "NOT_INSTALLED",
+    "statsmodels": "INSTALLED",
+    "spacy": "NOT_INSTALLED",
+    "ollama_pkg": "INSTALLED",
+    "ollama_endpoint": "OFFLINE",
+    "huggingface": "INSTALLED",
+    "gpt4all": "INSTALLED",
+    "shap": "NOT_INSTALLED"
+  },
+  "summary": {
+    "total_features": 13,
+    "working": 7,
+    "partial": 0,
+    "broken": 6,
+    "packages_installed": 15,
+    "packages_missing": 10
+  }
+}

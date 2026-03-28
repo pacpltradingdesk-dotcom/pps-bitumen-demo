@@ -1,0 +1,24 @@
+[
+  {
+    "conflict_id": "CONF-20260302-105551-05D4",
+    "timestamp_ist": "02-03-2026 10:55:51 IST",
+    "entity_id": "test_e2e_field",
+    "field": "price",
+    "auto_value": "44000",
+    "manual_value": "43000",
+    "status": "Pending",
+    "resolution": "",
+    "resolved_by": ""
+  },
+  {
+    "conflict_id": "CONF-20260302-110407-6BC3",
+    "timestamp_ist": "02-03-2026 11:04:07 IST",
+    "entity_id": "conf_t08_110407",
+    "field": "field",
+    "auto_value": "300",
+    "manual_value": "200",
+    "status": "Resolved",
+    "resolution": "Kept: auto",
+    "resolved_by": "test"
+  }
+]

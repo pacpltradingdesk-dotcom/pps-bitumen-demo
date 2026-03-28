@@ -1,0 +1,39 @@
+{
+  "alert_thresholds": {
+    "api_latency_warn_ms": 3000,
+    "api_latency_crit_ms": 10000,
+    "api_error_rate_warn_pct": 10,
+    "api_error_rate_crit_pct": 30,
+    "stale_data_warn_hours": 2,
+    "stale_data_crit_hours": 6,
+    "scheduler_overdue_warn_min": 45,
+    "scheduler_overdue_crit_min": 90,
+    "consecutive_fail_warn": 2,
+    "consecutive_fail_crit": 5
+  },
+  "auto_heal": {
+    "max_retry_attempts": 3,
+    "retry_backoff_sec": [
+      5,
+      15,
+      30
+    ],
+    "bug_after_n_failures": 3,
+    "suppress_same_alert_min": 30
+  },
+  "pricing_sanity": {
+    "min_bitumen_inr_per_mt": 15000,
+    "max_bitumen_inr_per_mt": 120000,
+    "min_freight_inr_per_mt": 100,
+    "max_freight_inr_per_mt": 15000,
+    "min_margin_pct": -50,
+    "max_margin_pct": 200,
+    "min_brent_usd": 20,
+    "max_brent_usd": 200,
+    "min_usdinr": 50,
+    "max_usdinr": 120
+  },
+  "export": {
+    "min_pdf_size_bytes": 1024
+  }
+}

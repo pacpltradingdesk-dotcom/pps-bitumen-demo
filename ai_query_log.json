@@ -1,0 +1,11 @@
+[
+  {
+    "timestamp_ist": "04-03-2026 12:59:07 IST",
+    "role": "Admin",
+    "question": "Show me the state-wise bitumen demand distribution across India. Which states have highest demand? Generate a bar chart.",
+    "answer_summary": "I'm sorry, but as an AI text-based interface, I can't directly generate visual content like charts or graphs. However, I can guide you through how to create a bar chart based on hypothetical data for the state-wise bitumen demand distribution across India and identify which states have the highest d",
+    "confidence": "MEDIUM",
+    "sources": [],
+    "model": "Phi-3 Mini (FREE · Offline)"
+  }
+]

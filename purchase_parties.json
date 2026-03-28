@@ -1,0 +1,592 @@
+[
+  {
+    "name": "KOTAK PETROLEUM LLP",
+    "qty_mt": 38343,
+    "type": "Indian Importer - Bulk",
+    "city": "Mumbai",
+    "contact": "",
+    "gstin": "",
+    "marked_for_purchase": true
+  },
+  {
+    "name": "AGARWAL INDUSTRIAL CORPORATION LTD",
+    "qty_mt": 27600,
+    "type": "Indian Importer - Bulk",
+    "city": "Mumbai",
+    "contact": "",
+    "gstin": "",
+    "marked_for_purchase": true
+  },
+  {
+    "name": "NEPTUNE PETROCHEMICALS LTD",
+    "qty_mt": 21877,
+    "type": "Indian Importer - Bulk",
+    "city": "Mumbai",
+    "contact": "",
+    "gstin": "",
+    "marked_for_purchase": true
+  },
+  {
+    "name": "PREMIUM PETRO AND INFRA PROJECTS PVT LTD",
+    "qty_mt": 14054,
+    "type": "Indian Importer - Bulk",
+    "city": "Kandla",
+    "contact": "",
+    "gstin": "",
+    "marked_for_purchase": true
+  },
+  {
+    "name": "SADASHIVA OVERSEAS LTD",
+    "qty_mt": 11788,
+    "type": "Indian Importer - Bulk",
+    "city": "Kandla",
+    "contact": "",
+    "gstin": "",
+    "marked_for_purchase": true
+  },
+  {
+    "name": "INDIAN OIL CORPORATION LTD",
+    "qty_mt": 10282,
+    "type": "Indian Importer - Bulk",
+    "city": "Multiple",
+    "contact": "",
+    "gstin": "",
+    "marked_for_purchase": true
+  },
+  {
+    "name": "FINE LUBRICANTS",
+    "qty_mt": 9853,
+    "type": "Indian Importer - Drum",
+    "city": "Mumbai"
+  },
+  {
+    "name": "PRAKRUTEES INFRA IMPEX INDIA PVT LTD",
+    "qty_mt": 8837,
+    "type": "Indian Importer - Drum",
+    "city": "Mumbai"
+  },
+  {
+    "name": "CHER LIFE HEALTHCARE PVT LTD",
+    "qty_mt": 8345,
+    "type": "Indian Importer - Drum",
+    "city": "Mumbai"
+  },
+  {
+    "name": "TOTAL VENTURE SOLUTIONS",
+    "qty_mt": 8205,
+    "type": "Indian Importer - Drum",
+    "city": "Mumbai"
+  },
+  {
+    "name": "FUTURE UNIVERSAL PETROCHEM PVT LTD",
+    "qty_mt": 7752,
+    "type": "Indian Importer - Drum",
+    "city": "Kandla"
+  },
+  {
+    "name": "Indian Oil Corporation Ltd (IOCL)",
+    "type": "Indian Importer - Bulk",
+    "city": "New Delhi (HQ) / Panipat",
+    "contact": "1800-2333-555",
+    "gstin": "06AAACI1681G1Z0",
+    "details": "Major PSU Refinery. Locations: Panipat, Mathura, Koyali, Haldia, Paradip, Barauni, Guwahati, Digboi, Bongaigaon, Chennai. Email: customercare@indianoilcgd.com",
+    "marked_for_purchase": true,
+    "qty_mt": 1000000
+  },
+  {
+    "name": "Bharat Petroleum Corporation Ltd (BPCL)",
+    "type": "Indian Importer - Bulk",
+    "city": "Mumbai (HQ) / Kochi",
+    "contact": "1800 22 4344",
+    "gstin": "27AAACB2902M1Z6",
+    "details": "Major PSU Refinery. Locations: Mumbai, Kochi, Bina. Website: bharatpetroleum.in",
+    "marked_for_purchase": true,
+    "qty_mt": 800000
+  },
+  {
+    "name": "Hindustan Petroleum Corporation Ltd (HPCL)",
+    "type": "Indian Importer - Bulk",
+    "city": "Mumbai (HQ) / Visakhapatnam",
+    "contact": "1800 2333 555",
+    "gstin": "27AAACH1118B1ZC",
+    "details": "Major PSU Refinery. Locations: Mumbai, Visakhapatnam, Bhatinda (HMEL).",
+    "marked_for_purchase": true,
+    "qty_mt": 750000
+  },
+  {
+    "name": "Mangalore Refinery (MRPL)",
+    "type": "Indian Importer - Bulk",
+    "city": "Mangalore",
+    "contact": "0824-2882000",
+    "gstin": "29AAACM3560G1Z5",
+    "details": "ONGC Subsidiary. Major Bitumen Producer in South.",
+    "marked_for_purchase": true,
+    "qty_mt": 300000
+  },
+  {
+    "name": "Nayara Energy (formerly Essar Oil)",
+    "type": "Indian Importer - Bulk",
+    "city": "Vadinar, Gujarat",
+    "contact": "(+91) 22 71320000",
+    "gstin": "24AAACE5648E1Z2",
+    "details": "Private Refinery. India's second largest single-site refinery.",
+    "marked_for_purchase": true,
+    "qty_mt": 400000
+  },
+  {
+    "name": "HINCOL (Hindustan Colas Ltd)",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mumbai (HQ)",
+    "contact": "022-2302 3250",
+    "gstin": "27AAACH2861H1Z9",
+    "details": "Address: B-601, Marathon Futurex, Lower Parel, Mumbai. Locations: Mumbai, Vizag, Mangalore, Bhatinda. Email: corporate@dustasidehincol.in",
+    "marked_for_purchase": true,
+    "qty_mt": 50000
+  },
+  {
+    "name": "Tiki Tar Industries",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Vadodara",
+    "contact": "0265-2331185",
+    "gstin": "24AAACT4996F1Z8",
+    "details": "Address: 8th Floor, Neptune Tower, Alkapuri, Vadodara. Major PMB supplier. Email: nidhi@tikitar.com",
+    "marked_for_purchase": true,
+    "qty_mt": 30000
+  },
+  {
+    "name": "Agarwal Industrial Corporation Ltd (AICL)",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mumbai (Chembur)",
+    "contact": "+91-22-25291149",
+    "gstin": "27AAACA3996G1Z5",
+    "details": "Address: Eastern Court, Unit 201-202, Chembur, Mumbai. Logistics & Bitumen Mfg.",
+    "marked_for_purchase": true,
+    "qty_mt": 45000
+  },
+  {
+    "name": "RoadStar Bitumen",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "New Delhi",
+    "contact": "+91 9871855136",
+    "gstin": "",
+    "details": "Address: E 45/6, Okhla Phase-2, New Delhi. Offices in Mumbai, Chennai, Kolkata. Email: corporate@roadstarbitumen.com",
+    "marked_for_purchase": true,
+    "qty_mt": 15000
+  },
+  {
+    "name": "Classic Bitumen (CGOC)",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mohali / Chandigarh",
+    "contact": "+91 80 41011570",
+    "gstin": "",
+    "details": "Address: Plot No 1567, Sector 82, JLPL Mohali, Punjab.",
+    "marked_for_purchase": true,
+    "qty_mt": 12000
+  },
+  {
+    "name": "Bitumen Corporation India (BITCOL)",
+    "type": "Indian Importer - Bulk",
+    "city": "Mumbai (Nariman Point)",
+    "contact": "info@bitcol.in",
+    "gstin": "27AACCA6654J1Z8",
+    "details": "Address: 27/28 A, Nariman Bhavan, Nariman Point, Mumbai. Terminals: Mundra, Karwar, Haldia.",
+    "marked_for_purchase": true,
+    "qty_mt": 60000
+  },
+  {
+    "name": "Kotak Petroleum LLP",
+    "type": "Indian Importer - Bulk",
+    "city": "Jamnagar",
+    "contact": "+91-9824850777",
+    "gstin": "24AAHFK4298J1Z6",
+    "details": "Address: 2nd Floor, Standard House, Jamnagar, Gujarat. Email: kotak.hemal@gmail.com",
+    "marked_for_purchase": true,
+    "qty_mt": 38000
+  },
+  {
+    "name": "Maruti Bitumen Pvt Ltd",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Ahmedabad",
+    "contact": "http://www.marutigroup.in",
+    "gstin": "",
+    "details": "Address: 21, 4D Square, Motera, Ahmedabad. Products: Bitumen Emulsions, PMB.",
+    "marked_for_purchase": true,
+    "qty_mt": 10000
+  },
+  {
+    "name": "Atlas Engineering",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Ahmedabad",
+    "contact": "9825073095",
+    "gstin": "",
+    "details": "Address: Plot 397/398, Kathwada GIDC, Ahmedabad. Products: Manufacturers of Bitumen plants and machinery.",
+    "marked_for_purchase": true,
+    "qty_mt": 5000
+  },
+  {
+    "name": "Aaspa Equipment Pvt Ltd",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Ahmedabad",
+    "contact": "",
+    "gstin": "",
+    "details": "Address: SF 223, Arth Business Center, Nikol, Ahmedabad. Products: Bitumen Emulsions, PMB.",
+    "marked_for_purchase": true,
+    "qty_mt": 5000
+  },
+  {
+    "name": "Krish Impex",
+    "type": "Indian Importer - Drum",
+    "city": "Mumbai",
+    "contact": "Contact via IndiaMart",
+    "gstin": "",
+    "details": "Address: Ghatkopar East, Mumbai.",
+    "marked_for_purchase": true,
+    "qty_mt": 2000
+  },
+  {
+    "name": "Floatantide Commodities",
+    "type": "Indian Importer - Bulk",
+    "city": "Mumbai",
+    "contact": "",
+    "gstin": "",
+    "details": "Address: Khar West, Mumbai.",
+    "marked_for_purchase": true,
+    "qty_mt": 8000
+  },
+  {
+    "name": "Blue Jay Petro Pvt Ltd",
+    "type": "Indian Importer - Drum",
+    "city": "Mumbai",
+    "contact": "",
+    "gstin": "",
+    "details": "Address: Andheri East, Mumbai.",
+    "marked_for_purchase": true,
+    "qty_mt": 3000
+  },
+  {
+    "name": "Jay Ambe Petro Chem",
+    "type": "Indian Importer - Drum",
+    "city": "Navi Mumbai",
+    "contact": "022-49797074",
+    "gstin": "",
+    "details": "Address: Vashi, Navi Mumbai.",
+    "marked_for_purchase": true,
+    "qty_mt": 4000
+  },
+  {
+    "name": "Cauvery Bituchem Pvt Ltd",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Chennai",
+    "contact": "",
+    "gstin": "",
+    "details": "Address: Pycrofts Road, Royapettah, Chennai.",
+    "marked_for_purchase": true,
+    "qty_mt": 5000
+  },
+  {
+    "name": "Muthoos Enterprises",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Chennai",
+    "contact": "+918044566500",
+    "gstin": "",
+    "details": "Address: Anna Nagar, Chennai. Plant in Thiruvallur.",
+    "marked_for_purchase": true,
+    "qty_mt": 6000
+  },
+  {
+    "name": "IWL India Limited",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Chennai",
+    "contact": "",
+    "gstin": "",
+    "details": "Address: Anna Nagar West, Chennai. Products: CRMB, PMB.",
+    "marked_for_purchase": true,
+    "qty_mt": 7000
+  },
+  {
+    "name": "KM Chemicals",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mathura",
+    "contact": "",
+    "gstin": "",
+    "details": "Address: 110 KM Stone, Delhi Mathura Road.",
+    "marked_for_purchase": true,
+    "qty_mt": 5000
+  },
+  {
+    "name": "DRG Bitumen",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mathura",
+    "contact": "+91 9910558183",
+    "gstin": "",
+    "details": "Address: Chhata, Mathura. Products: Bitumen processing.",
+    "marked_for_purchase": true,
+    "qty_mt": 6000
+  },
+  {
+    "name": "Shiv Sons",
+    "type": "Indian Importer - Drum",
+    "city": "Delhi",
+    "contact": "www.shivson.com",
+    "gstin": "",
+    "details": "Address: GB Road, New Delhi.",
+    "marked_for_purchase": true,
+    "qty_mt": 3000
+  },
+  {
+    "name": "Bitchem Asphalt Technologies",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Kolkata",
+    "contact": "",
+    "gstin": "",
+    "details": "Address: Ganesh Chandra Avenue, Kolkata.",
+    "marked_for_purchase": true,
+    "qty_mt": 8000
+  },
+  {
+    "name": "SAPCO Bitumen Company Ltd",
+    "type": "Indian Importer - Bulk",
+    "city": "Kolkata",
+    "contact": "s.agarwal@sapco.in",
+    "gstin": "",
+    "details": "Address: Rabindra Sarani, Kolkata.",
+    "marked_for_purchase": true,
+    "qty_mt": 10000
+  },
+  {
+    "name": "Choudhary Bitumen & Allied Products",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Kolkata",
+    "contact": "contact@cbap.co.in",
+    "gstin": "",
+    "details": "Address: C.R. Avenue, Kolkata. Plant in Howrah.",
+    "marked_for_purchase": true,
+    "qty_mt": 7000
+  },
+  {
+    "name": "Shiv Shakti Tar Chem Products",
+    "type": "Indian Importer - Drum",
+    "city": "Vadodara",
+    "contact": "",
+    "gstin": "",
+    "details": "Address: Lakodara, Vadodara.",
+    "marked_for_purchase": true,
+    "qty_mt": 2000
+  },
+  {
+    "name": "Swastik Tar Industries",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Vadodara",
+    "contact": "",
+    "gstin": "",
+    "details": "Address: Nandesari Industrial Estate, Vadodara.",
+    "marked_for_purchase": true,
+    "qty_mt": 3000
+  },
+  {
+    "name": "Rajeshree Tar Industries",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Vadodara",
+    "contact": "9725040804",
+    "gstin": "",
+    "details": "Address: Nandesari, Vadodara. Email: rajeshreetarind@gmail.com",
+    "marked_for_purchase": true,
+    "qty_mt": 4000
+  },
+  {
+    "name": "Spectrum Dyes And Chemicals",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Surat",
+    "contact": "",
+    "gstin": "",
+    "details": "Address: Palsana, Surat.",
+    "marked_for_purchase": true,
+    "qty_mt": 5000
+  },
+  {
+    "name": "Venkateshwara Bitumens",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Hyderabad",
+    "contact": "9731742757",
+    "gstin": "",
+    "details": "Address: IDA Uppal, Hyderabad.",
+    "marked_for_purchase": true,
+    "qty_mt": 3000
+  },
+  {
+    "name": "Rinkey Enterprises",
+    "type": "Indian Importer - Drum",
+    "city": "Hyderabad",
+    "contact": "08046054733",
+    "gstin": "",
+    "details": "Address: Sriven Enclave, Hyderabad.",
+    "marked_for_purchase": true,
+    "qty_mt": 2000
+  },
+  {
+    "name": "Shree Sai Chemicals",
+    "type": "Indian Importer - Drum",
+    "city": "Bangalore",
+    "contact": "08046061090",
+    "gstin": "",
+    "details": "Address: Marathahalli, Bangalore.",
+    "marked_for_purchase": true,
+    "qty_mt": 2000
+  },
+  {
+    "name": "Krush Tar Industries",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Bangalore",
+    "contact": "www.krushtarindustries.com",
+    "gstin": "",
+    "details": "Address: Jayanagar, Bangalore.",
+    "marked_for_purchase": true,
+    "qty_mt": 3000
+  },
+  {
+    "name": "BitChem Asphalt Technologies (Guwahati)",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Guwahati",
+    "contact": "+91 88769 20128",
+    "gstin": "",
+    "details": "Address: Anil Plaza, GS Road, Guwahati.",
+    "marked_for_purchase": true,
+    "qty_mt": 5000
+  },
+  {
+    "name": "GWC Asphalt",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Guwahati",
+    "contact": "+91-75770 10777",
+    "gstin": "",
+    "details": "Address: Anil Plaza-II, Guwahati. Plant in Goalpara.",
+    "marked_for_purchase": true,
+    "qty_mt": 4000
+  },
+  {
+    "name": "HINCOL (Vizag Plant)",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Visakhapatnam",
+    "contact": "022-2302 3250",
+    "details": "Plant Address: Gajuwaka - Scindia Rd, Malkapuram, Visakhapatnam, Andhra Pradesh 530011",
+    "marked_for_purchase": true,
+    "qty_mt": 10000
+  },
+  {
+    "name": "HINCOL (Mangalore Plant)",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mangalore",
+    "contact": "022-2302 3250",
+    "details": "Plant Address: Plot No P1, Near KK Gate, New Mangalore Port Authority, Panambur, Mangalore.",
+    "marked_for_purchase": true,
+    "qty_mt": 10000
+  },
+  {
+    "name": "HINCOL (Haldia Plant)",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Haldia",
+    "contact": "022-2302 3250",
+    "details": "Plant Address: JL-168, Mouza-Chiranjibpur, Haldia Purba Medinipur, West Bengal.",
+    "marked_for_purchase": true,
+    "qty_mt": 10000
+  },
+  {
+    "name": "HINCOL (Savli Plant)",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Vadodara",
+    "contact": "022-2302 3250",
+    "details": "Plant Address: 426, Savli GIDC Rd, Manjusar, Zumkal, Gujarat 391775.",
+    "marked_for_purchase": true,
+    "qty_mt": 10000
+  },
+  {
+    "name": "HINCOL (Chennai Plant)",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Chennai",
+    "contact": "022-2302 3250",
+    "details": "Plant Address: A-9, SIPCOT Industrial Park, Irungattukottai, Tamil Nadu.",
+    "marked_for_purchase": true,
+    "qty_mt": 10000
+  },
+  {
+    "name": "Tiki Tar (Taloja Plant)",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mumbai",
+    "contact": "022-2302 3250",
+    "details": "Plant Address: G-13/3, MIDC Industrial area, Taloja, Dist. Raigad, Maharashtra.",
+    "marked_for_purchase": true,
+    "qty_mt": 8000
+  },
+  {
+    "name": "Tiki Tar (Halol Plant)",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Vadodara",
+    "contact": "0265-2331185",
+    "details": "Plant Address: Halol GIDC, Pratappura, Panchmahal, Gujarat.",
+    "marked_for_purchase": true,
+    "qty_mt": 8000
+  },
+  {
+    "name": "AICL (Karwar Terminal)",
+    "type": "Indian Importer - Bulk",
+    "city": "Karwar",
+    "contact": "+91-22-25291149",
+    "details": "Bulk Bitumen Terminal at Karwar Port.",
+    "marked_for_purchase": true,
+    "qty_mt": 15000
+  },
+  {
+    "name": "AICL (Mangalore Terminal)",
+    "type": "Indian Importer - Bulk",
+    "city": "Mangalore",
+    "contact": "+91-22-25291149",
+    "details": "Bulk Bitumen Terminal at Mangalore.",
+    "marked_for_purchase": true,
+    "qty_mt": 15000
+  },
+  {
+    "name": "AICL (Hazira/Dahej Terminal)",
+    "type": "Indian Importer - Bulk",
+    "city": "Surat",
+    "contact": "+91-22-25291149",
+    "details": "Bulk Bitumen Terminal at Hazira/Dahej.",
+    "marked_for_purchase": true,
+    "qty_mt": 15000
+  },
+  {
+    "name": "AICL (Kakinada Terminal)",
+    "type": "Indian Importer - Bulk",
+    "city": "Kakinada",
+    "contact": "+91-22-25291149",
+    "details": "Bulk Bitumen Terminal at Kakinada Port.",
+    "marked_for_purchase": true,
+    "qty_mt": 15000
+  },
+  {
+    "name": "BITCOL (Mathura Plant)",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Mathura",
+    "contact": "info@bitcol.in",
+    "details": "Plant Address: Plot H-38, UPSIDC Industrial Area Ext. 1, Kosi Kotwan, Mathura.",
+    "marked_for_purchase": true,
+    "qty_mt": 5000
+  },
+  {
+    "name": "BITCOL (Dindigul Plant)",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Dindigul",
+    "contact": "info@bitcol.in",
+    "details": "Plant: Plot C-21, SIPCOT Industrial Complex, Village Pallapatti, Nilakottai, Dindigul, TN.",
+    "marked_for_purchase": true,
+    "qty_mt": 5000
+  },
+  {
+    "name": "Venkateshwara Bitumens (Uppal Plant)",
+    "type": "Indian Mfg (Emulsion/CRMB/PMB)",
+    "city": "Hyderabad",
+    "contact": "9731742757",
+    "details": "Factory: Plot No. 2/6b, Uppal Ida Uppal, Hyderabad.",
+    "marked_for_purchase": true,
+    "qty_mt": 3000
+  }
+]

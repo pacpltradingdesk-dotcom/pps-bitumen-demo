@@ -1,0 +1,153 @@
+<h2>Navigation Layout — Kaunsa style chahiye?</h2>
+<p class="subtitle">Abhi dashboard mein sidebar hidden hai, 2-row horizontal top bar hai. Future merge (WhatsApp + CRM) ke liye best layout kaunsa hoga?</p>
+
+<div class="options">
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>🔲 Left Sidebar (Always Visible)</h3>
+      <div style="display:flex;gap:8px;margin:12px 0;">
+        <div style="width:220px;min-height:300px;background:linear-gradient(180deg,#0f2744,#1e3a5f);border-radius:12px;padding:16px;color:white;font-size:13px;">
+          <div style="text-align:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.15);margin-bottom:12px;">
+            <div style="font-size:16px;font-weight:700;color:#c9a84c;">🏛️ PPS ANANTAM</div>
+            <div style="font-size:10px;color:#94a3b8;margin-top:2px;">COMMAND CENTER v5.0</div>
+          </div>
+          <div style="margin-bottom:6px;padding:8px 10px;background:rgba(201,168,76,0.15);border-radius:8px;border-left:3px solid #c9a84c;font-weight:600;">🏠 Home</div>
+          <div style="margin-bottom:4px;padding:6px 10px;border-radius:6px;color:#cbd5e1;">📋 Dashboard</div>
+          <div style="margin-bottom:4px;padding:6px 10px;border-radius:6px;color:#cbd5e1;">💰 Pricing <span style="float:right;font-size:10px;">▸</span></div>
+          <div style="margin-bottom:4px;padding:6px 10px;border-radius:6px;color:#cbd5e1;">🧾 Sales & CRM <span style="float:right;font-size:10px;">▸</span></div>
+          <div style="margin-bottom:4px;padding:6px 10px;border-radius:6px;color:#cbd5e1;">🧠 Intelligence <span style="float:right;font-size:10px;">▸</span></div>
+          <div style="margin-bottom:4px;padding:6px 10px;border-radius:6px;color:#cbd5e1;">📄 Documents <span style="float:right;font-size:10px;">▸</span></div>
+          <div style="margin-bottom:4px;padding:6px 10px;border-radius:6px;color:#cbd5e1;">🚚 Logistics <span style="float:right;font-size:10px;">▸</span></div>
+          <div style="margin-bottom:4px;padding:6px 10px;border-radius:6px;color:#cbd5e1;">📊 Reports <span style="float:right;font-size:10px;">▸</span></div>
+          <div style="margin-bottom:4px;padding:6px 10px;border-radius:6px;color:#cbd5e1;">🛡️ Compliance <span style="float:right;font-size:10px;">▸</span></div>
+          <div style="margin-bottom:4px;padding:6px 10px;border-radius:6px;color:#cbd5e1;">⚙️ System & AI <span style="float:right;font-size:10px;">▸</span></div>
+          <div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:10px;">
+            <div style="padding:6px 10px;color:#94a3b8;font-size:11px;">📱 WhatsApp</div>
+            <div style="padding:6px 10px;color:#94a3b8;font-size:11px;">🔗 CRM</div>
+            <div style="padding:6px 10px;color:#94a3b8;font-size:11px;">📨 Telegram</div>
+          </div>
+        </div>
+        <div style="flex:1;background:#faf7f2;border-radius:12px;padding:16px;">
+          <div style="background:linear-gradient(135deg,#0f2744,#1e3a5f);border-radius:10px;padding:16px;color:white;margin-bottom:12px;">
+            <div style="font-size:14px;font-weight:700;">Good Morning, Sir 🌅</div>
+            <div style="font-size:11px;color:#94a3b8;">Friday, 21 March 2026</div>
+            <div style="display:flex;gap:8px;margin-top:10px;">
+              <span style="background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:12px;font-size:11px;">Brent $72.4</span>
+              <span style="background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:12px;font-size:11px;">₹85.2</span>
+              <span style="background:rgba(5,150,105,0.3);padding:4px 10px;border-radius:12px;font-size:11px;color:#6ee7b7;">BUY 78%</span>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+            <div style="background:white;border-radius:8px;padding:12px;border-left:3px solid #c9a84c;"><div style="font-size:10px;color:#64748b;">VG30 Price</div><div style="font-weight:700;color:#1e3a5f;">₹42,500</div></div>
+            <div style="background:white;border-radius:8px;padding:12px;border-left:3px solid #059669;"><div style="font-size:10px;color:#64748b;">Active Deals</div><div style="font-weight:700;color:#1e3a5f;">23</div></div>
+            <div style="background:white;border-radius:8px;padding:12px;border-left:3px solid #7c3aed;"><div style="font-size:10px;color:#64748b;">Pending Tasks</div><div style="font-weight:700;color:#1e3a5f;">8</div></div>
+          </div>
+          <div style="margin-top:12px;color:#64748b;font-size:11px;text-align:center;">── Main Content Area ──</div>
+        </div>
+      </div>
+      <p><strong>Sidebar hamesha dikhe</strong> — categories expand/collapse hoti hain. WhatsApp, CRM, Telegram bottom section mein. Desktop pe best, mobile pe collapse ho jaaye.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>🔝 Top Bar + Sidebar Combo</h3>
+      <div style="min-height:300px;background:#faf7f2;border-radius:12px;overflow:hidden;">
+        <div style="background:linear-gradient(90deg,#0f2744,#1e3a5f);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="color:#c9a84c;font-weight:700;font-size:15px;">🏛️ PPS</span>
+            <span style="color:white;font-size:12px;padding:5px 12px;background:rgba(201,168,76,0.2);border-radius:6px;cursor:pointer;">🏠 Home</span>
+            <span style="color:#cbd5e1;font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;">💰 Pricing</span>
+            <span style="color:#cbd5e1;font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;">🧾 Sales</span>
+            <span style="color:#cbd5e1;font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;">🧠 Intel</span>
+            <span style="color:#cbd5e1;font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;">📄 Docs</span>
+            <span style="color:#cbd5e1;font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;">🚚 Logi</span>
+            <span style="color:#cbd5e1;font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;">📊 Reports</span>
+            <span style="color:#cbd5e1;font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;">⚙️ System</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <span style="color:#25D366;font-size:14px;cursor:pointer;">📱</span>
+            <span style="color:#0088cc;font-size:14px;cursor:pointer;">✈️</span>
+            <span style="color:#c9a84c;font-size:14px;cursor:pointer;">🔔</span>
+          </div>
+        </div>
+        <div style="display:flex;">
+          <div style="width:200px;background:#f1ede5;padding:10px;border-right:1px solid #e8dcc8;">
+            <div style="font-size:10px;color:#64748b;text-transform:uppercase;margin-bottom:8px;font-weight:600;">Home Features</div>
+            <div style="padding:6px 10px;font-size:12px;background:white;border-radius:6px;border-left:3px solid #c9a84c;margin-bottom:4px;">🎯 Command Center</div>
+            <div style="padding:6px 10px;font-size:12px;color:#475569;margin-bottom:4px;">📈 Live Market</div>
+            <div style="padding:6px 10px;font-size:12px;color:#475569;margin-bottom:4px;">🎯 Top Targets</div>
+            <div style="padding:6px 10px;font-size:12px;color:#475569;margin-bottom:4px;">🚨 Live Alerts</div>
+          </div>
+          <div style="flex:1;padding:16px;">
+            <div style="color:#1e3a5f;font-weight:700;font-size:14px;margin-bottom:8px;">🎯 Command Center</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+              <div style="background:white;border-radius:8px;padding:12px;border-left:3px solid #c9a84c;"><div style="font-size:10px;color:#64748b;">VG30</div><div style="font-weight:700;color:#1e3a5f;font-size:13px;">₹42,500</div></div>
+              <div style="background:white;border-radius:8px;padding:12px;border-left:3px solid #059669;"><div style="font-size:10px;color:#64748b;">Signal</div><div style="font-weight:700;color:#059669;font-size:13px;">BUY 78%</div></div>
+              <div style="background:white;border-radius:8px;padding:12px;border-left:3px solid #7c3aed;"><div style="font-size:10px;color:#64748b;">Deals</div><div style="font-weight:700;color:#1e3a5f;font-size:13px;">23 Active</div></div>
+            </div>
+            <div style="margin-top:16px;color:#64748b;font-size:11px;text-align:center;">── Main Content ──</div>
+          </div>
+        </div>
+      </div>
+      <p><strong>Top bar = categories, Left panel = sub-features</strong> — Top bar pe click karo, left mein us category ke features aate hain. Best of both worlds. Abhi ka system hai yahi almost.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>📱 Collapsible Sidebar (Modern SaaS Style)</h3>
+      <div style="display:flex;gap:8px;margin:12px 0;">
+        <div style="width:60px;min-height:300px;background:linear-gradient(180deg,#0f2744,#1e3a5f);border-radius:12px;padding:8px 0;display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <div style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#c9a84c;margin-bottom:8px;">🏛️</div>
+          <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:16px;background:rgba(201,168,76,0.2);border-radius:10px;cursor:pointer;" title="Home">🏠</div>
+          <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#cbd5e1;cursor:pointer;" title="Pricing">💰</div>
+          <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#cbd5e1;cursor:pointer;" title="Sales">🧾</div>
+          <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#cbd5e1;cursor:pointer;" title="Intel">🧠</div>
+          <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#cbd5e1;cursor:pointer;" title="Docs">📄</div>
+          <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#cbd5e1;cursor:pointer;" title="Logistics">🚚</div>
+          <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#cbd5e1;cursor:pointer;" title="Reports">📊</div>
+          <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#cbd5e1;cursor:pointer;" title="Compliance">🛡️</div>
+          <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:16px;color:#cbd5e1;cursor:pointer;" title="System">⚙️</div>
+          <div style="flex:1;"></div>
+          <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#25D366;cursor:pointer;" title="WhatsApp">📱</div>
+          <div style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#0088cc;cursor:pointer;" title="Telegram">✈️</div>
+          <div style="width:36px;height:36px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#94a3b8;cursor:pointer;border-top:1px solid rgba(255,255,255,0.1);margin-top:4px;padding-top:4px;" title="Expand">☰</div>
+        </div>
+        <div style="flex:1;background:#faf7f2;border-radius:12px;padding:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#1e3a5f;">🏠 Home — Command Center</div>
+              <div style="font-size:11px;color:#94a3b8;">Dashboard &gt; Home &gt; Command Center</div>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <span style="background:white;padding:4px 10px;border-radius:6px;font-size:11px;color:#1e3a5f;cursor:pointer;border:1px solid #e2e8f0;">Command Center</span>
+              <span style="background:white;padding:4px 10px;border-radius:6px;font-size:11px;color:#64748b;cursor:pointer;border:1px solid #e2e8f0;">Live Market</span>
+              <span style="background:white;padding:4px 10px;border-radius:6px;font-size:11px;color:#64748b;cursor:pointer;border:1px solid #e2e8f0;">Top Targets</span>
+              <span style="background:white;padding:4px 10px;border-radius:6px;font-size:11px;color:#64748b;cursor:pointer;border:1px solid #e2e8f0;">Live Alerts</span>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+            <div style="background:white;border-radius:8px;padding:12px;border-left:3px solid #c9a84c;"><div style="font-size:10px;color:#64748b;">VG30</div><div style="font-weight:700;color:#1e3a5f;">₹42,500</div></div>
+            <div style="background:white;border-radius:8px;padding:12px;border-left:3px solid #059669;"><div style="font-size:10px;color:#64748b;">Signal</div><div style="font-weight:700;color:#059669;">BUY 78%</div></div>
+            <div style="background:white;border-radius:8px;padding:12px;border-left:3px solid #7c3aed;"><div style="font-size:10px;color:#64748b;">Deals</div><div style="font-weight:700;color:#1e3a5f;">23</div></div>
+          </div>
+          <div style="margin-top:16px;color:#64748b;font-size:11px;text-align:center;">── Main Content Area (Maximum Space) ──</div>
+        </div>
+      </div>
+      <p><strong>Icon-only sidebar (60px)</strong> — hover/click pe expand hoti hai full names ke saath. Maximum content space. Notion/Linear/Slack jaisi feel. Sub-features top mein tabs mein. WhatsApp + Telegram icons bottom pe fixed.</p>
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:20px;padding:16px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+  <h3 style="margin:0 0 8px 0;font-size:14px;">💡 Meri Recommendation: Option A ya C</h3>
+  <p style="margin:0;font-size:13px;color:#475569;">
+    <strong>Option A</strong> = Traditional, sir ke liye easy, sab ek jagah dikhe<br>
+    <strong>Option C</strong> = Modern SaaS feel, zyada content space, professional look<br>
+    <strong>Option B</strong> = Abhi ka system hai almost, but top bar mein 9 categories cramped lagti hain
+  </p>
+</div>

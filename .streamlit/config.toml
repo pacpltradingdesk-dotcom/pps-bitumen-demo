@@ -1,0 +1,13 @@
+[theme]
+base="light"
+primaryColor="#4F46E5"
+backgroundColor="#FAFAFA"
+secondaryBackgroundColor="#FFFFFF"
+textColor="#111827"
+
+[server]
+enableCORS=false
+enableXsrfProtection=false
+enableStaticServing=true
+maxUploadSize=50
+headless=true

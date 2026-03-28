@@ -1,0 +1,478 @@
+[
+  {
+    "state": "Gujarat",
+    "base_demand_mt_month": 8000,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 8000,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "High",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Maharashtra",
+    "base_demand_mt_month": 12000,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 12000,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "High",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Rajasthan",
+    "base_demand_mt_month": 6000,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 6000,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "High",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Madhya Pradesh",
+    "base_demand_mt_month": 5000,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 5000,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Medium",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Uttar Pradesh",
+    "base_demand_mt_month": 10000,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 10000,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "High",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Karnataka",
+    "base_demand_mt_month": 7000,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 7000,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "High",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Tamil Nadu",
+    "base_demand_mt_month": 6500,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 6500,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "High",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Andhra Pradesh",
+    "base_demand_mt_month": 5500,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 5500,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Medium",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Telangana",
+    "base_demand_mt_month": 4500,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 4500,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Medium",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Kerala",
+    "base_demand_mt_month": 2500,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 2500,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Low",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "West Bengal",
+    "base_demand_mt_month": 4000,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 4000,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Medium",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Bihar",
+    "base_demand_mt_month": 3000,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 3000,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Medium",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Jharkhand",
+    "base_demand_mt_month": 2500,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 2500,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Low",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Odisha",
+    "base_demand_mt_month": 3000,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 3000,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Medium",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Chhattisgarh",
+    "base_demand_mt_month": 2500,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 2500,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Low",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Punjab",
+    "base_demand_mt_month": 3500,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 3500,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Medium",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Haryana",
+    "base_demand_mt_month": 3000,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 3000,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Medium",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Uttarakhand",
+    "base_demand_mt_month": 1500,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 1500,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Low",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Himachal Pradesh",
+    "base_demand_mt_month": 1000,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 1000,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Low",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Jammu & Kashmir",
+    "base_demand_mt_month": 800,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 800,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Low",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Assam",
+    "base_demand_mt_month": 1500,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 1500,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Low",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Meghalaya",
+    "base_demand_mt_month": 500,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 500,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Low",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Tripura",
+    "base_demand_mt_month": 300,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 300,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Low",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Nagaland",
+    "base_demand_mt_month": 200,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 200,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Low",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Manipur",
+    "base_demand_mt_month": 200,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 200,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Low",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Mizoram",
+    "base_demand_mt_month": 150,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 150,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Low",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Arunachal Pradesh",
+    "base_demand_mt_month": 300,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 300,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Low",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  },
+  {
+    "state": "Goa",
+    "base_demand_mt_month": 400,
+    "seasonal_factor": 1.0,
+    "adjusted_demand_mt": 400,
+    "peak_months": [
+      1,
+      2,
+      3,
+      4,
+      10,
+      11,
+      12
+    ],
+    "demand_category": "Low",
+    "updated_at": "21-03-2026 09:48:56 IST"
+  }
+]

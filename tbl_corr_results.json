@@ -1,0 +1,72 @@
+[
+  {
+    "run_date_ist": "2026-03-28 13:18:01 IST",
+    "lag_months": 0,
+    "correlation": 0.0,
+    "p_value": 1.0,
+    "n_obs": 0,
+    "series_x": "km_completed[t-0]",
+    "series_y": "demand_proxy_mt[t]",
+    "notes": "Insufficient data — run connectors to populate tables"
+  },
+  {
+    "run_date_ist": "2026-03-28 13:18:01 IST",
+    "lag_months": 1,
+    "correlation": 0.0,
+    "p_value": 1.0,
+    "n_obs": 0,
+    "series_x": "km_completed[t-1]",
+    "series_y": "demand_proxy_mt[t]",
+    "notes": "Insufficient data — run connectors to populate tables"
+  },
+  {
+    "run_date_ist": "2026-03-28 13:18:01 IST",
+    "lag_months": 2,
+    "correlation": 0.0,
+    "p_value": 1.0,
+    "n_obs": 0,
+    "series_x": "km_completed[t-2]",
+    "series_y": "demand_proxy_mt[t]",
+    "notes": "Insufficient data — run connectors to populate tables"
+  },
+  {
+    "run_date_ist": "2026-03-28 13:18:01 IST",
+    "lag_months": 3,
+    "correlation": 0.0,
+    "p_value": 1.0,
+    "n_obs": 0,
+    "series_x": "km_completed[t-3]",
+    "series_y": "demand_proxy_mt[t]",
+    "notes": "Insufficient data — run connectors to populate tables"
+  },
+  {
+    "run_date_ist": "2026-03-28 13:18:01 IST",
+    "lag_months": 4,
+    "correlation": 0.0,
+    "p_value": 1.0,
+    "n_obs": 0,
+    "series_x": "km_completed[t-4]",
+    "series_y": "demand_proxy_mt[t]",
+    "notes": "Insufficient data — run connectors to populate tables"
+  },
+  {
+    "run_date_ist": "2026-03-28 13:18:01 IST",
+    "lag_months": 5,
+    "correlation": 0.0,
+    "p_value": 1.0,
+    "n_obs": 0,
+    "series_x": "km_completed[t-5]",
+    "series_y": "demand_proxy_mt[t]",
+    "notes": "Insufficient data — run connectors to populate tables"
+  },
+  {
+    "run_date_ist": "2026-03-28 13:18:01 IST",
+    "lag_months": 6,
+    "correlation": 0.0,
+    "p_value": 1.0,
+    "n_obs": 0,
+    "series_x": "km_completed[t-6]",
+    "series_y": "demand_proxy_mt[t]",
+    "notes": "Insufficient data — run connectors to populate tables"
+  }
+]

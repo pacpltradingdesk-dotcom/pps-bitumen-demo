@@ -1,0 +1,2680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PPS Anantam — Bitumen Sales Dashboard v5.0 | Pricing Guide</title>
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-deep:    #0a0e1a;
+    --bg-card:    #111827;
+    --bg-card-hl: #1a1f35;
+    --border:     #1e293b;
+    --border-hl:  #6366f1;
+    --text:       #e2e8f0;
+    --text-dim:   #94a3b8;
+    --text-muted: #64748b;
+    --accent:     #818cf8;
+    --accent2:    #a78bfa;
+    --gold:       #f59e0b;
+    --green:      #22c55e;
+    --red:        #ef4444;
+    --cyan:       #06b6d4;
+    --premium-g1: #4f46e5;
+    --premium-g2: #7c3aed;
+    --font:       'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg-deep);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ===== BACKGROUND EFFECTS ===== */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(79,70,229,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 90%, rgba(124,58,237,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(6,182,212,0.05) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page-wrapper { position: relative; z-index: 1; }
+
+  /* ===== HEADER ===== */
+  .header {
+    text-align: center;
+    padding: 60px 20px 40px;
+    position: relative;
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-hl), transparent);
+  }
+
+  .brand-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, var(--premium-g1), var(--premium-g2));
+    padding: 8px 24px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(79,70,229,0.3);
+  }
+
+  .brand-badge .diamond { font-size: 16px; }
+
+  .header h1 {
+    font-size: 48px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #e2e8f0, #818cf8, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+    line-height: 1.2;
+  }
+
+  .header .subtitle {
+    font-size: 20px;
+    color: var(--text-dim);
+    max-width: 700px;
+    margin: 0 auto 24px;
+  }
+
+  .header .version-tag {
+    display: inline-block;
+    background: rgba(34,197,94,0.15);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--green);
+    padding: 4px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  /* ===== DISCOUNT BANNER ===== */
+  .discount-banner {
+    max-width: 900px;
+    margin: 40px auto 20px;
+    padding: 20px 30px;
+    background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(239,68,68,0.08));
+    border: 1px solid rgba(245,158,11,0.3);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .discount-badge {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    color: #fff;
+    font-size: 28px;
+    font-weight: 900;
+    padding: 10px 28px;
+    border-radius: 12px;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(245,158,11,0.3);
+  }
+
+  .discount-text {
+    font-size: 16px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  .discount-text strong {
+    color: var(--gold);
+  }
+
+  /* ===== MARKET SUMMARY ===== */
+  .market-summary {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+
+  .market-summary h2 {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .market-summary .section-sub {
+    text-align: center;
+    color: var(--text-dim);
+    margin-bottom: 30px;
+    font-size: 15px;
+  }
+
+  .market-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 16px;
+  }
+
+  .market-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: border-color 0.3s;
+  }
+
+  .market-card:hover { border-color: var(--border-hl); }
+
+  .market-card .mc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .market-card .mc-icon { font-size: 22px; }
+
+  .market-card .mc-title {
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .market-card .mc-benchmark {
+    font-size: 12px;
+    color: var(--text-muted);
+    background: rgba(100,116,139,0.15);
+    padding: 2px 10px;
+    border-radius: 10px;
+  }
+
+  .market-card .mc-features {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .mc-feature-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid rgba(30,41,59,0.5);
+    font-size: 13px;
+  }
+
+  .mc-feature-row:last-child { border-bottom: none; }
+
+  .mc-feature-name { color: var(--text-dim); flex: 1; }
+
+  .mc-market-price {
+    text-decoration: line-through;
+    color: var(--red);
+    font-size: 12px;
+    margin-right: 12px;
+    opacity: 0.7;
+  }
+
+  .mc-our-price {
+    color: var(--green);
+    font-weight: 700;
+    min-width: 80px;
+    text-align: right;
+  }
+
+  .market-card .mc-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-weight: 700;
+  }
+
+  .mc-total .mc-total-market {
+    text-decoration: line-through;
+    color: var(--red);
+    opacity: 0.7;
+  }
+
+  .mc-total .mc-total-ours {
+    color: var(--green);
+    font-size: 18px;
+  }
+
+  /* ===== TOTAL VALUE BOX ===== */
+  .total-value-box {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 30px 40px;
+    background: linear-gradient(135deg, rgba(79,70,229,0.15), rgba(124,58,237,0.10));
+    border: 2px solid var(--border-hl);
+    border-radius: 20px;
+    text-align: center;
+  }
+
+  .tvb-label {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+
+  .tvb-market {
+    font-size: 22px;
+    text-decoration: line-through;
+    color: var(--red);
+    opacity: 0.7;
+    margin-bottom: 4px;
+  }
+
+  .tvb-ours {
+    font-size: 42px;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--green), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  .tvb-savings {
+    font-size: 16px;
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  /* ===== PRICING TIERS ===== */
+  .tiers-section {
+    max-width: 1300px;
+    margin: 60px auto;
+    padding: 0 20px;
+  }
+
+  .tiers-section h2 {
+    text-align: center;
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  .tiers-section .section-sub {
+    text-align: center;
+    color: var(--text-dim);
+    margin-bottom: 40px;
+    font-size: 15px;
+  }
+
+  .tiers-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    align-items: start;
+  }
+
+  .tier-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+    position: relative;
+  }
+
+  .tier-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  }
+
+  .tier-card.popular {
+    border-color: var(--border-hl);
+    background: var(--bg-card-hl);
+    transform: scale(1.03);
+    box-shadow: 0 8px 40px rgba(99,102,241,0.2);
+  }
+
+  .tier-card.popular:hover {
+    transform: scale(1.03) translateY(-4px);
+    box-shadow: 0 16px 50px rgba(99,102,241,0.3);
+  }
+
+  .popular-tag {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, var(--premium-g1), var(--premium-g2));
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px;
+    color: #fff;
+  }
+
+  .ultimate-tag {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px;
+    color: #fff;
+  }
+
+  .tier-header {
+    padding: 36px 24px 20px;
+    text-align: center;
+  }
+
+  .tier-card.popular .tier-header,
+  .tier-card.ultimate .tier-header { padding-top: 46px; }
+
+  .tier-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .tier-name {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .tier-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 16px;
+  }
+
+  .tier-price-block { margin-bottom: 8px; }
+
+  .tier-market-price {
+    text-decoration: line-through;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .tier-price {
+    font-size: 38px;
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1.1;
+  }
+
+  .tier-price .currency { font-size: 20px; font-weight: 600; vertical-align: super; }
+  .tier-price .period { font-size: 14px; font-weight: 400; color: var(--text-dim); }
+
+  .tier-annual {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+
+  .tier-annual strong { color: var(--green); }
+
+  .tier-savings {
+    display: inline-block;
+    margin-top: 8px;
+    background: rgba(34,197,94,0.12);
+    border: 1px solid rgba(34,197,94,0.25);
+    color: var(--green);
+    padding: 3px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .tier-features {
+    padding: 0 24px 24px;
+  }
+
+  .tier-features .tf-group {
+    margin-bottom: 14px;
+  }
+
+  .tf-group-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(99,102,241,0.2);
+  }
+
+  .tf-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 3px 0;
+    font-size: 13px;
+  }
+
+  .tf-check {
+    color: var(--green);
+    font-weight: 700;
+    font-size: 14px;
+    min-width: 18px;
+    text-align: center;
+  }
+
+  .tf-cross {
+    color: var(--text-muted);
+    font-size: 14px;
+    min-width: 18px;
+    text-align: center;
+    opacity: 0.4;
+  }
+
+  .tf-label { color: var(--text-dim); }
+  .tf-label.active { color: var(--text); }
+  .tf-label.dimmed { opacity: 0.4; }
+
+  .tier-cta {
+    padding: 0 24px 28px;
+    text-align: center;
+  }
+
+  .tier-btn {
+    display: block;
+    width: 100%;
+    padding: 12px 20px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+  }
+
+  .tier-btn:hover {
+    border-color: var(--accent);
+    background: rgba(99,102,241,0.1);
+  }
+
+  .tier-btn.primary {
+    background: linear-gradient(135deg, var(--premium-g1), var(--premium-g2));
+    border-color: transparent;
+    color: #fff;
+  }
+
+  .tier-btn.primary:hover {
+    box-shadow: 0 4px 20px rgba(79,70,229,0.4);
+    transform: translateY(-1px);
+  }
+
+  .tier-btn.gold {
+    background: linear-gradient(135deg, #f59e0b, #ef4444);
+    border-color: transparent;
+    color: #fff;
+  }
+
+  .tier-btn.gold:hover {
+    box-shadow: 0 4px 20px rgba(245,158,11,0.4);
+    transform: translateY(-1px);
+  }
+
+  .tier-feature-count {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 8px;
+  }
+
+  /* ===== DETAILED BREAKDOWN TABLE ===== */
+  .breakdown-section {
+    max-width: 1200px;
+    margin: 60px auto;
+    padding: 0 20px;
+  }
+
+  .breakdown-section h2 {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+
+  .breakdown-section .section-sub {
+    text-align: center;
+    color: var(--text-dim);
+    margin-bottom: 30px;
+    font-size: 15px;
+  }
+
+  .breakdown-table-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  .breakdown-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .breakdown-table thead th {
+    background: rgba(30,41,59,0.8);
+    padding: 14px 16px;
+    text-align: center;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+  }
+
+  .breakdown-table thead th:first-child {
+    text-align: left;
+    width: 30%;
+  }
+
+  .breakdown-table thead th.hl {
+    color: var(--accent);
+    background: rgba(99,102,241,0.08);
+  }
+
+  .breakdown-table tbody tr {
+    border-bottom: 1px solid rgba(30,41,59,0.5);
+    transition: background 0.2s;
+  }
+
+  .breakdown-table tbody tr:hover {
+    background: rgba(99,102,241,0.04);
+  }
+
+  .breakdown-table tbody td {
+    padding: 10px 16px;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .breakdown-table tbody td:first-child {
+    text-align: left;
+    font-weight: 500;
+  }
+
+  .breakdown-table .group-header td {
+    background: rgba(79,70,229,0.08);
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--accent);
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(99,102,241,0.2);
+  }
+
+  .breakdown-table .group-header td:first-child {
+    text-align: left;
+  }
+
+  .bt-check { color: var(--green); font-weight: 700; }
+  .bt-cross { color: var(--text-muted); opacity: 0.3; }
+
+  .bt-market {
+    text-decoration: line-through;
+    color: var(--red);
+    font-size: 11px;
+    opacity: 0.6;
+    display: block;
+  }
+
+  .bt-price {
+    color: var(--green);
+    font-weight: 700;
+    font-size: 13px;
+  }
+
+  /* ===== COMPARISON SUMMARY ===== */
+  .comparison-section {
+    max-width: 1000px;
+    margin: 60px auto;
+    padding: 0 20px;
+  }
+
+  .comparison-section h2 {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 30px;
+  }
+
+  .comparison-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .comp-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .comp-card .comp-icon { font-size: 32px; margin-bottom: 10px; }
+  .comp-card .comp-tool { font-size: 14px; color: var(--text-dim); margin-bottom: 4px; }
+  .comp-card .comp-price { font-size: 18px; color: var(--red); text-decoration: line-through; opacity: 0.7; }
+  .comp-card .comp-vs { font-size: 12px; color: var(--text-muted); margin: 8px 0; }
+  .comp-card .comp-ours { font-size: 14px; color: var(--green); font-weight: 700; }
+  .comp-card .comp-label { font-size: 11px; color: var(--accent); margin-top: 4px; }
+
+  /* ===== FAQ ===== */
+  .faq-section {
+    max-width: 800px;
+    margin: 60px auto;
+    padding: 0 20px;
+  }
+
+  .faq-section h2 {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 30px;
+  }
+
+  .faq-item {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 12px;
+  }
+
+  .faq-q {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .faq-a {
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1.6;
+  }
+
+  /* ===== FOOTER ===== */
+  .footer {
+    text-align: center;
+    padding: 40px 20px;
+    border-top: 1px solid var(--border);
+    margin-top: 60px;
+  }
+
+  .footer-brand {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+
+  .footer-contact {
+    font-size: 13px;
+    color: var(--text-dim);
+    line-height: 1.8;
+  }
+
+  .footer-contact a { color: var(--accent); text-decoration: none; }
+
+  .footer-legal {
+    margin-top: 16px;
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+
+  .footer-legal .gst-note {
+    display: inline-block;
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.2);
+    color: var(--gold);
+    padding: 4px 14px;
+    border-radius: 8px;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 1100px) {
+    .tiers-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 700px) {
+    .tiers-grid { grid-template-columns: 1fr; }
+    .header h1 { font-size: 32px; }
+    .tier-price { font-size: 30px; }
+    .market-grid { grid-template-columns: 1fr; }
+    .tvb-ours { font-size: 30px; }
+  }
+
+  /* ===== PRINT ===== */
+  @media print {
+    body {
+      background: #fff !important;
+      color: #1a1a1a !important;
+      font-size: 11px;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    body::before { display: none; }
+
+    .page-wrapper { z-index: auto; }
+
+    .header { padding: 20px 10px 15px; }
+    .header h1 {
+      font-size: 28px;
+      background: none !important;
+      -webkit-text-fill-color: #1a1a1a !important;
+      color: #1a1a1a !important;
+    }
+
+    .brand-badge {
+      background: #4f46e5 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .discount-banner {
+      border: 2px solid #f59e0b !important;
+      background: #fff8e1 !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .discount-badge {
+      background: #f59e0b !important;
+      color: #fff !important;
+    }
+
+    .market-card, .tier-card, .faq-item, .comp-card, .breakdown-table-wrap {
+      background: #f8fafc !important;
+      border: 1px solid #e2e8f0 !important;
+      box-shadow: none !important;
+    }
+
+    .tier-card.popular {
+      border: 2px solid #4f46e5 !important;
+    }
+
+    .tiers-grid {
+      grid-template-columns: repeat(4, 1fr) !important;
+      gap: 8px;
+    }
+
+    .tier-card { page-break-inside: avoid; }
+    .tier-card.popular { transform: none !important; }
+
+    .tier-btn { display: none; }
+
+    .breakdown-section { page-break-before: always; }
+
+    .breakdown-table thead th {
+      background: #e2e8f0 !important;
+      color: #1a1a1a !important;
+    }
+
+    .breakdown-table .group-header td {
+      background: #ede9fe !important;
+      color: #4f46e5 !important;
+    }
+
+    .tf-group-title { color: #4f46e5 !important; }
+
+    .popular-tag, .ultimate-tag {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .footer { padding: 15px; }
+
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+
+    .tier-card:hover,
+    .market-card:hover,
+    .breakdown-table tbody tr:hover {
+      transform: none !important;
+      background: inherit !important;
+    }
+
+    .tvb-ours {
+      background: none !important;
+      -webkit-text-fill-color: #16a34a !important;
+      color: #16a34a !important;
+    }
+
+    .bt-check { color: #16a34a !important; }
+    .bt-cross { color: #ccc !important; }
+    .tf-check { color: #16a34a !important; }
+    .mc-our-price { color: #16a34a !important; }
+    .mc-total-ours { color: #16a34a !important; }
+    .tier-savings { background: #dcfce7 !important; border-color: #86efac !important; color: #16a34a !important; }
+  }
+
+  /* ===== UTILITY ===== */
+  .text-center { text-align: center; }
+  .mt-2 { margin-top: 8px; }
+  .mt-4 { margin-top: 16px; }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <!-- ========== HEADER ========== -->
+  <header class="header">
+    <div class="brand-badge">
+      <span class="diamond">&#9830;</span>
+      PPS ANANTAM
+      <span class="diamond">&#9830;</span>
+    </div>
+    <h1>Bitumen Sales Dashboard v5.0</h1>
+    <p class="subtitle">India's most comprehensive AI-powered bitumen trading intelligence platform — 64 features, 9 modules, one unified command center.</p>
+    <span class="version-tag">Pricing Guide &bull; March 2026</span>
+  </header>
+
+  <!-- ========== SIMPLE BENEFITS — FIRST SECTION ========== -->
+  <section style="max-width:1200px;margin:40px auto;padding:0 20px;">
+    <h2 style="text-align:center;font-size:2rem;margin-bottom:8px;">
+      <span style="background:linear-gradient(90deg,#f59e0b,#22c55e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+        Kya Milega? — Simple Benefits
+      </span>
+    </h2>
+    <p style="text-align:center;color:#94a3b8;margin-bottom:12px;font-size:1rem;">
+      Har plan mein customer ko exactly kya-kya benefit milega — seedhi baat, no jargon
+    </p>
+
+    <!-- Bottom Line FIRST -->
+    <div style="background:linear-gradient(135deg,#0d4429,#111827);border:2px solid #22c55e;border-radius:16px;padding:32px;text-align:center;margin-bottom:32px;">
+      <h3 style="color:#22c55e;font-size:1.5rem;margin-bottom:16px;">💡 Ye Dashboard Kya Dega?</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;margin-bottom:20px;">
+        <div><div style="font-size:2rem;font-weight:800;color:#22c55e;">3-5 hrs</div><div style="color:#94a3b8;font-size:0.85rem;">Daily time saved</div></div>
+        <div><div style="font-size:2rem;font-weight:800;color:#f59e0b;">₹500-2000</div><div style="color:#94a3b8;font-size:0.85rem;">Per MT better pricing</div></div>
+        <div><div style="font-size:2rem;font-weight:800;color:#06b6d4;">0 Missed</div><div style="color:#94a3b8;font-size:0.85rem;">Follow-ups & opportunities</div></div>
+        <div><div style="font-size:2rem;font-weight:800;color:#a78bfa;">24 months</div><div style="color:#94a3b8;font-size:0.85rem;">Advance price prediction</div></div>
+      </div>
+      <p style="color:#cbd5e1;font-size:1rem;max-width:700px;margin:0 auto;">
+        <strong>Ek bitumen trader jo 1000 MT/month karta hai</strong> — agar sirf ₹200/MT better price mil gaya prediction se, toh <span style="color:#22c55e;font-weight:800;">₹2,00,000/month extra profit</span>. Dashboard ki cost toh first week mein nikal jaayegi.
+      </p>
+    </div>
+
+    <!-- Essential -->
+    <div style="background:#111827;border:1px solid #1e293b;border-radius:16px;padding:28px;margin-bottom:24px;border-left:4px solid #06b6d4;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <h3 style="color:#06b6d4;font-size:1.3rem;margin:0;">Essential — ₹14,999/month</h3>
+        <span style="background:#06b6d4;color:#0a0e1a;padding:4px 14px;border-radius:20px;font-size:0.8rem;font-weight:700;">STARTER</span>
+      </div>
+      <p style="color:#cbd5e1;font-size:0.95rem;margin-bottom:16px;"><strong>Chhoti trading company ke liye</strong> — Excel se digital shift.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">
+        <div style="background:#0d1117;border-radius:10px;padding:14px;border:1px solid #1e293b;"><div style="color:#22c55e;font-weight:700;font-size:0.85rem;margin-bottom:4px;">💰 Pricing Calculator</div><div style="color:#94a3b8;font-size:0.82rem;">Landed cost 30 sec mein — 3 tier offer ready. 30 min ka kaam 30 sec mein.</div></div>
+        <div style="background:#0d1117;border-radius:10px;padding:14px;border:1px solid #1e293b;"><div style="color:#22c55e;font-weight:700;font-size:0.85rem;margin-bottom:4px;">📄 PO/SO Auto-Generate</div><div style="color:#94a3b8;font-size:0.82rem;">Ek click mein PDF — WhatsApp pe direct bhejo. Paper work khatam.</div></div>
+        <div style="background:#0d1117;border-radius:10px;padding:14px;border:1px solid #1e293b;"><div style="color:#22c55e;font-weight:700;font-size:0.85rem;margin-bottom:4px;">📊 Director Briefing</div><div style="color:#94a3b8;font-size:0.82rem;">Roz subah auto-summary — kya hua, kya karna hai, kahan risk hai.</div></div>
+        <div style="background:#0d1117;border-radius:10px;padding:14px;border:1px solid #1e293b;"><div style="color:#22c55e;font-weight:700;font-size:0.85rem;margin-bottom:4px;">⏱️ Time Saved</div><div style="color:#f59e0b;font-size:1.1rem;font-weight:800;">~3 hours/day</div></div>
+      </div>
+    </div>
+
+    <!-- Plus -->
+    <div style="background:#111827;border:1px solid #1e293b;border-radius:16px;padding:28px;margin-bottom:24px;border-left:4px solid #818cf8;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <h3 style="color:#818cf8;font-size:1.3rem;margin:0;">Plus — ₹34,999/month</h3>
+        <span style="background:#818cf8;color:#0a0e1a;padding:4px 14px;border-radius:20px;font-size:0.8rem;font-weight:700;">GROWING TEAM</span>
+      </div>
+      <p style="color:#cbd5e1;font-size:0.95rem;margin-bottom:16px;"><strong>Sales team hai</strong> — CRM, follow-ups, negotiations chahiye.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">
+        <div style="background:#0d1117;border-radius:10px;padding:14px;border:1px solid #1e293b;"><div style="color:#22c55e;font-weight:700;font-size:0.85rem;margin-bottom:4px;">🎯 Full CRM</div><div style="color:#94a3b8;font-size:0.82rem;">25K+ contacts, auto follow-ups, VIP scoring. Koi client miss nahi hoga.</div></div>
+        <div style="background:#0d1117;border-radius:10px;padding:14px;border:1px solid #1e293b;"><div style="color:#22c55e;font-weight:700;font-size:0.85rem;margin-bottom:4px;">🤝 AI Negotiation</div><div style="color:#94a3b8;font-size:0.82rem;">Objection handling, pricing scripts, confidence boosters. Win rate ↑</div></div>
+        <div style="background:#0d1117;border-radius:10px;padding:14px;border:1px solid #1e293b;"><div style="color:#22c55e;font-weight:700;font-size:0.85rem;margin-bottom:4px;">📱 WA/Email Auto</div><div style="color:#94a3b8;font-size:0.82rem;">Rate updates, follow-ups, payment reminders — auto generate & send.</div></div>
+        <div style="background:#0d1117;border-radius:10px;padding:14px;border:1px solid #1e293b;"><div style="color:#22c55e;font-weight:700;font-size:0.85rem;margin-bottom:4px;">📈 Revenue Impact</div><div style="color:#f59e0b;font-size:1.1rem;font-weight:800;">+15-20% Sales</div></div>
+      </div>
+    </div>
+
+    <!-- Premium -->
+    <div style="background:linear-gradient(135deg,#1a1040,#111827);border:2px solid #7c3aed;border-radius:16px;padding:28px;margin-bottom:24px;position:relative;overflow:hidden;">
+      <div style="position:absolute;top:0;right:0;background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:6px 24px;border-radius:0 14px 0 14px;font-size:0.75rem;font-weight:700;color:white;">⭐ MOST POPULAR</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <h3 style="color:#a78bfa;font-size:1.3rem;margin:0;">Premium — ₹64,999/month</h3>
+        <span style="background:#7c3aed;color:white;padding:4px 14px;border-radius:20px;font-size:0.8rem;font-weight:700;">MARKET LEADER</span>
+      </div>
+      <p style="color:#cbd5e1;font-size:0.95rem;margin-bottom:16px;"><strong>Serious trader</strong> — market intelligence, logistics tracking, competitor analysis.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">
+        <div style="background:rgba(124,58,237,0.1);border-radius:10px;padding:14px;border:1px solid rgba(124,58,237,0.3);"><div style="color:#a78bfa;font-weight:700;font-size:0.85rem;margin-bottom:4px;">📡 AI Market Signals</div><div style="color:#94a3b8;font-size:0.82rem;">10 sources se BUY/SELL/HOLD signal. Aapko pehle pata chalega.</div></div>
+        <div style="background:rgba(124,58,237,0.1);border-radius:10px;padding:14px;border:1px solid rgba(124,58,237,0.3);"><div style="color:#a78bfa;font-weight:700;font-size:0.85rem;margin-bottom:4px;">🔮 24-Month Prediction</div><div style="color:#94a3b8;font-size:0.82rem;">AI forecast — 82% accuracy. Buy timing perfect karo.</div></div>
+        <div style="background:rgba(124,58,237,0.1);border-radius:10px;padding:14px;border:1px solid rgba(124,58,237,0.3);"><div style="color:#a78bfa;font-weight:700;font-size:0.85rem;margin-bottom:4px;">🚢 Logistics Tracking</div><div style="color:#94a3b8;font-size:0.82rem;">Ship tracking, port congestion, ETA — import ka pura picture.</div></div>
+        <div style="background:rgba(124,58,237,0.1);border-radius:10px;padding:14px;border:1px solid rgba(124,58,237,0.3);"><div style="color:#a78bfa;font-weight:700;font-size:0.85rem;margin-bottom:4px;">💎 Savings</div><div style="color:#f59e0b;font-size:1.1rem;font-weight:800;">₹500-2000/MT</div></div>
+      </div>
+    </div>
+
+    <!-- Ultimate -->
+    <div style="background:#111827;border:1px solid #1e293b;border-radius:16px;padding:28px;margin-bottom:24px;border-left:4px solid #f59e0b;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <h3 style="color:#f59e0b;font-size:1.3rem;margin:0;">Ultimate — ₹89,999/month</h3>
+        <span style="background:#f59e0b;color:#0a0e1a;padding:4px 14px;border-radius:20px;font-size:0.8rem;font-weight:700;">ENTERPRISE AI</span>
+      </div>
+      <p style="color:#cbd5e1;font-size:0.95rem;margin-bottom:16px;"><strong>Full AI-powered enterprise</strong> — chatbot, auto-learning, broadcasts, complete control.</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">
+        <div style="background:#0d1117;border-radius:10px;padding:14px;border:1px solid #1e293b;"><div style="color:#f59e0b;font-weight:700;font-size:0.85rem;margin-bottom:4px;">💬 AI Chatbot</div><div style="color:#94a3b8;font-size:0.82rem;">"Price kya hoga?" — AI sab data se answer dega. Claude powered.</div></div>
+        <div style="background:#0d1117;border-radius:10px;padding:14px;border:1px solid #1e293b;"><div style="color:#f59e0b;font-weight:700;font-size:0.85rem;margin-bottom:4px;">📤 Auto Broadcast</div><div style="color:#94a3b8;font-size:0.82rem;">100s of clients ko WA + Telegram pe auto daily updates.</div></div>
+        <div style="background:#0d1117;border-radius:10px;padding:14px;border:1px solid #1e293b;"><div style="color:#f59e0b;font-weight:700;font-size:0.85rem;margin-bottom:4px;">🧠 AI Learning</div><div style="color:#94a3b8;font-size:0.82rem;">Har deal se seekhta hai — 6 months mein 90%+ accuracy.</div></div>
+        <div style="background:#0d1117;border-radius:10px;padding:14px;border:1px solid #1e293b;"><div style="color:#f59e0b;font-weight:700;font-size:0.85rem;margin-bottom:4px;">🏆 ROI</div><div style="color:#22c55e;font-size:1.1rem;font-weight:800;">10x Return</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== DISCOUNT BANNER ========== -->
+  <div class="discount-banner">
+    <div class="discount-badge">25% OFF</div>
+    <div class="discount-text">
+      <strong>Launch Discount Applied!</strong><br>
+      All prices shown are 25% below equivalent market rates. Compare any individual feature against market leaders — you save on every single one.
+    </div>
+  </div>
+
+  <!-- ========== MARKET VALUE: INDIVIDUAL FEATURE PRICING ========== -->
+  <section class="market-summary">
+    <h2>Individual Feature Pricing</h2>
+    <p class="section-sub">Market rate vs. PPS price (25% off) for each of the 64 features across 9 modules</p>
+
+    <div class="market-grid">
+
+      <!-- HOME -->
+      <div class="market-card">
+        <div class="mc-header">
+          <div><span class="mc-icon">&#127968;</span> <span class="mc-title">Home</span></div>
+          <span class="mc-benchmark">Benchmark: BI &amp; Dashboards</span>
+        </div>
+        <div class="mc-features">
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Command Center (Executive Dashboard)</span>
+            <span class="mc-market-price">&#8377;4,000</span>
+            <span class="mc-our-price">&#8377;3,000</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Live Market (Real-time prices, charts)</span>
+            <span class="mc-market-price">&#8377;6,000</span>
+            <span class="mc-our-price">&#8377;4,500</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Top Targets (AI opportunity discovery)</span>
+            <span class="mc-market-price">&#8377;5,000</span>
+            <span class="mc-our-price">&#8377;3,750</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Live Alerts (P0/P1/P2 alert system)</span>
+            <span class="mc-market-price">&#8377;3,000</span>
+            <span class="mc-our-price">&#8377;2,250</span>
+          </div>
+        </div>
+        <div class="mc-total">
+          <span>Module Total</span>
+          <span class="mc-total-market">&#8377;18,000</span>
+          <span class="mc-total-ours">&#8377;13,500</span>
+        </div>
+      </div>
+
+      <!-- PRICING -->
+      <div class="market-card">
+        <div class="mc-header">
+          <div><span class="mc-icon">&#128176;</span> <span class="mc-title">Pricing</span></div>
+          <span class="mc-benchmark">Benchmark: AI/ML + Trading Tools</span>
+        </div>
+        <div class="mc-features">
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Pricing Calculator (3-tier margin)</span>
+            <span class="mc-market-price">&#8377;3,500</span>
+            <span class="mc-our-price">&#8377;2,625</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Import Cost Model (FOB to landed)</span>
+            <span class="mc-market-price">&#8377;4,000</span>
+            <span class="mc-our-price">&#8377;3,000</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Price Prediction (24-month AI)</span>
+            <span class="mc-market-price">&#8377;12,000</span>
+            <span class="mc-our-price">&#8377;9,000</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Manual Price Entry</span>
+            <span class="mc-market-price">&#8377;1,500</span>
+            <span class="mc-our-price">&#8377;1,125</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">SOS Special Pricing</span>
+            <span class="mc-market-price">&#8377;2,000</span>
+            <span class="mc-our-price">&#8377;1,500</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Past Predictions (accuracy tracking)</span>
+            <span class="mc-market-price">&#8377;3,000</span>
+            <span class="mc-our-price">&#8377;2,250</span>
+          </div>
+        </div>
+        <div class="mc-total">
+          <span>Module Total</span>
+          <span class="mc-total-market">&#8377;26,000</span>
+          <span class="mc-total-ours">&#8377;19,500</span>
+        </div>
+      </div>
+
+      <!-- SALES & CRM -->
+      <div class="market-card">
+        <div class="mc-header">
+          <div><span class="mc-icon">&#129534;</span> <span class="mc-title">Sales &amp; CRM</span></div>
+          <span class="mc-benchmark">Benchmark: Zoho/Salesforce + Comm</span>
+        </div>
+        <div class="mc-features">
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">CRM &amp; Tasks (contact mgmt, scoring)</span>
+            <span class="mc-market-price">&#8377;3,500</span>
+            <span class="mc-our-price">&#8377;2,625</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Sales Workspace (deal room, margin)</span>
+            <span class="mc-market-price">&#8377;4,000</span>
+            <span class="mc-our-price">&#8377;3,000</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Negotiation Assistant (AI scripts)</span>
+            <span class="mc-market-price">&#8377;5,000</span>
+            <span class="mc-our-price">&#8377;3,750</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Communication Hub (WA/Email/Call)</span>
+            <span class="mc-market-price">&#8377;3,500</span>
+            <span class="mc-our-price">&#8377;2,625</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">CRM Automation (auto-assign, scheduling)</span>
+            <span class="mc-market-price">&#8377;3,000</span>
+            <span class="mc-our-price">&#8377;2,250</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Daily Log (activity tracking)</span>
+            <span class="mc-market-price">&#8377;1,500</span>
+            <span class="mc-our-price">&#8377;1,125</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Contacts Directory (25K+ contacts)</span>
+            <span class="mc-market-price">&#8377;4,000</span>
+            <span class="mc-our-price">&#8377;3,000</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Comm Tracking (analytics)</span>
+            <span class="mc-market-price">&#8377;2,000</span>
+            <span class="mc-our-price">&#8377;1,500</span>
+          </div>
+        </div>
+        <div class="mc-total">
+          <span>Module Total</span>
+          <span class="mc-total-market">&#8377;26,500</span>
+          <span class="mc-total-ours">&#8377;19,875</span>
+        </div>
+      </div>
+
+      <!-- INTELLIGENCE -->
+      <div class="market-card">
+        <div class="mc-header">
+          <div><span class="mc-icon">&#129504;</span> <span class="mc-title">Intelligence</span></div>
+          <span class="mc-benchmark">Benchmark: Bloomberg/Refinitiv</span>
+        </div>
+        <div class="mc-features">
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Market Signals (10-signal composite)</span>
+            <span class="mc-market-price">&#8377;8,000</span>
+            <span class="mc-our-price">&#8377;6,000</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Real-time Insights (live KPIs)</span>
+            <span class="mc-market-price">&#8377;6,000</span>
+            <span class="mc-our-price">&#8377;4,500</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">News Intelligence (14-source)</span>
+            <span class="mc-market-price">&#8377;5,000</span>
+            <span class="mc-our-price">&#8377;3,750</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Competitor Intel (MEE bulletins)</span>
+            <span class="mc-market-price">&#8377;7,000</span>
+            <span class="mc-our-price">&#8377;5,250</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Business Advisor (buy/sell/hold)</span>
+            <span class="mc-market-price">&#8377;10,000</span>
+            <span class="mc-our-price">&#8377;7,500</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Purchase Advisor (6-signal urgency)</span>
+            <span class="mc-market-price">&#8377;6,000</span>
+            <span class="mc-our-price">&#8377;4,500</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Recommendations (confidence scores)</span>
+            <span class="mc-market-price">&#8377;5,000</span>
+            <span class="mc-our-price">&#8377;3,750</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Global Markets (crude, FX charts)</span>
+            <span class="mc-market-price">&#8377;4,000</span>
+            <span class="mc-our-price">&#8377;3,000</span>
+          </div>
+        </div>
+        <div class="mc-total">
+          <span>Module Total</span>
+          <span class="mc-total-market">&#8377;51,000</span>
+          <span class="mc-total-ours">&#8377;38,250</span>
+        </div>
+      </div>
+
+      <!-- DOCUMENTS -->
+      <div class="market-card">
+        <div class="mc-header">
+          <div><span class="mc-icon">&#128196;</span> <span class="mc-title">Documents</span></div>
+          <span class="mc-benchmark">Benchmark: Zoho Docs / DocuSign</span>
+        </div>
+        <div class="mc-features">
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Purchase Orders (PO + PDF export)</span>
+            <span class="mc-market-price">&#8377;2,500</span>
+            <span class="mc-our-price">&#8377;1,875</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Sales Orders (SO management)</span>
+            <span class="mc-market-price">&#8377;2,500</span>
+            <span class="mc-our-price">&#8377;1,875</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Payment Orders (tracking, aging)</span>
+            <span class="mc-market-price">&#8377;2,000</span>
+            <span class="mc-our-price">&#8377;1,500</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Party Master (supplier/customer)</span>
+            <span class="mc-market-price">&#8377;1,500</span>
+            <span class="mc-our-price">&#8377;1,125</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">PDF Archive (generated docs)</span>
+            <span class="mc-market-price">&#8377;1,000</span>
+            <span class="mc-our-price">&#8377;750</span>
+          </div>
+        </div>
+        <div class="mc-total">
+          <span>Module Total</span>
+          <span class="mc-total-market">&#8377;9,500</span>
+          <span class="mc-total-ours">&#8377;7,125</span>
+        </div>
+      </div>
+
+      <!-- LOGISTICS -->
+      <div class="market-card">
+        <div class="mc-header">
+          <div><span class="mc-icon">&#128666;</span> <span class="mc-title">Logistics</span></div>
+          <span class="mc-benchmark">Benchmark: FourKites / Project44</span>
+        </div>
+        <div class="mc-features">
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Maritime Intel (vessel tracking)</span>
+            <span class="mc-market-price">&#8377;8,000</span>
+            <span class="mc-our-price">&#8377;6,000</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Supply Chain (E2E visibility)</span>
+            <span class="mc-market-price">&#8377;6,000</span>
+            <span class="mc-our-price">&#8377;4,500</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Port Tracker (import data)</span>
+            <span class="mc-market-price">&#8377;5,000</span>
+            <span class="mc-our-price">&#8377;3,750</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Feasibility (source comparison)</span>
+            <span class="mc-market-price">&#8377;4,000</span>
+            <span class="mc-our-price">&#8377;3,000</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Ecosystem Management (partners)</span>
+            <span class="mc-market-price">&#8377;3,000</span>
+            <span class="mc-our-price">&#8377;2,250</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Refinery Supply (production outlook)</span>
+            <span class="mc-market-price">&#8377;5,000</span>
+            <span class="mc-our-price">&#8377;3,750</span>
+          </div>
+        </div>
+        <div class="mc-total">
+          <span>Module Total</span>
+          <span class="mc-total-market">&#8377;31,000</span>
+          <span class="mc-total-ours">&#8377;23,250</span>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="market-card">
+        <div class="mc-header">
+          <div><span class="mc-icon">&#128202;</span> <span class="mc-title">Reports</span></div>
+          <span class="mc-benchmark">Benchmark: Power BI / Tableau</span>
+        </div>
+        <div class="mc-features">
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Financial Intelligence (P&amp;L, cashflow)</span>
+            <span class="mc-market-price">&#8377;5,000</span>
+            <span class="mc-our-price">&#8377;3,750</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Strategy Panel (what-if scenarios)</span>
+            <span class="mc-market-price">&#8377;6,000</span>
+            <span class="mc-our-price">&#8377;4,500</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Demand Analytics (contractor cycles)</span>
+            <span class="mc-market-price">&#8377;4,000</span>
+            <span class="mc-our-price">&#8377;3,000</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Correlation Analysis (highway vs demand)</span>
+            <span class="mc-market-price">&#8377;4,500</span>
+            <span class="mc-our-price">&#8377;3,375</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Road Budget &amp; Demand (NHAI pipeline)</span>
+            <span class="mc-market-price">&#8377;5,000</span>
+            <span class="mc-our-price">&#8377;3,750</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Risk Scoring (multi-factor)</span>
+            <span class="mc-market-price">&#8377;4,000</span>
+            <span class="mc-our-price">&#8377;3,000</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Export Reports (batch export)</span>
+            <span class="mc-market-price">&#8377;2,000</span>
+            <span class="mc-our-price">&#8377;1,500</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Director Briefing (executive summary)</span>
+            <span class="mc-market-price">&#8377;3,000</span>
+            <span class="mc-our-price">&#8377;2,250</span>
+          </div>
+        </div>
+        <div class="mc-total">
+          <span>Module Total</span>
+          <span class="mc-total-market">&#8377;33,500</span>
+          <span class="mc-total-ours">&#8377;25,125</span>
+        </div>
+      </div>
+
+      <!-- COMPLIANCE -->
+      <div class="market-card">
+        <div class="mc-header">
+          <div><span class="mc-icon">&#128737;</span> <span class="mc-title">Compliance</span></div>
+          <span class="mc-benchmark">Benchmark: ClearTax / Legality</span>
+        </div>
+        <div class="mc-features">
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Govt Data Hub (regulations)</span>
+            <span class="mc-market-price">&#8377;3,000</span>
+            <span class="mc-our-price">&#8377;2,250</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">GST &amp; Legal Monitor</span>
+            <span class="mc-market-price">&#8377;3,500</span>
+            <span class="mc-our-price">&#8377;2,625</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Alert System (configurable alerts)</span>
+            <span class="mc-market-price">&#8377;2,000</span>
+            <span class="mc-our-price">&#8377;1,500</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Change Log (audit trail)</span>
+            <span class="mc-market-price">&#8377;1,500</span>
+            <span class="mc-our-price">&#8377;1,125</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Procurement Directory (56+ entries)</span>
+            <span class="mc-market-price">&#8377;2,500</span>
+            <span class="mc-our-price">&#8377;1,875</span>
+          </div>
+        </div>
+        <div class="mc-total">
+          <span>Module Total</span>
+          <span class="mc-total-market">&#8377;12,500</span>
+          <span class="mc-total-ours">&#8377;9,375</span>
+        </div>
+      </div>
+
+      <!-- SYSTEM & AI -->
+      <div class="market-card">
+        <div class="mc-header">
+          <div><span class="mc-icon">&#9881;</span> <span class="mc-title">System &amp; AI</span></div>
+          <span class="mc-benchmark">Benchmark: Custom AI / DevOps</span>
+        </div>
+        <div class="mc-features">
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">AI Chatbot (Claude/Ollama powered)</span>
+            <span class="mc-market-price">&#8377;8,000</span>
+            <span class="mc-our-price">&#8377;6,000</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">AI Fallback Engine (9-provider chain)</span>
+            <span class="mc-market-price">&#8377;6,000</span>
+            <span class="mc-our-price">&#8377;4,500</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Knowledge Base (196+ Q&amp;A)</span>
+            <span class="mc-market-price">&#8377;4,000</span>
+            <span class="mc-our-price">&#8377;3,000</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">AI Learning (continuous improvement)</span>
+            <span class="mc-market-price">&#8377;5,000</span>
+            <span class="mc-our-price">&#8377;3,750</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">System Control Center</span>
+            <span class="mc-market-price">&#8377;3,000</span>
+            <span class="mc-our-price">&#8377;2,250</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">API Dashboard (health monitoring)</span>
+            <span class="mc-market-price">&#8377;3,500</span>
+            <span class="mc-our-price">&#8377;2,625</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">API Hub (data integration)</span>
+            <span class="mc-market-price">&#8377;4,000</span>
+            <span class="mc-our-price">&#8377;3,000</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Health Monitor (CPU, memory, disk)</span>
+            <span class="mc-market-price">&#8377;2,500</span>
+            <span class="mc-our-price">&#8377;1,875</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Settings (full configuration)</span>
+            <span class="mc-market-price">&#8377;1,000</span>
+            <span class="mc-our-price">&#8377;750</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Bug Tracker</span>
+            <span class="mc-market-price">&#8377;2,000</span>
+            <span class="mc-our-price">&#8377;1,500</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Developer Ops</span>
+            <span class="mc-market-price">&#8377;2,500</span>
+            <span class="mc-our-price">&#8377;1,875</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Dashboard Flow Map</span>
+            <span class="mc-market-price">&#8377;1,500</span>
+            <span class="mc-our-price">&#8377;1,125</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Share Center (WA/TG/Email/PDF)</span>
+            <span class="mc-market-price">&#8377;3,000</span>
+            <span class="mc-our-price">&#8377;2,250</span>
+          </div>
+          <div class="mc-feature-row">
+            <span class="mc-feature-name">Telegram Dashboard</span>
+            <span class="mc-market-price">&#8377;3,000</span>
+            <span class="mc-our-price">&#8377;2,250</span>
+          </div>
+        </div>
+        <div class="mc-total">
+          <span>Module Total</span>
+          <span class="mc-total-market">&#8377;49,000</span>
+          <span class="mc-total-ours">&#8377;36,750</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========== TOTAL VALUE BOX ========== -->
+  <div class="total-value-box">
+    <div class="tvb-label">Total Market Value of All 64 Features</div>
+    <div class="tvb-market">&#8377;2,57,000/month (if purchased separately)</div>
+    <div class="tvb-ours">&#8377;1,92,750/month</div>
+    <div class="tvb-savings">You save &#8377;64,250/month &mdash; &#8377;7,71,000/year with 25% discount</div>
+  </div>
+
+  <!-- ========== PRICING TIERS ========== -->
+  <section class="tiers-section">
+    <h2>Choose Your Plan</h2>
+    <p class="section-sub">Four tiers designed for every stage of your bitumen trading business. All prices are per-user, billed annually.</p>
+
+    <div class="tiers-grid">
+
+      <!-- ESSENTIAL -->
+      <div class="tier-card">
+        <div class="tier-header">
+          <div class="tier-icon">&#9889;</div>
+          <div class="tier-name">Essential</div>
+          <div class="tier-desc">Basic operations &amp; document management</div>
+          <div class="tier-price-block">
+            <div class="tier-market-price">Market: &#8377;30,750/mo</div>
+            <div class="tier-price">
+              <span class="currency">&#8377;</span>14,999<span class="period">/mo</span>
+            </div>
+          </div>
+          <div class="tier-annual">Billed annually at <strong>&#8377;1,79,988/year</strong></div>
+          <div class="tier-savings">Save &#8377;1,89,012/yr vs market</div>
+          <div class="tier-feature-count">15 features included</div>
+        </div>
+        <div class="tier-features">
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#127968; Home (4/4)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Command Center</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Live Market</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Top Targets</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Live Alerts</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128176; Pricing (3/6)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Pricing Calculator</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Import Cost Model</span></div>
+            <div class="tf-item"><span class="tf-cross">&#10007;</span> <span class="tf-label dimmed">Price Prediction</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Manual Price Entry</span></div>
+            <div class="tf-item"><span class="tf-cross">&#10007;</span> <span class="tf-label dimmed">SOS Special Pricing</span></div>
+            <div class="tf-item"><span class="tf-cross">&#10007;</span> <span class="tf-label dimmed">Past Predictions</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128196; Documents (5/5)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Purchase Orders</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Sales Orders</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Payment Orders</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Party Master</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">PDF Archive</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128202; Reports (3/8)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Financial Intelligence</span></div>
+            <div class="tf-item"><span class="tf-cross">&#10007;</span> <span class="tf-label dimmed">Strategy Panel</span></div>
+            <div class="tf-item"><span class="tf-cross">&#10007;</span> <span class="tf-label dimmed">Demand Analytics</span></div>
+            <div class="tf-item"><span class="tf-cross">&#10007;</span> <span class="tf-label dimmed">Correlation Analysis</span></div>
+            <div class="tf-item"><span class="tf-cross">&#10007;</span> <span class="tf-label dimmed">Road Budget &amp; Demand</span></div>
+            <div class="tf-item"><span class="tf-cross">&#10007;</span> <span class="tf-label dimmed">Risk Scoring</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Export Reports</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Director Briefing</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title" style="opacity:0.4">&#129534; Sales &amp; CRM &mdash; Not included</div>
+          </div>
+          <div class="tf-group">
+            <div class="tf-group-title" style="opacity:0.4">&#129504; Intelligence &mdash; Not included</div>
+          </div>
+          <div class="tf-group">
+            <div class="tf-group-title" style="opacity:0.4">&#128666; Logistics &mdash; Not included</div>
+          </div>
+          <div class="tf-group">
+            <div class="tf-group-title" style="opacity:0.4">&#128737; Compliance &mdash; Not included</div>
+          </div>
+          <div class="tf-group">
+            <div class="tf-group-title" style="opacity:0.4">&#9881; System &amp; AI &mdash; Not included</div>
+          </div>
+        </div>
+        <div class="tier-cta">
+          <a href="#" class="tier-btn">Get Started</a>
+        </div>
+      </div>
+
+      <!-- PLUS -->
+      <div class="tier-card">
+        <div class="tier-header">
+          <div class="tier-icon">&#128640;</div>
+          <div class="tier-name">Plus</div>
+          <div class="tier-desc">Sales power &amp; full analytics</div>
+          <div class="tier-price-block">
+            <div class="tier-market-price">Market: &#8377;80,500/mo</div>
+            <div class="tier-price">
+              <span class="currency">&#8377;</span>34,999<span class="period">/mo</span>
+            </div>
+          </div>
+          <div class="tier-annual">Billed annually at <strong>&#8377;4,19,988/year</strong></div>
+          <div class="tier-savings">Save &#8377;5,46,012/yr vs market</div>
+          <div class="tier-feature-count">37 features included</div>
+        </div>
+        <div class="tier-features">
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#127968; Home (4/4)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Command Center</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Live Market</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Top Targets</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Live Alerts</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128176; Pricing (6/6)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Pricing Calculator</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Import Cost Model</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Price Prediction</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Manual Price Entry</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">SOS Special Pricing</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Past Predictions</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#129534; Sales &amp; CRM (8/8)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">CRM &amp; Tasks</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Sales Workspace</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Negotiation Assistant</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Communication Hub</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">CRM Automation</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Daily Log</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Contacts Directory</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Comm Tracking</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128196; Documents (5/5)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Purchase Orders</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Sales Orders</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Payment Orders</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Party Master</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">PDF Archive</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128202; Reports (8/8)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Financial Intelligence</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Strategy Panel</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Demand Analytics</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Correlation Analysis</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Road Budget &amp; Demand</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Risk Scoring</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Export Reports</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Director Briefing</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title" style="opacity:0.4">&#129504; Intelligence &mdash; Not included</div>
+          </div>
+          <div class="tf-group">
+            <div class="tf-group-title" style="opacity:0.4">&#128666; Logistics &mdash; Not included</div>
+          </div>
+          <div class="tf-group">
+            <div class="tf-group-title" style="opacity:0.4">&#128737; Compliance &mdash; Not included</div>
+          </div>
+          <div class="tf-group">
+            <div class="tf-group-title" style="opacity:0.4">&#9881; System &amp; AI &mdash; Not included</div>
+          </div>
+        </div>
+        <div class="tier-cta">
+          <a href="#" class="tier-btn">Choose Plus</a>
+        </div>
+      </div>
+
+      <!-- PREMIUM (POPULAR) -->
+      <div class="tier-card popular">
+        <div class="popular-tag">MOST POPULAR</div>
+        <div class="tier-header">
+          <div class="tier-icon">&#128142;</div>
+          <div class="tier-name">Premium</div>
+          <div class="tier-desc">Intelligence edge &amp; full logistics</div>
+          <div class="tier-price-block">
+            <div class="tier-market-price">Market: &#8377;1,75,000/mo</div>
+            <div class="tier-price">
+              <span class="currency">&#8377;</span>64,999<span class="period">/mo</span>
+            </div>
+          </div>
+          <div class="tier-annual">Billed annually at <strong>&#8377;7,79,988/year</strong></div>
+          <div class="tier-savings">Save &#8377;13,20,012/yr vs market</div>
+          <div class="tier-feature-count">56 features included</div>
+        </div>
+        <div class="tier-features">
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#127968; Home (4/4)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Command Center</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Live Market</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Top Targets</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Live Alerts</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128176; Pricing (6/6)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Pricing Calculator</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Import Cost Model</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Price Prediction</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Manual Price Entry</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">SOS Special Pricing</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Past Predictions</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#129534; Sales &amp; CRM (8/8)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">CRM &amp; Tasks</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Sales Workspace</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Negotiation Assistant</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Communication Hub</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">CRM Automation</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Daily Log</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Contacts Directory</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Comm Tracking</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#129504; Intelligence (8/8)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Market Signals</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Real-time Insights</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">News Intelligence</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Competitor Intel</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Business Advisor</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Purchase Advisor</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Recommendations</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Global Markets</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128196; Documents (5/5)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Purchase Orders</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Sales Orders</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Payment Orders</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Party Master</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">PDF Archive</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128666; Logistics (6/6)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Maritime Intel</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Supply Chain</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Port Tracker</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Feasibility</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Ecosystem Management</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Refinery Supply</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128202; Reports (8/8)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Financial Intelligence</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Strategy Panel</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Demand Analytics</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Correlation Analysis</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Road Budget &amp; Demand</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Risk Scoring</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Export Reports</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Director Briefing</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128737; Compliance (5/5)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Govt Data Hub</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">GST &amp; Legal Monitor</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Alert System</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Change Log</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Procurement Directory</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title" style="opacity:0.4">&#9881; System &amp; AI &mdash; Not included</div>
+          </div>
+        </div>
+        <div class="tier-cta">
+          <a href="#" class="tier-btn primary">Choose Premium</a>
+        </div>
+      </div>
+
+      <!-- ULTIMATE -->
+      <div class="tier-card ultimate">
+        <div class="ultimate-tag">FULL AI POWER</div>
+        <div class="tier-header">
+          <div class="tier-icon">&#127775;</div>
+          <div class="tier-name">Ultimate</div>
+          <div class="tier-desc">All 64 features + priority support</div>
+          <div class="tier-price-block">
+            <div class="tier-market-price">Market: &#8377;2,57,000/mo</div>
+            <div class="tier-price">
+              <span class="currency">&#8377;</span>89,999<span class="period">/mo</span>
+            </div>
+          </div>
+          <div class="tier-annual">Billed annually at <strong>&#8377;10,79,988/year</strong></div>
+          <div class="tier-savings">Save &#8377;19,84,012/yr vs market</div>
+          <div class="tier-feature-count">All 64 features included</div>
+        </div>
+        <div class="tier-features">
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#127968; Home (4/4)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Command Center</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Live Market</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Top Targets</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Live Alerts</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128176; Pricing (6/6)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Pricing Calculator</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Import Cost Model</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Price Prediction</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Manual Price Entry</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">SOS Special Pricing</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Past Predictions</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#129534; Sales &amp; CRM (8/8)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">CRM &amp; Tasks</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Sales Workspace</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Negotiation Assistant</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Communication Hub</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">CRM Automation</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Daily Log</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Contacts Directory</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Comm Tracking</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#129504; Intelligence (8/8)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Market Signals</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Real-time Insights</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">News Intelligence</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Competitor Intel</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Business Advisor</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Purchase Advisor</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Recommendations</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Global Markets</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128196; Documents (5/5)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Purchase Orders</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Sales Orders</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Payment Orders</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Party Master</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">PDF Archive</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128666; Logistics (6/6)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Maritime Intel</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Supply Chain</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Port Tracker</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Feasibility</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Ecosystem Management</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Refinery Supply</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128202; Reports (8/8)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Financial Intelligence</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Strategy Panel</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Demand Analytics</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Correlation Analysis</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Road Budget &amp; Demand</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Risk Scoring</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Export Reports</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Director Briefing</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#128737; Compliance (5/5)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Govt Data Hub</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">GST &amp; Legal Monitor</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Alert System</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Change Log</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Procurement Directory</span></div>
+          </div>
+
+          <div class="tf-group">
+            <div class="tf-group-title">&#9881; System &amp; AI (14/14)</div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">AI Chatbot (Claude/Ollama)</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">AI Fallback Engine</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Knowledge Base</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">AI Learning</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">System Control Center</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">API Dashboard</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">API Hub</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Health Monitor</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Settings</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Bug Tracker</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Developer Ops</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Dashboard Flow Map</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Share Center</span></div>
+            <div class="tf-item"><span class="tf-check">&#10003;</span> <span class="tf-label active">Telegram Dashboard</span></div>
+          </div>
+
+          <div class="tf-group" style="margin-top:12px; padding:10px; background:rgba(245,158,11,0.08); border-radius:8px;">
+            <div class="tf-group-title" style="color:#f59e0b; border-bottom-color:rgba(245,158,11,0.2);">ULTIMATE EXCLUSIVES</div>
+            <div class="tf-item"><span class="tf-check" style="color:#f59e0b">&#9733;</span> <span class="tf-label active">Priority Support (4-hour SLA)</span></div>
+            <div class="tf-item"><span class="tf-check" style="color:#f59e0b">&#9733;</span> <span class="tf-label active">Dedicated Account Manager</span></div>
+            <div class="tf-item"><span class="tf-check" style="color:#f59e0b">&#9733;</span> <span class="tf-label active">Custom AI Model Training</span></div>
+            <div class="tf-item"><span class="tf-check" style="color:#f59e0b">&#9733;</span> <span class="tf-label active">White-label Options</span></div>
+          </div>
+        </div>
+        <div class="tier-cta">
+          <a href="#" class="tier-btn gold">Get Ultimate</a>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========== DETAILED FEATURE COMPARISON TABLE ========== -->
+  <section class="breakdown-section">
+    <h2>Detailed Feature Comparison</h2>
+    <p class="section-sub">Complete feature-by-feature breakdown with individual pricing across all 64 features</p>
+
+    <div class="breakdown-table-wrap">
+      <table class="breakdown-table">
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>Market Price</th>
+            <th>PPS Price (25% off)</th>
+            <th>Essential</th>
+            <th>Plus</th>
+            <th class="hl">Premium</th>
+            <th>Ultimate</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- HOME MODULE -->
+          <tr class="group-header"><td colspan="7">&#127968; Home Module (4 features)</td></tr>
+          <tr>
+            <td>Command Center (Executive Dashboard)</td>
+            <td><span class="bt-market">&#8377;4,000</span></td>
+            <td><span class="bt-price">&#8377;3,000</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Live Market (Real-time prices, charts)</td>
+            <td><span class="bt-market">&#8377;6,000</span></td>
+            <td><span class="bt-price">&#8377;4,500</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Top Targets (AI opportunity discovery)</td>
+            <td><span class="bt-market">&#8377;5,000</span></td>
+            <td><span class="bt-price">&#8377;3,750</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Live Alerts (P0/P1/P2 alert system)</td>
+            <td><span class="bt-market">&#8377;3,000</span></td>
+            <td><span class="bt-price">&#8377;2,250</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+
+          <!-- PRICING MODULE -->
+          <tr class="group-header"><td colspan="7">&#128176; Pricing Module (6 features)</td></tr>
+          <tr>
+            <td>Pricing Calculator (3-tier margin, landed cost)</td>
+            <td><span class="bt-market">&#8377;3,500</span></td>
+            <td><span class="bt-price">&#8377;2,625</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Import Cost Model (FOB to landed)</td>
+            <td><span class="bt-market">&#8377;4,000</span></td>
+            <td><span class="bt-price">&#8377;3,000</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Price Prediction (24-month AI forecast)</td>
+            <td><span class="bt-market">&#8377;12,000</span></td>
+            <td><span class="bt-price">&#8377;9,000</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Manual Price Entry (field overrides)</td>
+            <td><span class="bt-market">&#8377;1,500</span></td>
+            <td><span class="bt-price">&#8377;1,125</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>SOS Special Pricing (emergency pricing)</td>
+            <td><span class="bt-market">&#8377;2,000</span></td>
+            <td><span class="bt-price">&#8377;1,500</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Past Predictions (accuracy tracking)</td>
+            <td><span class="bt-market">&#8377;3,000</span></td>
+            <td><span class="bt-price">&#8377;2,250</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+
+          <!-- SALES & CRM MODULE -->
+          <tr class="group-header"><td colspan="7">&#129534; Sales &amp; CRM Module (8 features)</td></tr>
+          <tr>
+            <td>CRM &amp; Tasks (contact management, scoring)</td>
+            <td><span class="bt-market">&#8377;3,500</span></td>
+            <td><span class="bt-price">&#8377;2,625</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Sales Workspace (deal room, margin calc)</td>
+            <td><span class="bt-market">&#8377;4,000</span></td>
+            <td><span class="bt-price">&#8377;3,000</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Negotiation Assistant (AI scripts)</td>
+            <td><span class="bt-market">&#8377;5,000</span></td>
+            <td><span class="bt-price">&#8377;3,750</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Communication Hub (WA/Email/Call templates)</td>
+            <td><span class="bt-market">&#8377;3,500</span></td>
+            <td><span class="bt-price">&#8377;2,625</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>CRM Automation (auto-assign, scheduling)</td>
+            <td><span class="bt-market">&#8377;3,000</span></td>
+            <td><span class="bt-price">&#8377;2,250</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Daily Log (activity tracking)</td>
+            <td><span class="bt-market">&#8377;1,500</span></td>
+            <td><span class="bt-price">&#8377;1,125</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Contacts Directory (25K+ contacts)</td>
+            <td><span class="bt-market">&#8377;4,000</span></td>
+            <td><span class="bt-price">&#8377;3,000</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Comm Tracking (analytics)</td>
+            <td><span class="bt-market">&#8377;2,000</span></td>
+            <td><span class="bt-price">&#8377;1,500</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+
+          <!-- INTELLIGENCE MODULE -->
+          <tr class="group-header"><td colspan="7">&#129504; Intelligence Module (8 features)</td></tr>
+          <tr>
+            <td>Market Signals (10-signal composite AI)</td>
+            <td><span class="bt-market">&#8377;8,000</span></td>
+            <td><span class="bt-price">&#8377;6,000</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Real-time Insights (live KPIs, disruptions)</td>
+            <td><span class="bt-market">&#8377;6,000</span></td>
+            <td><span class="bt-price">&#8377;4,500</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>News Intelligence (14-source aggregation)</td>
+            <td><span class="bt-market">&#8377;5,000</span></td>
+            <td><span class="bt-price">&#8377;3,750</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Competitor Intel (MEE bulletins, tracking)</td>
+            <td><span class="bt-market">&#8377;7,000</span></td>
+            <td><span class="bt-price">&#8377;5,250</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Business Advisor (buy/sell/hold guidance)</td>
+            <td><span class="bt-market">&#8377;10,000</span></td>
+            <td><span class="bt-price">&#8377;7,500</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Purchase Advisor (6-signal urgency)</td>
+            <td><span class="bt-market">&#8377;6,000</span></td>
+            <td><span class="bt-price">&#8377;4,500</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Recommendations (confidence scores)</td>
+            <td><span class="bt-market">&#8377;5,000</span></td>
+            <td><span class="bt-price">&#8377;3,750</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Global Markets (crude, FX charts)</td>
+            <td><span class="bt-market">&#8377;4,000</span></td>
+            <td><span class="bt-price">&#8377;3,000</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+
+          <!-- DOCUMENTS MODULE -->
+          <tr class="group-header"><td colspan="7">&#128196; Documents Module (5 features)</td></tr>
+          <tr>
+            <td>Purchase Orders (PO with PDF export)</td>
+            <td><span class="bt-market">&#8377;2,500</span></td>
+            <td><span class="bt-price">&#8377;1,875</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Sales Orders (SO management)</td>
+            <td><span class="bt-market">&#8377;2,500</span></td>
+            <td><span class="bt-price">&#8377;1,875</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Payment Orders (tracking, aging)</td>
+            <td><span class="bt-market">&#8377;2,000</span></td>
+            <td><span class="bt-price">&#8377;1,500</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Party Master (supplier/customer master)</td>
+            <td><span class="bt-market">&#8377;1,500</span></td>
+            <td><span class="bt-price">&#8377;1,125</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>PDF Archive (generated docs)</td>
+            <td><span class="bt-market">&#8377;1,000</span></td>
+            <td><span class="bt-price">&#8377;750</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+
+          <!-- LOGISTICS MODULE -->
+          <tr class="group-header"><td colspan="7">&#128666; Logistics Module (6 features)</td></tr>
+          <tr>
+            <td>Maritime Intel (vessel tracking)</td>
+            <td><span class="bt-market">&#8377;8,000</span></td>
+            <td><span class="bt-price">&#8377;6,000</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Supply Chain (end-to-end visibility)</td>
+            <td><span class="bt-market">&#8377;6,000</span></td>
+            <td><span class="bt-price">&#8377;4,500</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Port Tracker (import data)</td>
+            <td><span class="bt-market">&#8377;5,000</span></td>
+            <td><span class="bt-price">&#8377;3,750</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Feasibility (source comparison)</td>
+            <td><span class="bt-market">&#8377;4,000</span></td>
+            <td><span class="bt-price">&#8377;3,000</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Ecosystem Management (partners)</td>
+            <td><span class="bt-market">&#8377;3,000</span></td>
+            <td><span class="bt-price">&#8377;2,250</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Refinery Supply (production outlook)</td>
+            <td><span class="bt-market">&#8377;5,000</span></td>
+            <td><span class="bt-price">&#8377;3,750</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+
+          <!-- REPORTS MODULE -->
+          <tr class="group-header"><td colspan="7">&#128202; Reports Module (8 features)</td></tr>
+          <tr>
+            <td>Financial Intelligence (P&amp;L, cashflow)</td>
+            <td><span class="bt-market">&#8377;5,000</span></td>
+            <td><span class="bt-price">&#8377;3,750</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Strategy Panel (what-if scenarios)</td>
+            <td><span class="bt-market">&#8377;6,000</span></td>
+            <td><span class="bt-price">&#8377;4,500</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Demand Analytics (contractor cycles)</td>
+            <td><span class="bt-market">&#8377;4,000</span></td>
+            <td><span class="bt-price">&#8377;3,000</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Correlation Analysis (highway vs demand)</td>
+            <td><span class="bt-market">&#8377;4,500</span></td>
+            <td><span class="bt-price">&#8377;3,375</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Road Budget &amp; Demand (NHAI pipeline)</td>
+            <td><span class="bt-market">&#8377;5,000</span></td>
+            <td><span class="bt-price">&#8377;3,750</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Risk Scoring (multi-factor)</td>
+            <td><span class="bt-market">&#8377;4,000</span></td>
+            <td><span class="bt-price">&#8377;3,000</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Export Reports (batch export)</td>
+            <td><span class="bt-market">&#8377;2,000</span></td>
+            <td><span class="bt-price">&#8377;1,500</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Director Briefing (executive summary)</td>
+            <td><span class="bt-market">&#8377;3,000</span></td>
+            <td><span class="bt-price">&#8377;2,250</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+
+          <!-- COMPLIANCE MODULE -->
+          <tr class="group-header"><td colspan="7">&#128737; Compliance Module (5 features)</td></tr>
+          <tr>
+            <td>Govt Data Hub (regulations)</td>
+            <td><span class="bt-market">&#8377;3,000</span></td>
+            <td><span class="bt-price">&#8377;2,250</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>GST &amp; Legal Monitor (compliance)</td>
+            <td><span class="bt-market">&#8377;3,500</span></td>
+            <td><span class="bt-price">&#8377;2,625</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Alert System (configurable alerts)</td>
+            <td><span class="bt-market">&#8377;2,000</span></td>
+            <td><span class="bt-price">&#8377;1,500</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Change Log (audit trail)</td>
+            <td><span class="bt-market">&#8377;1,500</span></td>
+            <td><span class="bt-price">&#8377;1,125</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Procurement Directory (56+ entries)</td>
+            <td><span class="bt-market">&#8377;2,500</span></td>
+            <td><span class="bt-price">&#8377;1,875</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+
+          <!-- SYSTEM & AI MODULE -->
+          <tr class="group-header"><td colspan="7">&#9881; System &amp; AI Module (14 features)</td></tr>
+          <tr>
+            <td>AI Chatbot (Claude/Ollama powered)</td>
+            <td><span class="bt-market">&#8377;8,000</span></td>
+            <td><span class="bt-price">&#8377;6,000</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>AI Fallback Engine (9-provider chain)</td>
+            <td><span class="bt-market">&#8377;6,000</span></td>
+            <td><span class="bt-price">&#8377;4,500</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Knowledge Base (196+ Q&amp;A)</td>
+            <td><span class="bt-market">&#8377;4,000</span></td>
+            <td><span class="bt-price">&#8377;3,000</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>AI Learning (continuous improvement)</td>
+            <td><span class="bt-market">&#8377;5,000</span></td>
+            <td><span class="bt-price">&#8377;3,750</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>System Control Center</td>
+            <td><span class="bt-market">&#8377;3,000</span></td>
+            <td><span class="bt-price">&#8377;2,250</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>API Dashboard (health monitoring)</td>
+            <td><span class="bt-market">&#8377;3,500</span></td>
+            <td><span class="bt-price">&#8377;2,625</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>API Hub (data integration)</td>
+            <td><span class="bt-market">&#8377;4,000</span></td>
+            <td><span class="bt-price">&#8377;3,000</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Health Monitor (CPU, memory, disk)</td>
+            <td><span class="bt-market">&#8377;2,500</span></td>
+            <td><span class="bt-price">&#8377;1,875</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Settings (full configuration)</td>
+            <td><span class="bt-market">&#8377;1,000</span></td>
+            <td><span class="bt-price">&#8377;750</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Bug Tracker</td>
+            <td><span class="bt-market">&#8377;2,000</span></td>
+            <td><span class="bt-price">&#8377;1,500</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Developer Ops</td>
+            <td><span class="bt-market">&#8377;2,500</span></td>
+            <td><span class="bt-price">&#8377;1,875</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Dashboard Flow Map</td>
+            <td><span class="bt-market">&#8377;1,500</span></td>
+            <td><span class="bt-price">&#8377;1,125</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Share Center (WA/TG/Email/PDF)</td>
+            <td><span class="bt-market">&#8377;3,000</span></td>
+            <td><span class="bt-price">&#8377;2,250</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+          <tr>
+            <td>Telegram Dashboard</td>
+            <td><span class="bt-market">&#8377;3,000</span></td>
+            <td><span class="bt-price">&#8377;2,250</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-cross">&#10007;</span></td>
+            <td><span class="bt-check">&#10003;</span></td>
+          </tr>
+
+          <!-- SUMMARY ROW -->
+          <tr class="group-header">
+            <td>TOTAL</td>
+            <td colspan="1" style="text-align:center;color:var(--red);">&#8377;2,57,000/mo</td>
+            <td colspan="1" style="text-align:center;color:var(--green);font-size:15px;">&#8377;1,92,750/mo</td>
+            <td style="text-align:center;">15 features</td>
+            <td style="text-align:center;">37 features</td>
+            <td style="text-align:center;color:var(--accent);">56 features</td>
+            <td style="text-align:center;color:var(--gold);">All 64</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ========== MARKET COMPARISON ========== -->
+  <section class="comparison-section">
+    <h2>What You Would Pay Elsewhere</h2>
+    <div class="comparison-cards">
+      <div class="comp-card">
+        <div class="comp-icon">&#128188;</div>
+        <div class="comp-tool">Salesforce CRM</div>
+        <div class="comp-price">&#8377;4,000/user/mo</div>
+        <div class="comp-vs">PPS includes full CRM + AI sales tools</div>
+        <div class="comp-ours">Included in Plus (&#8377;34,999)</div>
+        <div class="comp-label">8 CRM features included</div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-icon">&#128200;</div>
+        <div class="comp-tool">Bloomberg Terminal</div>
+        <div class="comp-price">&#8377;1,50,000+/mo</div>
+        <div class="comp-vs">PPS delivers bitumen-specific intelligence</div>
+        <div class="comp-ours">Included in Premium (&#8377;64,999)</div>
+        <div class="comp-label">8 intelligence features included</div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-icon">&#128640;</div>
+        <div class="comp-tool">FourKites Logistics</div>
+        <div class="comp-price">&#8377;15,000/mo</div>
+        <div class="comp-vs">PPS covers maritime + port + supply chain</div>
+        <div class="comp-ours">Included in Premium (&#8377;64,999)</div>
+        <div class="comp-label">6 logistics features included</div>
+      </div>
+      <div class="comp-card">
+        <div class="comp-icon">&#129302;</div>
+        <div class="comp-tool">Custom AI Chatbot</div>
+        <div class="comp-price">&#8377;10,000/mo</div>
+        <div class="comp-vs">PPS: Claude + Ollama + 9 fallback providers</div>
+        <div class="comp-ours">Included in Ultimate (&#8377;89,999)</div>
+        <div class="comp-label">14 AI/system features included</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== PRICING SUMMARY BOX ========== -->
+  <div class="total-value-box" style="margin-top:40px;">
+    <div class="tvb-label">Quick Pricing Summary</div>
+    <table style="margin:20px auto;border-collapse:collapse;font-size:15px;width:100%;max-width:700px;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);">
+          <th style="text-align:left;padding:10px 16px;color:var(--text-dim);font-size:13px;">Plan</th>
+          <th style="text-align:center;padding:10px 16px;color:var(--text-dim);font-size:13px;">Features</th>
+          <th style="text-align:center;padding:10px 16px;color:var(--text-dim);font-size:13px;">Monthly</th>
+          <th style="text-align:center;padding:10px 16px;color:var(--text-dim);font-size:13px;">Annual</th>
+          <th style="text-align:right;padding:10px 16px;color:var(--text-dim);font-size:13px;">Savings/yr</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:12px 16px;font-weight:700;">&#9889; Essential</td>
+          <td style="padding:12px 16px;text-align:center;">15</td>
+          <td style="padding:12px 16px;text-align:center;">&#8377;14,999</td>
+          <td style="padding:12px 16px;text-align:center;">&#8377;1,79,988</td>
+          <td style="padding:12px 16px;text-align:right;color:var(--green);">&#8377;1,89,012</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:12px 16px;font-weight:700;">&#128640; Plus</td>
+          <td style="padding:12px 16px;text-align:center;">37</td>
+          <td style="padding:12px 16px;text-align:center;">&#8377;34,999</td>
+          <td style="padding:12px 16px;text-align:center;">&#8377;4,19,988</td>
+          <td style="padding:12px 16px;text-align:right;color:var(--green);">&#8377;5,46,012</td>
+        </tr>
+        <tr style="border-bottom:1px solid var(--border);background:rgba(99,102,241,0.08);">
+          <td style="padding:12px 16px;font-weight:700;color:var(--accent);">&#128142; Premium</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--accent);">56</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--accent);font-weight:700;">&#8377;64,999</td>
+          <td style="padding:12px 16px;text-align:center;">&#8377;7,79,988</td>
+          <td style="padding:12px 16px;text-align:right;color:var(--green);font-weight:700;">&#8377;13,20,012</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 16px;font-weight:700;color:var(--gold);">&#127775; Ultimate</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--gold);">64</td>
+          <td style="padding:12px 16px;text-align:center;color:var(--gold);font-weight:700;">&#8377;89,999</td>
+          <td style="padding:12px 16px;text-align:center;">&#8377;10,79,988</td>
+          <td style="padding:12px 16px;text-align:right;color:var(--green);font-weight:700;">&#8377;19,84,012</td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="font-size:13px;color:var(--text-muted);margin-top:10px;">
+      * Savings calculated as: (Market rate x 12 months) minus Annual PPS price
+    </div>
+  </div>
+
+  <!-- ========== FAQ ========== -->
+  <section class="faq-section">
+    <h2>Frequently Asked Questions</h2>
+
+    <div class="faq-item">
+      <div class="faq-q">How is the 25% discount calculated?</div>
+      <div class="faq-a">Each feature is benchmarked against equivalent market tools (Salesforce, Bloomberg, FourKites, etc.). The market price is the fair mid-range rate for similar functionality. PPS prices are set at 75% of these market rates — a flat 25% discount across every feature.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Can I upgrade between tiers?</div>
+      <div class="faq-a">Yes. You can upgrade at any time. When upgrading mid-cycle, you only pay the prorated difference for the remaining billing period. Downgrades take effect at the next billing cycle.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Is this per-user or per-company pricing?</div>
+      <div class="faq-a">All listed prices are per-user, per-month (billed annually). Volume discounts are available for teams of 5+ users. Contact us for enterprise pricing with unlimited seats.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">What is included in Priority Support (Ultimate)?</div>
+      <div class="faq-a">Ultimate subscribers get a 4-hour response SLA, a dedicated account manager, custom AI model training for your specific market segment, and white-label options for client-facing reports.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">Are there any setup or onboarding fees?</div>
+      <div class="faq-a">No. All plans include free onboarding, data migration assistance, and a 2-week guided implementation period. Training sessions are included at no extra cost.</div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">What about data security and compliance?</div>
+      <div class="faq-a">PPS Dashboard runs on your own infrastructure. All data stays within your network. The platform supports role-based access control, audit logging, and is built for Indian regulatory compliance including GST.</div>
+    </div>
+  </section>
+
+  <!-- ========== FOOTER ========== -->
+  <footer class="footer">
+    <div class="footer-brand">PPS Anantam &mdash; Bitumen Sales Dashboard v5.0</div>
+    <div class="footer-contact">
+      Schedule a Demo &bull; Get Custom Enterprise Pricing<br>
+      <a href="mailto:info@ppsanantam.com">info@ppsanantam.com</a> &bull;
+      <a href="tel:+919999999999">+91-XXXXX-XXXXX</a>
+    </div>
+    <div class="footer-legal">
+      All prices in Indian Rupees (INR). Billed annually. Per-user pricing.<br>
+      <span class="gst-note">* All prices are exclusive of GST (18% applicable)</span><br>
+      Prices valid as of March 2026. Subject to change with 30-day notice.<br>
+      &copy; 2026 PPS Anantam. All rights reserved. Confidential pricing document.
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

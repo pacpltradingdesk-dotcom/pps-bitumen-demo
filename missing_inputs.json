@@ -1,0 +1,26 @@
+[
+  {
+    "field": "competitor_price",
+    "value": "43000",
+    "collected_at": "03-03-2026 12:15 IST",
+    "status": "collected"
+  },
+  {
+    "field": "deal_closed_price",
+    "value": "42500",
+    "collected_at": "03-03-2026 12:15 IST",
+    "status": "collected"
+  },
+  {
+    "field": "competitor_price",
+    "value": "43000",
+    "collected_at": "03-03-2026 13:24 IST",
+    "status": "collected"
+  },
+  {
+    "field": "deal_closed_price",
+    "value": "42500",
+    "collected_at": "03-03-2026 13:24 IST",
+    "status": "collected"
+  }
+]

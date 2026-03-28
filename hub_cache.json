@@ -1,0 +1,726 @@
+{
+  "openweather": {
+    "ts": 1774684080.3643956,
+    "data": [
+      {
+        "date_time": "2026-03-28 13:17:59 IST",
+        "location": "Mumbai",
+        "temp": 27.6,
+        "rain_mm": 0.0,
+        "humidity": 88,
+        "source": "Open-Meteo (OpenWeather fallback)",
+        "_source_type": "live_api",
+        "_source_confidence": 0.88,
+        "_source_provider": "Open-Meteo.com"
+      },
+      {
+        "date_time": "2026-03-28 13:17:59 IST",
+        "location": "Kandla",
+        "temp": 32.9,
+        "rain_mm": 0.1,
+        "humidity": 92,
+        "source": "Open-Meteo (OpenWeather fallback)",
+        "_source_type": "live_api",
+        "_source_confidence": 0.88,
+        "_source_provider": "Open-Meteo.com"
+      },
+      {
+        "date_time": "2026-03-28 13:17:59 IST",
+        "location": "Mangalore",
+        "temp": 29.1,
+        "rain_mm": 5.8,
+        "humidity": 86,
+        "source": "Open-Meteo (OpenWeather fallback)",
+        "_source_type": "live_api",
+        "_source_confidence": 0.88,
+        "_source_provider": "Open-Meteo.com"
+      },
+      {
+        "date_time": "2026-03-28 13:18:00 IST",
+        "location": "Delhi",
+        "temp": 29.5,
+        "rain_mm": 0.0,
+        "humidity": 88,
+        "source": "Open-Meteo (OpenWeather fallback)",
+        "_source_type": "live_api",
+        "_source_confidence": 0.88,
+        "_source_provider": "Open-Meteo.com"
+      },
+      {
+        "date_time": "2026-03-28 13:18:00 IST",
+        "location": "Vadodara",
+        "temp": 36.1,
+        "rain_mm": 0.0,
+        "humidity": 74,
+        "source": "Open-Meteo (OpenWeather fallback)",
+        "_source_type": "live_api",
+        "_source_confidence": 0.88,
+        "_source_provider": "Open-Meteo.com"
+      }
+    ]
+  },
+  "frankfurter_fx": {
+    "ts": 1774683274.130291,
+    "data": [
+      {
+        "date_time": "2026-03-28 13:04:34 IST",
+        "pair": "USD/EUR",
+        "rate": 0.86828,
+        "source": "Frankfurter (ECB)",
+        "_source_type": "live_api",
+        "_source_confidence": 0.96,
+        "_source_provider": "Frankfurter.app (ECB data)"
+      },
+      {
+        "date_time": "2026-03-28 13:04:34 IST",
+        "pair": "USD/GBP",
+        "rate": 0.75297,
+        "source": "Frankfurter (ECB)",
+        "_source_type": "live_api",
+        "_source_confidence": 0.96,
+        "_source_provider": "Frankfurter.app (ECB data)"
+      },
+      {
+        "date_time": "2026-03-28 13:04:34 IST",
+        "pair": "USD/INR",
+        "rate": 94.81,
+        "source": "Frankfurter (ECB)",
+        "_source_type": "live_api",
+        "_source_confidence": 0.96,
+        "_source_provider": "Frankfurter.app (ECB data)"
+      },
+      {
+        "date_time": "2026-03-28 13:04:34 IST",
+        "pair": "USD/JPY",
+        "rate": 159.9,
+        "source": "Frankfurter (ECB)",
+        "_source_type": "live_api",
+        "_source_confidence": 0.96,
+        "_source_provider": "Frankfurter.app (ECB data)"
+      }
+    ]
+  },
+  "newsapi": {
+    "ts": 1774684077.4148097,
+    "data": [
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "Opinion | Bitumen: A Crude Item's Curious Link To Trump's Venezuela Strike - And India - NDTV",
+        "publisher": "NDTV",
+        "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxOZUJCR1lpV1pRZWVXMzdPSG1tejFwNHhqVm9BUkloeW1zbE5ld2prN051Wk40THdRb2d1RXhoZHBXOEZBYW9ydzZQNHlLOHR1MnBCTTZRdEpKR2dfVnB2bUhnRVhDYTE0V2pRRXV3ald3bDJmWkoyZzlaR0JvQ2xrMHhJWE5MUGxHb3QtcFlhaW1zeXc3S0J3bHR4T1kzWUdrSXdoUC1XbnduNkRWSTBudQ?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "NHAI pulling out all stops to ensure bitumen supply from state-run refiners amid West Asia shortage - Mint",
+        "publisher": "Mint",
+        "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxQSW9wOFdjekg4RTk4RjA1TFJ4NHhGTmVGbENKZHBDTVIzQ1FLOGdBZklQbHJBa2tlT3NuT0VyVThObFNiZ0xkT0dDaFJpS2tKMENYNmlvRXlfeTNqdjJaRE03UlM3SVVRd1RVbUZnVjQ2QTctRHNkdC1Zc3ZLNkVnckNjYTlRLTFKcEMyVWhYSU1QYmdLdXdJUEF1dGphbTFtdkhWM0swd1VVeDRFT3IyNNIBtgFBVV95cUxQWVRJMkt",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "War, sanctions, blocked straits: The toll on India-Iran ties - Forbes India",
+        "publisher": "Forbes India",
+        "url": "https://news.google.com/rss/articles/CBMiswFBVV95cUxOakUxZk03ZXZuLVFjRk1nMXRSTWxHY1UyWG1DWmF4SkNpREMzRnFUckxjd2tiYmpZLURNTUtMSWF1SEVoNVg4MG8yOUdXaXBXZHZXR05jR09NVkFld0o5bEMyV3lNaTViRG1QWVlvakJJc2FxeXZFa19HTWdleThCdzByZ25ET0JYOGp6U08wZWNLSkxGdmVaSkVnWENaVjB1VThwNm56MGJFWXFhUndYeFBiWQ?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "India becomes first country to commercially produce bio-bitumen - Manorama Yearbook",
+        "publisher": "Manorama Yearbook",
+        "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxOVHZ2MFRNc3N4RFAyVjNuSjFIU0l5LUZCZU04Q2Q1VmtkNkQwbWNiRkx2VzNiMDZZaFpockY4Q2N6OW5DM05kU0w2ZGdUamplaHlnbU1jWEQySngyMzcyQlNiR1ZOdUZmTy14RF9LMEZLdTBORkZMVmRmRDZwTnNRcDV1RE5HSXQ4QTVuSnExeXBoVVYtbnNYb2VIRnFWRGtWWUdmcEJLZjNDcHEw?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "Bio-Bitumen: Paving India’s Roads with Low-Carbon Innovation - Sanskriti IAS",
+        "publisher": "Sanskriti IAS",
+        "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxNbXM3b2taYWZsaW9xaUlWRUh0MFdNYWJtbGRGaThWSlc3UnE1aU11N3ltMmNMRGtwQkVZOHNtUll2dms0cXNDcTlyUHVnRlBpc2tDVmFCSXJnZzFTZzlxbVFyOC1fVHcyZmh0NDNWZUR5cHJZMTRmdWlueW41aXE4TlE5V1hBT2piMnZBSDg1Qjg3UnhqU1phU0lVVlRIMTZGanI0a2FB?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "Bio-bitumen and India’s Sustainable Road Innovation - usthadian.com",
+        "publisher": "usthadian.com",
+        "url": "https://news.google.com/rss/articles/CBMigwFBVV95cUxQV3pTTGl2TnpoRzk4UE5GVGdlTEYxb3FqSVp1Qm5kVjI1dGREbHBXSDdDS21GUEd3NzFNTkZVajVNMmV2bHNZZXBwdTI3ZjFyZVBIX2ZuYld5MEl0SDVhTVBOMk9ZOUlVQmk3MFpZMUp6VnFfbE5LTXJwanBoOFd2bzJOZw?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "Pune-based company imported $8 million worth of Iranian-origin bitumen in 9 months - theweek.in",
+        "publisher": "theweek.in",
+        "url": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxNOGNTS21qTGVJaDBaR24taGU0VGhNM29fa01SbTN2UkpLNTR3Uy1UZHBRYnJZanFsaklnaWM4TXBlY2ljX1paM0czVTNPMV9sQUs2NzMyQmxHZTZNZTRRclZuSGVTbDRMaXcteWdpWTJmUk1memNwUUpndklGWmdfazZYcElwWDVwODliUktGcEdzRTlOMWxuY3BPN1czVmpVb1E0RW91d2h6ZmdMcU8tR1k4WUFMZUY4QzJCS3lNVHI",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "India Becomes First to Commercially Produce Bio-Bitumen from Agro-Waste: Nitin Gadkari - APAC Media",
+        "publisher": "APAC Media",
+        "url": "https://news.google.com/rss/articles/CBMivwFBVV95cUxPUG5NaXVCRXByUjFDNGJhcEJQazZRc25QbnZsN1JxNkZWcWxaYzZCUkVlZXhubldyYWpCdlFTZDVVdGpjaUpuR3AyaHo3VWlNcGVLSWctTDhSX0NPbWNRQWlkelQ3QXZUb2JKdlBJYndYSElXMGI5cEFMWjJTQmpaVnRidVJSTFpSX1ItVTRyM0tDa09JR01lVGJiNUFtZ1ExdTdBMGVMbS0tMmdmUFVVNXlRUjk3bGFkdnVRSVZmd9I",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "India Becomes First to Produce Bio-Bitumen Commercially - Jagran Josh",
+        "publisher": "Jagran Josh",
+        "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxNTVpIeXVGM0swUGd1YmFhVTZQelQ0MFZrMFlYQkQ1MjFFV0Y4MV94dnA1dXFQNmF3Yy1aVGU3UzFDZnV1NE4ydkNlZ3ZJeHBxV241YW82dUZiVUJQWjV6R2N2UEZOZi0tZC1PUkhLX3lsbFdVLXhWZG5oakFWaFJvX3Q2dGt2V2ptRnFVRFBKUmk1X19iX0pwNzduTDN2OWszWjQxdENsMkU4U1AtQzAw?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "India’s crude oil and petroleum product output, refinery throughput fall in April 2025 - The New Indian Express",
+        "publisher": "The New Indian Express",
+        "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxOZ21Gd1AzbzFMc0hPYWM3N1RpNlVnVC1rNnNGQWpXTVVmU245MDVVZXRHZXItVzNidmFpSVQ3ZEg2Z0hRb25uM204akllUVFVbjNrVVpEdUpmbUpPWGRCZG9JdE5iVHJUR0cxMUZGc2h5WTBVQ2VnYmZSdHZUalBCU3FVR2ozLWFoTnlXalU2UEthazhDVHg4OGZPSjA1UGx6RDcwcmFTdlZyb2hOWjFPTzNtOXBUWlJxR2ZvV3FBWUl",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "India Becomes First Country to Commercially Produce Bio-Bitumen - Adda247",
+        "publisher": "Adda247",
+        "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOa05uMTdYR0ZuY0NZSGk1Z1Npaml1dkRPZXR3bFdtY1dTdUlqVVRSV3dNcHZObzhOUTR3blNVdFduaXNvczBicklvYmh1SV9yU0Z2YXowMEZLRG13YVpTVExxYlVZclRubW5wSUwyZHdILTB0aWZPYlBHWm54eVJOOFZ1X18tREkyM1VRZUhaTjlhejJUa085TXBqUVhlY2dH?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "CSIR hands bio-bitumen production licences to Indian manufacturers: Officials - MSN",
+        "publisher": "MSN",
+        "url": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxPV0ZMMUdyMi1WUWtMSmEtbE5lTTVkRng1aHhTSHJkWUNfVmxwOU9uc0Zvc2V6MG5JNWZBSk1qd2c3el9pZFZzOVNtYWJVTURZZ0p2aFE3UF9kcC12aTRYY0tYdEJkazlnNEkzeUktamxxTXJpYmZOR1NPazRyeWJJbjNseHJ3WnFnb2N4VGE4MHJCOVhYbGxGQnkzWllkVDZETXVIbGtwYndURU4tU0Z5dUg2XzAtVllQZkRpOS1OUzh",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "India become first country to commercially produce bio-bitumen - newsonair.gov.in",
+        "publisher": "newsonair.gov.in",
+        "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxPcUM4ekt0TXZ2Q1VkOG9VRkpjRHVSSWgzVjQ5WkRhMHdlMkhIcTJzY2U4bVF2SzJHaEYzc2tCZk9mQm9QdmdOLUdtdURSdkFEQ2ExQUl6WmFfNXFCc3JXZEZHbEZsak1QWUcwQldVSGJLLTZ5SDlsSHRqYV9odUlQb2RKRTJ6YkZzeW5LT0o5SnAwT1dybUhiNnFXczd2aFphTjJCNDdhWEdFQ2dHVFVVOEMxSjE?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "Crude oil imports rise 5.9% in May, LNG imports fall 15.3% - energy.economictimes.indiatimes.com",
+        "publisher": "energy.economictimes.indiatimes.com",
+        "url": "https://news.google.com/rss/articles/CBMixAFBVV95cUxNejVjLVljM3c5LVBYNWphUTdjUjc4OFhhdHctUHR5OUNHZWlKTlY2a3k0WmQzME5vTC1pX2hOcUpuT1ozQXBMY0dlcHZodXFCYjJLNlk4WS1PTldEMC01WlJ3Q0drNm1pTExZZy04eHc4czhGY3Q2QU9IUC1pR1hFZ21qV2hKMnJ4R1VmM2xLOF9MZjZDV3ZYWTNaUjdfSHJ0eERPT2d3T3czWldpT3EtYkNXVXZzcWxOazRkYm5rV05",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "India Becomes First to Produce Bio-Bitumen Commercially - GK Today",
+        "publisher": "GK Today",
+        "url": "https://news.google.com/rss/articles/CBMihgFBVV95cUxQRDM3VFpGdVlNY0Rfa1M1SmdMcXpvVDRLRGtXeE1Pd0lwblZ6cnZFQXRKVy0xbmJVdmFUUEdYNWZXczc1dVc0QU1MckZWc1ZGaVhzT1Zwb1FNMGpBNkRRYW9TWFZRRGgwM09mZ2I2Njc4V3ppWlRwcHpCWUJ5UTdUaHZiRXNrdw?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "India becomes first country to commercially produce bio-bitumen - INSIGHTS IAS",
+        "publisher": "INSIGHTS IAS",
+        "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxNNDI1V09YNV9Mb3hweExOMWFzbUg5dTY0OXVsRWlnZW5RVEU2NmRNczltQmFuanlvRVlQTVNtQjhJXzVCYlZRUHNWZk0zV2hNN0xpYmo4b2NZb2JvLTQ5dk5QZUpIN0Jud25MdzQ2dG5vMTY2TE5VaExrbnJRMVlnOVJ5Y29pYzJLRl9GME5mMVo1MTFSVkNaeEFUM2hlVHl5LUFzazJZSnFXNUk?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "Iraq's Oil Exports to India Topped $29 Billion in 2024 - Crude Oil Prices Today | OilPrice.com",
+        "publisher": "Crude Oil Prices Today | OilPrice.com",
+        "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPS3FhOTVkV0xwNm1KUmxVRzA3TGxVTkpfSW0yWUhtekVEdWdaSC0ycENfZ0ZSU05MN0JvZDVsenE3OW9ZM3NKWW16aVhoaTRyV3hhM1JnZGlDUEw4dl9DcUpQTE0zMWZnWjRaQzdwc1N6b3F5U1pYNmh5WmJkT2ZUZ2l6eDVBMU93dzU0ZFBPdTQzZ0luMzFaQU9Tck1obmtfZnFmVDVDOVAtWENu0gGyAUFVX3lxTE9lYTR4NXk5Ymp",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "Bitumen price surge: Bitumen costs escalate, slowing road projects; Industry calls for state reserve syst - The Times of India",
+        "publisher": "The Times of India",
+        "url": "https://news.google.com/rss/articles/CBMipAJBVV95cUxPTjQyRVVqSEhpRmhUTE5UaUZJanJhWVVscEg0RFFwbDNjNUs1empHUjllODNsMjlwQURDZFBRa0JFS0xjY0Y0bkYxcm5NTktlLWh6X2x5QkxIc2czclZpZ2NxTHoxejQyNDZ3YWNxRVlXUFZ4YzRuRmxKSV81QUM4bzFrNjF2SnhwOFBwcmdJNVdBYWU4Zk84eUdoMzk3YjREWkdRTTkxUFZWemlHUW0xQnVXQksxcTNaRS1yZXhOZHJ",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "Bio-Bitumen: A Sustainable Revolution in Road Construction - Sanskriti IAS",
+        "publisher": "Sanskriti IAS",
+        "url": "https://news.google.com/rss/articles/CBMipAFBVV95cUxQamM0VmItSXV6QWhwcWRlcFJ1Z3BscUt5ZmktRF9wWkI5N2xQZk1EcDdMZlI2b1FQb1lZVm9OZTZiNzI0Q1U4SklKamhSX1I0SXIwZm1DNHE2bkVJSVYzeWozZVU2Z3NqOU1aUVphc0lzOVU5VFJ3TXFkYllhdm9lWnVEWWRvcDJjeW5lbzI3UThZeVZXYktQSlBteHhPRk1ENG44dg?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "Mint Explainer| Will the US-Iran war nudge India towards bio-bitumen for road construction? - Mint",
+        "publisher": "Mint",
+        "url": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxNSUlsNjZQbnRlWE1VeTR5cjg2SUllMW9EdzRaVU9RaHNXdlM2aVB3OFB5eWhzb2IybTVrZnVBWktoM2hfR1JRTE5GV0xwRzh6Wi1lc0hUWkFGNTd6ckozdndaWC15QkhXbkhxaHIzOXZjdlF4MTNFMlZUSGI3a0RVNnM3VnlkX0JrUkd5LVdxUFhraEtMX0lsamtIcWg1NTZzdmFnVGtZYUVSMl9YQjVtdFlVNzVOVmM2aVhxalhIVWZ",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "Current price of oil as of March 26, 2026 - Fortune",
+        "publisher": "Fortune",
+        "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE10bTNhZ1NlSE1DVk9jaC1FWVp4a2FqZWR4OC1GcEg1UFhZeHdqOEN1aEMtZjNhdnE1RFNWQnpnbmJpODZhcE44QnBjLWlycjVjNzNTTm5NNi11MUxFWnRLX29B?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "This is how the 1970s oil shock played out. There are lessons for the economy today - The Conversation",
+        "publisher": "The Conversation",
+        "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxOWWNyeHJSUU9zTEVyLWoyaWJaQ3BLWEt5a255QjhKX2hNMHpmNVVMeUFUTHJRQkR3OGJ0NkJ3eXhBZVVRd091ekVfMDQ2Qzl2NUw4Mkppa0tpcVI1WklRd2Jzd0s1X2lvYmZMS2YxcUZScC1iUzg3b041OUpRU2NfNTV0bFhaWEMwM0puVTdDdEJmb2JfT3hNZFBCbjB1Ukt5aGJhNDRkRE1nMTlLajFZb0tET2FJUDdC?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "Oil Prices Plunge 2.5% as OPEC, IEA Outlooks Point to Softer Market - Crude Oil Prices Today | OilPrice.com",
+        "publisher": "Crude Oil Prices Today | OilPrice.com",
+        "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxOWnVhWlNKaFEtbDZKTzNtaER2SHVxQ1AwWG9qUDRhdC1LaXdOVXN2Q3pUX3FuZDlfcDQ2dGJ0RUtqZzAxaXRGeTgtOVNCOE1ZYjdtRnpPNkc0TkR2aGo2NEVZa1hyWmtuQy01NnZzb3Z4YjVabHBROERHREdMMFhGbzNYcnR4UmVlalB5WVMxVXZKeV9pSENnY0lIYmV2NHNLRWFoX1pFWWZ2RVJ4aUEtRjlmZDFaZklFVU1zYdIBwgF",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "The United States and OPEC in a polarized oil order - Atlantic Council",
+        "publisher": "Atlantic Council",
+        "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxOR0Ezalk3a1l3MktvUDZZOURNMjR6LS1nZzYyY28wTGFJVEZKZ0wwdklaekVVZkF6SHJ1MGdxUzIzTjlRWVFGX3FkMThnMDF4MnNqMmx0T1NQbldZZW5zQ3JIMXJmT2JkVlBENDFqeWpwTU1XWE4zZHRMOFhnQ19HWWw3MjJkNXNzVnRMb052S1gydjdXV1RZRnYzMjE4YW5DNl82Q0tR?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "OPEC crude oil price statistics annually 1960-2025 - Statista",
+        "publisher": "Statista",
+        "url": "https://news.google.com/rss/articles/CBMijwFBVV95cUxQWk9PM29wQnA2RHhnTnFCR1BvdUYyWVRxeHlDd3FVUHdSY2ZhS1VteFZPVTBRbXNFYmJMSmR1ZWpIOEFSazR6UFR2Y05LZXBvV1hFWl82a0o3Y2ZnRUY1akNNR0ZiTWlqaWpXRG1PS0xEOVpJdWd3QmpwS184dzFxQjNvdlg0THZRMDVmVGdqbw?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "Current price of oil as of March 23, 2026 - Fortune",
+        "publisher": "Fortune",
+        "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE95eWdWUmVxaUp3c21jRWVxQTU5eVQ3NWdIUWV0OWhhdGF1Sko4eXNfVXYzb0EwTnI0ZGc5a3dHQ25NODJTVkhBamw1RV90SGk0ZmwwVXlNXy1WVjJ0cDlJTEpn?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "OPEC Oil Production Falls by 439,9000 Bpd - Crude Oil Prices Today | OilPrice.com",
+        "publisher": "Crude Oil Prices Today | OilPrice.com",
+        "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxPU3U5ZVd0bXRJYUIwR1o0TTl2MUd2TkliS05BNXZUVmtlYzhxclM2bnU1U1l2NEVwUUhnTDYxNTVJc2R0SVplVW8yOXVQUlhLXzQxam51bjA0ZkhrYV8tZG9YZ0RnYldoVXFIenNiNVdTU1UzQ2M2N01KM1FYLUNhUURIV01zXy1SQ0pR0gGQAUFVX3lxTE1FeHRpVXVUQXpfb1pSbjlVLVFMZmhCXzBVZ1NPa3VLSjUzbU1jWW9tcnV",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "Oil Prices Sink 4% as OPEC Moves to Balanced 2026 Outlook - Crude Oil Prices Today | OilPrice.com",
+        "publisher": "Crude Oil Prices Today | OilPrice.com",
+        "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxNZzhJeU5KYWx2Q1lEZ2hUbWZsRUVEWklSczdraUxNMm1QcUxKUUdid092TVdiUjE5QXFrSW02aHBzUzJqLVVqck9PcUV2d09uY2s5dDRzWkF6dnZjNDhhdUZBQnRuaERuYzlQVkpLZm90NTZ5Z3lHOE4yM3V6SWYwSEtXa0I0UFlrWG1kRXhwOElxSzJ5T0NYSGwzMVV6UWJZWUh0MzZESHJSWENPdFo3QkJ30gG3AUFVX3lxTE5MSTR",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "Iraqi Supply Loss Could Expose the Real Limits of OPEC Spare Capacity - Crude Oil Prices Today | OilPrice.com",
+        "publisher": "Crude Oil Prices Today | OilPrice.com",
+        "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxOeDFIRVFCRVduMHRGa0lOQ3dNb0NtWnFVcWU0UUNyUWpsTTlpS1hncmVEMVlmaGNQTEcwTV9oUkNmZ1dRTmxVdVRGazBablNEVEhJVEctOWFjVjRFRGh5dDRJMXNLTk5aa1BOYU9PMUVVVGdfcXY0Z2Z3ZkxYY2NDUlEtZ1MyLVZSdEpiOTNqQjBHYUZ2SmtBYXh3LXpSRG5sZFRIWUpxWlN2WVNZT1N4Z3NR0gG3AUFVX3lxTE9MMVd",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      },
+      {
+        "date_time": "2026-03-28 13:17:57 IST",
+        "headline": "Current price of oil as of March 12, 2026 - Fortune",
+        "publisher": "Fortune",
+        "url": "https://news.google.com/rss/articles/CBMiYkFVX3lxTFBUdVZLTFE5OGRGVm1GUXBfdTdoZ01fY0pxZ0gtdEUwV1AxUm1Ma20tMzdNS3RjdVp6MGpJTkNNekgyUVF4UDBxelFla0paRFpTUmdtV2RLbHRDN1JsaG52MllB?oc=5",
+        "sentiment_score": null,
+        "source": "Google News RSS",
+        "_source_type": "live_feed",
+        "_source_confidence": 0.8,
+        "_source_provider": "Google News RSS"
+      }
+    ]
+  },
+  "gold_price": {
+    "ts": 1772680443.8258736,
+    "data": {
+      "records": [
+        {
+          "date": "2026-02-25",
+          "gold_usd_oz": 5206.4,
+          "source": "Yahoo Finance"
+        },
+        {
+          "date": "2026-02-26",
+          "gold_usd_oz": 5176.5,
+          "source": "Yahoo Finance"
+        },
+        {
+          "date": "2026-02-27",
+          "gold_usd_oz": 5230.5,
+          "source": "Yahoo Finance"
+        },
+        {
+          "date": "2026-03-02",
+          "gold_usd_oz": 5294.4,
+          "source": "Yahoo Finance"
+        },
+        {
+          "date": "2026-03-03",
+          "gold_usd_oz": 5107.4,
+          "source": "Yahoo Finance"
+        },
+        {
+          "date": "2026-03-04",
+          "gold_usd_oz": 5201.6,
+          "source": "Yahoo Finance"
+        }
+      ],
+      "latest": 5201.60009765625
+    }
+  },
+  "eia_crude": {
+    "ts": 1774684078.5503757,
+    "data": [
+      {
+        "date_time": "2026-03-28 13:17:58 IST",
+        "benchmark": "Brent",
+        "price": 112.57,
+        "currency": "USD/bbl",
+        "source": "yfinance (EIA fallback)",
+        "_source_type": "live_api",
+        "_source_confidence": 0.9,
+        "_source_provider": "Yahoo Finance (yfinance library)"
+      },
+      {
+        "date_time": "2026-03-28 13:17:58 IST",
+        "benchmark": "WTI",
+        "price": 99.64,
+        "currency": "USD/bbl",
+        "source": "yfinance (EIA fallback)",
+        "_source_type": "live_api",
+        "_source_confidence": 0.9,
+        "_source_provider": "Yahoo Finance (yfinance library)"
+      }
+    ]
+  },
+  "iocl_circular": {
+    "ts": 1774591937.5726457,
+    "data": {
+      "snapshot": {
+        "source": "feasibility_engine → live_prices.json (defaults: IOCL circular 16-02-2026)",
+        "VG30_IOCL_Koyali_basic_per_MT": 42000,
+        "VG30_IOCL_Mathura_basic_per_MT": 42500,
+        "VG30_IOCL_Haldia_basic_per_MT": 41800,
+        "VG30_BPCL_Mumbai_basic_per_MT": 43000,
+        "VG30_HPCL_Mumbai_basic_per_MT": 42900,
+        "VG30_HPCL_Ghaziabad_basic_per_MT": 46390,
+        "VG30_CPCL_Chennai_basic_per_MT": 42100,
+        "DRUM_Mumbai_VG30_per_MT": 37000,
+        "DRUM_Kandla_VG30_per_MT": 35500,
+        "bulk_transport_per_km_per_MT": 5.5,
+        "drum_transport_per_km_per_MT": 6.0,
+        "decanter_conversion_cost_per_MT": 500,
+        "USD_INR_rate": 86.87,
+        "Brent_crude_USD_per_barrel": 74.5
+      },
+      "source": "ai_data_layer"
+    }
+  },
+  "cement_index": {
+    "ts": 1772680444.0440216,
+    "data": {
+      "records": [
+        {
+          "date": "2026-01-20",
+          "cement_proxy_inr": 12059.0,
+          "volume": 298026,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-01-21",
+          "cement_proxy_inr": 12231.0,
+          "volume": 209393,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-01-22",
+          "cement_proxy_inr": 12364.0,
+          "volume": 286236,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-01-23",
+          "cement_proxy_inr": 12369.0,
+          "volume": 356421,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-01-27",
+          "cement_proxy_inr": 12589.0,
+          "volume": 926373,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-01-28",
+          "cement_proxy_inr": 12767.0,
+          "volume": 456847,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-01-29",
+          "cement_proxy_inr": 12717.0,
+          "volume": 285262,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-01-30",
+          "cement_proxy_inr": 12694.0,
+          "volume": 296876,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-02",
+          "cement_proxy_inr": 12535.0,
+          "volume": 259656,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-03",
+          "cement_proxy_inr": 12590.0,
+          "volume": 296810,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-04",
+          "cement_proxy_inr": 12806.0,
+          "volume": 159977,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-05",
+          "cement_proxy_inr": 12773.0,
+          "volume": 172331,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-06",
+          "cement_proxy_inr": 12722.0,
+          "volume": 124704,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-09",
+          "cement_proxy_inr": 13048.0,
+          "volume": 235298,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-10",
+          "cement_proxy_inr": 13023.0,
+          "volume": 167157,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-11",
+          "cement_proxy_inr": 12969.0,
+          "volume": 92473,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-12",
+          "cement_proxy_inr": 13029.0,
+          "volume": 179716,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-13",
+          "cement_proxy_inr": 12963.0,
+          "volume": 178236,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-16",
+          "cement_proxy_inr": 12981.0,
+          "volume": 81768,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-17",
+          "cement_proxy_inr": 12984.0,
+          "volume": 136174,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-18",
+          "cement_proxy_inr": 13052.0,
+          "volume": 161603,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-19",
+          "cement_proxy_inr": 12688.0,
+          "volume": 195303,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-20",
+          "cement_proxy_inr": 12766.0,
+          "volume": 120589,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-23",
+          "cement_proxy_inr": 12976.0,
+          "volume": 134369,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-24",
+          "cement_proxy_inr": 12960.0,
+          "volume": 332450,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-25",
+          "cement_proxy_inr": 13041.0,
+          "volume": 201537,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-26",
+          "cement_proxy_inr": 12937.0,
+          "volume": 209041,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-02-27",
+          "cement_proxy_inr": 12677.0,
+          "volume": 272915,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-03-02",
+          "cement_proxy_inr": 12521.0,
+          "volume": 237506,
+          "source": "UltraTech Cement NSE"
+        },
+        {
+          "date": "2026-03-04",
+          "cement_proxy_inr": 12107.0,
+          "volume": 394665,
+          "source": "UltraTech Cement NSE"
+        }
+      ],
+      "latest": 12107.0,
+      "pct_change_30d": 0.4,
+      "interpretation": "stable"
+    }
+  },
+  "eia_steo": {
+    "ts": 1772680445.3856082,
+    "data": {
+      "records": [
+        {
+          "period": "05-03-2",
+          "brent_forecast_usd": 79.1,
+          "source": "ML Forecast (EIA fallback)"
+        }
+      ]
+    }
+  }
+}

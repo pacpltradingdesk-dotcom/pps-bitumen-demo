@@ -1,0 +1,317 @@
+{
+  "eia_crude": {
+    "api_name": "EIA Crude & Petroleum Prices",
+    "category": "Crude",
+    "provider": "US Energy Information Administration",
+    "base_url": "https://api.eia.gov/v2/",
+    "endpoints": [
+      "petroleum/pri/spt/data/"
+    ],
+    "auth_type": "API Key",
+    "key_value": "",
+    "status": "Disabled",
+    "refresh_frequency": "1d",
+    "cache_ttl_sec": 86400,
+    "last_success_time": null,
+    "last_error_message": "API key not configured — using yfinance fallback",
+    "fallback_api": "yfinance_brent",
+    "data_output_tables": [
+      "tbl_crude_prices"
+    ],
+    "notes": "Free API key from eia.gov. Provides WTI, Brent, heating oil, gasoline."
+  },
+  "un_comtrade": {
+    "api_name": "UN Comtrade Trade Data",
+    "category": "Trade",
+    "provider": "United Nations Statistics Division",
+    "base_url": "https://comtradeapi.un.org/",
+    "endpoints": [
+      "public/v1/preview/C/A/HS"
+    ],
+    "auth_type": "API Key",
+    "key_value": "",
+    "status": "Static",
+    "refresh_frequency": "1d",
+    "cache_ttl_sec": 86400,
+    "last_success_time": null,
+    "last_error_message": "API unavailable — using cached reference. Empty Comtrade response",
+    "fallback_api": "static_trade_cache",
+    "data_output_tables": [
+      "tbl_trade_imports"
+    ],
+    "notes": "Public preview endpoint — no key for basic queries. Full access requires subscription."
+  },
+  "openweather": {
+    "api_name": "OpenWeatherMap Current Weather",
+    "category": "Weather",
+    "provider": "OpenWeather Ltd",
+    "base_url": "https://api.openweathermap.org/data/2.5/",
+    "endpoints": [
+      "weather"
+    ],
+    "auth_type": "API Key",
+    "key_value": "",
+    "status": "Disabled",
+    "refresh_frequency": "1h",
+    "cache_ttl_sec": 3600,
+    "last_success_time": null,
+    "last_error_message": "API key not configured — register free at openweathermap.org",
+    "fallback_api": "open_meteo_hub",
+    "data_output_tables": [
+      "tbl_weather"
+    ],
+    "notes": "Free tier: 1000 calls/day. Register at openweathermap.org/api"
+  },
+  "newsapi": {
+    "api_name": "NewsAPI Global Headlines",
+    "category": "News",
+    "provider": "NewsAPI.org",
+    "base_url": "https://newsapi.org/v2/",
+    "endpoints": [
+      "everything"
+    ],
+    "auth_type": "API Key",
+    "key_value": "",
+    "status": "Disabled",
+    "refresh_frequency": "1h",
+    "cache_ttl_sec": 3600,
+    "last_success_time": null,
+    "last_error_message": "API key not configured — using Google News RSS fallback",
+    "fallback_api": "gnews_rss",
+    "data_output_tables": [
+      "tbl_news_feed"
+    ],
+    "notes": "Free tier: 100 requests/day. Register at newsapi.org"
+  },
+  "frankfurter_fx": {
+    "api_name": "Frankfurter FX Rates (ECB)",
+    "category": "FX",
+    "provider": "Frankfurter.app (European Central Bank data)",
+    "base_url": "https://api.frankfurter.app/",
+    "endpoints": [
+      "latest"
+    ],
+    "auth_type": "None",
+    "key_value": "",
+    "status": "Live",
+    "refresh_frequency": "1h",
+    "cache_ttl_sec": 3600,
+    "last_success_time": "2026-03-28 13:04:34 IST",
+    "last_error_message": "",
+    "fallback_api": "fawazahmed0_fx",
+    "data_output_tables": [
+      "tbl_fx_rates"
+    ],
+    "notes": "No key required. ECB exchange rates via Frankfurter proxy."
+  },
+  "open_meteo_hub": {
+    "api_name": "Open-Meteo Weather (No-key fallback)",
+    "category": "Weather",
+    "provider": "Open-Meteo.com",
+    "base_url": "https://api.open-meteo.com/v1/",
+    "endpoints": [
+      "forecast"
+    ],
+    "auth_type": "None",
+    "key_value": "",
+    "status": "Live",
+    "refresh_frequency": "1h",
+    "cache_ttl_sec": 3600,
+    "last_success_time": "2026-03-28 13:18:00 IST",
+    "last_error_message": "",
+    "fallback_api": "",
+    "data_output_tables": [
+      "tbl_weather"
+    ],
+    "notes": "No key required. Primary fallback for weather. Covers all 5 port cities."
+  },
+  "gnews_rss": {
+    "api_name": "Google News RSS (Bitumen/Crude headlines)",
+    "category": "News",
+    "provider": "Google News RSS",
+    "base_url": "https://news.google.com/rss/",
+    "endpoints": [
+      "search"
+    ],
+    "auth_type": "None",
+    "key_value": "",
+    "status": "Live",
+    "refresh_frequency": "1h",
+    "cache_ttl_sec": 3600,
+    "last_success_time": "2026-03-28 13:17:57 IST",
+    "last_error_message": "",
+    "fallback_api": "",
+    "data_output_tables": [
+      "tbl_news_feed"
+    ],
+    "notes": "No key required. Google News RSS for crude oil/bitumen/India energy news."
+  },
+  "fawazahmed0_fx": {
+    "api_name": "fawazahmed0 Currency API (CDN)",
+    "category": "FX",
+    "provider": "fawazahmed0 GitHub CDN",
+    "base_url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/",
+    "endpoints": [
+      "usd.json"
+    ],
+    "auth_type": "None",
+    "key_value": "",
+    "status": "Live",
+    "refresh_frequency": "1d",
+    "cache_ttl_sec": 86400,
+    "last_success_time": null,
+    "last_error_message": "",
+    "fallback_api": "",
+    "data_output_tables": [
+      "tbl_fx_rates"
+    ],
+    "notes": "No key required. Fallback FX. Daily update from CDN."
+  },
+  "comtrade_hs271320": {
+    "api_name": "UN Comtrade — HS 271320 Country-wise Imports",
+    "category": "Trade / Govt",
+    "provider": "United Nations Statistics Division",
+    "base_url": "https://comtradeapi.un.org/",
+    "endpoints": [
+      "public/v1/preview/C/A/HS"
+    ],
+    "auth_type": "None",
+    "key_value": "",
+    "status": "Live",
+    "refresh_frequency": "1d",
+    "cache_ttl_sec": 86400,
+    "last_success_time": null,
+    "last_error_message": "",
+    "fallback_api": "static_trade_cache",
+    "data_output_tables": [
+      "tbl_imports_countrywise"
+    ],
+    "notes": "Public preview — no key. India HS 271320 imports by partner country."
+  },
+  "rbi_fx_historical": {
+    "api_name": "RBI Reference Rate — USD/INR Historical (ECB proxy)",
+    "category": "FX / Govt",
+    "provider": "Frankfurter.app (ECB data) — RBI proxy",
+    "base_url": "https://api.frankfurter.app/",
+    "endpoints": [
+      "{start_date}.."
+    ],
+    "auth_type": "None",
+    "key_value": "",
+    "status": "Live",
+    "refresh_frequency": "1d",
+    "cache_ttl_sec": 86400,
+    "last_success_time": null,
+    "last_error_message": "",
+    "fallback_api": "fawazahmed0_fx",
+    "data_output_tables": [
+      "tbl_fx_rates"
+    ],
+    "notes": "12-month USD/INR history via ECB/Frankfurter. Labelled as RBI proxy."
+  },
+  "ppac_proxy": {
+    "api_name": "PPAC Refinery Production (Static Ref + EIA Proxy)",
+    "category": "Refinery / Govt",
+    "provider": "PPAC (static) + EIA (live proxy)",
+    "base_url": "https://ppac.gov.in/",
+    "endpoints": [
+      "data-statistics"
+    ],
+    "auth_type": "None",
+    "key_value": "",
+    "status": "Live",
+    "refresh_frequency": "1d",
+    "cache_ttl_sec": 86400,
+    "last_success_time": null,
+    "last_error_message": "",
+    "fallback_api": "",
+    "data_output_tables": [
+      "tbl_refinery_production"
+    ],
+    "notes": "PPAC has no public API. Uses Annual Report 2023-24 as static ref."
+  },
+  "data_gov_in_highways": {
+    "api_name": "data.gov.in — NHAI Road Construction Progress",
+    "category": "Infrastructure / Govt",
+    "provider": "data.gov.in (Govt of India)",
+    "base_url": "https://api.data.gov.in/resource/",
+    "endpoints": [
+      "3b01bcb8-0b14-4abf-b6f2-c1bfd384ba69"
+    ],
+    "auth_type": "API Key",
+    "key_value": "",
+    "status": "Disabled",
+    "refresh_frequency": "1d",
+    "cache_ttl_sec": 86400,
+    "last_success_time": null,
+    "last_error_message": "API key not configured — register free at data.gov.in",
+    "fallback_api": "static_highway_ref",
+    "data_output_tables": [
+      "tbl_highway_km"
+    ],
+    "notes": "Free key: https://data.gov.in/user/register | NHAI road progress data."
+  },
+  "fred_macro": {
+    "api_name": "FRED — USD/INR + Brent Crude History",
+    "category": "Macro / Govt",
+    "provider": "Federal Reserve Bank of St. Louis",
+    "base_url": "https://api.stlouisfed.org/fred/",
+    "endpoints": [
+      "series/observations"
+    ],
+    "auth_type": "API Key",
+    "key_value": "",
+    "status": "Disabled",
+    "refresh_frequency": "1d",
+    "cache_ttl_sec": 86400,
+    "last_success_time": null,
+    "last_error_message": "API key not configured — register free at fred.stlouisfed.org",
+    "fallback_api": "frankfurter_fx",
+    "data_output_tables": [
+      "tbl_demand_proxy"
+    ],
+    "notes": "Free key: https://fred.stlouisfed.org/docs/api/api_key.html | Series: DEXINUS, DCOILBRENTEU"
+  },
+  "world_bank_india": {
+    "api_name": "World Bank — India Economic Indicators",
+    "category": "Macro / Govt",
+    "provider": "World Bank Group",
+    "base_url": "https://api.worldbank.org/v2/",
+    "endpoints": [
+      "country/IND/indicator/"
+    ],
+    "auth_type": "None",
+    "key_value": "",
+    "status": "Live",
+    "refresh_frequency": "1d",
+    "cache_ttl_sec": 86400,
+    "last_success_time": "2026-03-28 13:18:01 IST",
+    "last_error_message": "",
+    "fallback_api": "",
+    "data_output_tables": [
+      "tbl_world_bank"
+    ],
+    "notes": "No key required. India CPI inflation, GDP growth rate."
+  },
+  "maritime_intel": {
+    "api_name": "Maritime Intelligence — Vessel Tracking & Port Activity",
+    "category": "Maritime / Logistics",
+    "provider": "Open-Meteo Marine + RSS + Simulation",
+    "base_url": "https://marine-api.open-meteo.com/v1/marine",
+    "endpoints": [
+      "marine"
+    ],
+    "auth_type": "None",
+    "key_value": "",
+    "status": "Live",
+    "refresh_frequency": "15m",
+    "cache_ttl_sec": 900,
+    "last_success_time": null,
+    "last_error_message": "",
+    "fallback_api": "",
+    "data_output_tables": [
+      "tbl_maritime_intel"
+    ],
+    "notes": "Free APIs + deterministic simulation. Vessel tracking, port congestion, route risk."
+  }
+}

@@ -1,0 +1,34 @@
+[
+  {
+    "date": "2025",
+    "refinery_or_region": "India (IOC Panipat)",
+    "product": "Bitumen VG-30/VG-10",
+    "quantity": 1200000,
+    "unit": "MT",
+    "source": "PPAC reference (no free API — official published data)"
+  },
+  {
+    "date": "2025",
+    "refinery_or_region": "India (BPCL Mumbai)",
+    "product": "Bitumen VG-30",
+    "quantity": 850000,
+    "unit": "MT",
+    "source": "PPAC reference (no free API — official published data)"
+  },
+  {
+    "date": "2025",
+    "refinery_or_region": "India (HPCL Vizag)",
+    "product": "Bitumen VG-30",
+    "quantity": 680000,
+    "unit": "MT",
+    "source": "PPAC reference (no free API — official published data)"
+  },
+  {
+    "date": "2025",
+    "refinery_or_region": "India (Total)",
+    "product": "Bitumen (all grades)",
+    "quantity": 4200000,
+    "unit": "MT",
+    "source": "PPAC reference (no free API — official published data)"
+  }
+]
