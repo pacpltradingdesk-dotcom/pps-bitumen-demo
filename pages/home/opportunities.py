@@ -48,6 +48,15 @@ def render():
         import json as _opp_json
 
         _opp_eng = OpportunityEngine()
+
+        # Auto-scan on first visit of the session
+        if not st.session_state.get("_opp_scanned"):
+            try:
+                _opp_eng.scan_all_opportunities()
+                st.session_state["_opp_scanned"] = True
+            except Exception:
+                pass
+
         _opp_tabs = st.tabs(["New Opportunities", "Today's Targets", "Scan Now", "All History"])
 
         with _opp_tabs[0]:

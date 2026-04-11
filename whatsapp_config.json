@@ -1,0 +1,8 @@
+{
+    "api_key": "",
+    "phone_number_id": "",
+    "webhook_url": "",
+    "business_name": "PPS Anantam",
+    "encryption": "none",
+    "_note": "Fill 360dialog API credentials to enable WhatsApp messaging. Get API key from https://hub.360dialog.com"
+}

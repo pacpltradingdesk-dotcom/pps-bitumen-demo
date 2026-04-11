@@ -148,6 +148,8 @@ def calculate_landed_cost(source_name, destination, base_price=None, rate_per_km
         rate_per_km = prices.get("BULK_RATE_PER_KM", 5.5)
     
     distance = get_distance(source_name, destination)
+    if not distance or distance <= 0:
+        distance = 350.0  # Safe fallback for unknown routes
     transport = distance * rate_per_km
     
     # GST 18%

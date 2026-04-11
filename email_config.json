@@ -1,0 +1,10 @@
+{
+    "smtp_host": "",
+    "smtp_port": 587,
+    "username": "",
+    "password": "",
+    "from_name": "PPS Anantams",
+    "from_email": "",
+    "encryption": "none",
+    "_note": "Fill SMTP credentials to enable email sending. Use Gmail App Password or SendGrid SMTP."
+}

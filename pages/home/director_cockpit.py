@@ -94,7 +94,7 @@ def _make_followup(cust, days=3):
     try:
         from crm_engine import add_task
         d = (datetime.datetime.now()+datetime.timedelta(days=days)).strftime("%d-%m-%Y %H:%M")
-        add_task({"client":cust,"type":"Call","due_date":d,"priority":"High","note":"Follow-up on Cockpit quote","status":"Pending"})
+        add_task(cust, "Call", d, priority="High", note="Follow-up on Cockpit quote")
     except: pass
 
 
@@ -346,6 +346,27 @@ def _step3():
                     json.dump(lp, f, indent=4, ensure_ascii=False)
                 # Clear cached market prices so new values show up
                 _get_market_prices.clear()
+                # Reload calculation engine so calculator picks up new prices
+                try:
+                    from calculation_engine import get_engine
+                    get_engine().reload_prices()
+                except Exception:
+                    pass
+                # Save price snapshot for KPI change badges
+                try:
+                    snap_path = os.path.join(BASE_DIR, "tbl_price_history_snapshot.json")
+                    old_snap = {}
+                    if os.path.exists(snap_path):
+                        with open(snap_path, "r") as sf:
+                            old_snap = json.load(sf)
+                    old_snap["vg30"] = new_kandla_vg30
+                    with open(snap_path, "w") as sf:
+                        json.dump(old_snap, sf, indent=2)
+                except Exception:
+                    pass
+                # Clear any old calculator results so they recalculate
+                st.session_state.pop("_ck_q", None)
+                st.session_state.pop("_ck_srcs", None)
                 st.session_state["_ck_price_updated"] = True
                 st.rerun()
             except Exception as e:
@@ -491,14 +512,18 @@ def _step5():
     with s4:
         if st.button("PDF Quote", key="sp", use_container_width=True):
             try:
-                from pdf_generator import generate_quote_pdf
-                pdf_path = generate_quote_pdf(cu, ci, gr, qt, pr, src, tk)
+                from pdf_generator import create_price_pdf, get_next_quote_number
+                qn = get_next_quote_number()
+                pdf_path = create_price_pdf(cu, gr, src, pr, qty=qt, quote_no=qn, filename=f"Quote_{cu}_{ci}.pdf")
                 if pdf_path:
                     with open(pdf_path, "rb") as pf:
-                        st.download_button("Download PDF", data=pf.read(), file_name=f"Quote_{cu}_{ci}.pdf", mime="application/pdf", key="sp_dl")
+                        st.session_state["_ck_pdf_data"] = pf.read()
+                        st.session_state["_ck_pdf_name"] = f"Quote_{cu}_{ci}.pdf"
             except Exception:
                 pass
             try: _log_crm(cu,"PDF",msg)
+            except: pass
+            try: _make_followup(cu)
             except: pass
             st.session_state["_ck_snt"] = "PDF"
             st.rerun()
@@ -522,10 +547,33 @@ def _step5():
         st.code(share_url, language=None)
         st.caption("Copy this link and share anywhere!")
 
+    # Show PDF download button if generated
+    pdf_data = st.session_state.pop("_ck_pdf_data", None)
+    pdf_name = st.session_state.pop("_ck_pdf_name", "Quote.pdf")
+    if pdf_data:
+        st.download_button("Download PDF", data=pdf_data, file_name=pdf_name, mime="application/pdf", key="sp_dl")
+
     # ── WhatsApp Deep Link ──
     import urllib.parse
     wa_encoded = urllib.parse.quote(msg)
-    phone_clean = "919969562424"
+    # Try to find customer phone from contacts
+    phone_clean = ""
+    try:
+        contacts_path = os.path.join(BASE_DIR, "tbl_contacts.json")
+        if os.path.exists(contacts_path):
+            with open(contacts_path, "r", encoding="utf-8") as cf:
+                _contacts = json.load(cf)
+            for _ct in _contacts:
+                if _ct.get("name", "").lower() == cu.lower() or _ct.get("company", "").lower() == cu.lower():
+                    _ph = str(_ct.get("phone", _ct.get("mobile", "")))
+                    _ph = _ph.replace("+", "").replace(" ", "").replace("-", "")
+                    if len(_ph) >= 10:
+                        phone_clean = _ph if _ph.startswith("91") else f"91{_ph[-10:]}"
+                        break
+    except Exception:
+        pass
+    if not phone_clean:
+        phone_clean = "917795242424"  # Fallback to PPS owner
     st.markdown(f'<a href="https://wa.me/{phone_clean}?text={wa_encoded}" target="_blank" style="display:inline-block;background:#25D366;color:#fff;padding:8px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.85rem;margin-top:8px;">Open in WhatsApp</a>', unsafe_allow_html=True)
 
     st.markdown("")

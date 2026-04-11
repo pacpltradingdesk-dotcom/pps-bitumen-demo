@@ -132,8 +132,10 @@ def render():
 
             # Holidays Integration
             if holidays:
-                next_holiday = holidays[0]
-                days_left = next_holiday['date'].day - today.day
+                # Find next future holiday
+                future_holidays = [h for h in holidays if h['date'] >= today]
+                next_holiday = future_holidays[0] if future_holidays else holidays[0]
+                days_left = (next_holiday['date'] - today).days
                 holiday_msg = ""
                 if days_left == 0:
                      holiday_msg = f"\U0001f389 Today is <b>{next_holiday['name']}</b>!"
@@ -348,7 +350,7 @@ def render():
             # Header Box
             st.markdown(f"""
 <div style="background-color:#F5B041; padding:5px; text-align:center; font-weight:bold;">
-{load_type.upper()} ENQUIRY DETAILS (2-2-2026)
+{load_type.upper()} ENQUIRY DETAILS ({datetime.date.today().strftime('%d-%m-%Y')})
 </div>
 """, unsafe_allow_html=True)
 
@@ -481,12 +483,10 @@ def render():
             pdf_filename = f"Quote_{selected_city}_{product_grade}.pdf"
             client_name_for_pdf = selected_client_name if selected_client_name else "Valued Customer"
 
-            # Generate Quote Number (Simulating a fresh quote on every calculation)
+            # Generate quote number only once per PDF download
             if 'current_quote_no' not in st.session_state:
                 st.session_state.current_quote_no = get_next_quote_number()
-
-            # For this Step, let's just generate it fresh to satisfy the requirement
-            quote_no = get_next_quote_number() # Warning: Might skip numbers on refresh
+            quote_no = st.session_state.current_quote_no
 
             # Generate the file
             create_price_pdf(client_name_for_pdf, product_name, source_name, final_cost, filename=pdf_filename, quote_no=quote_no)

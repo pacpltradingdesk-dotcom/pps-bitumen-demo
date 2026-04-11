@@ -140,31 +140,6 @@ _init_engines()  # skips if already started this session
 # CACHED DATA HELPERS
 # ═══════════════════════════════════════════════════════════════════════════════
 
-@st.cache_data(ttl=300)
-def _cached_db_stats():
-    try:
-        from database import get_dashboard_stats
-        return get_dashboard_stats()
-    except Exception:
-        return {"total_suppliers": 63, "total_customers": 3, "total_deals": 0}
-
-@st.cache_data(ttl=600)
-def _cached_forecast_calendar():
-    try:
-        from command_intel.price_prediction import generate_forecast_calendar
-        return generate_forecast_calendar()
-    except Exception:
-        return None
-
-@st.cache_data(ttl=300)
-def _cached_market_signals():
-    try:
-        from market_intelligence_engine import MarketIntelligenceEngine
-        eng = MarketIntelligenceEngine()
-        return eng.compute_all_signals()
-    except Exception:
-        return {}
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # SESSION STATE INIT
@@ -317,18 +292,21 @@ def _page_source_directory():
         st.error(f"Source Directory failed to load: {e}")
 
 def _page_feasibility():
-    from feasibility_engine import get_feasibility_assessment, get_comparison_table, DESTINATION_COORDS
-    st.header("📊 Feasibility Assessment")
-    st.info("Automatic price comparison: **2 Refineries + 2 Import Terminals + 2 Decanters** for any destination")
-    all_destinations = sorted(list(DESTINATION_COORDS.keys()))
-    selected_dest = st.selectbox("🎯 Select Destination City", all_destinations, key="feasibility_dest")
-    if selected_dest:
-        assessment = get_feasibility_assessment(selected_dest, top_n=2)
-        if assessment:
-            st.markdown(f"### 📍 Feasibility Report for: **{selected_dest}**")
-            comparison = get_comparison_table(selected_dest)
-            if comparison is not None:
-                st.dataframe(comparison, use_container_width=True, hide_index=True)
+    try:
+        from feasibility_engine import get_feasibility_assessment, get_comparison_table, DESTINATION_COORDS
+        st.header("📊 Feasibility Assessment")
+        st.info("Automatic price comparison: **2 Refineries + 2 Import Terminals + 2 Decanters** for any destination")
+        all_destinations = sorted(list(DESTINATION_COORDS.keys()))
+        selected_dest = st.selectbox("🎯 Select Destination City", all_destinations, key="feasibility_dest")
+        if selected_dest:
+            assessment = get_feasibility_assessment(selected_dest, top_n=2)
+            if assessment:
+                st.markdown(f"### 📍 Feasibility Report for: **{selected_dest}**")
+                comparison = get_comparison_table(selected_dest)
+                if comparison is not None:
+                    st.dataframe(comparison, use_container_width=True, hide_index=True)
+    except Exception as e:
+        st.error(f"Feasibility Assessment failed to load: {e}")
 
 def _page_knowledge_base():
     try:

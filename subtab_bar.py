@@ -72,12 +72,14 @@ def render_sidebar_features(module: str) -> str:
         current_page = tabs[0]["page"]
 
     with st.sidebar:
-        # Brand logo
+        # Brand logo (cached in session state)
         import base64
         _logo_path = _ROOT / "pps_logo_brand.jpg"
         if _logo_path.exists():
-            with open(_logo_path, "rb") as _lf:
-                _logo_b64 = base64.b64encode(_lf.read()).decode()
+            if "_sidebar_logo_b64" not in st.session_state:
+                with open(_logo_path, "rb") as _lf:
+                    st.session_state["_sidebar_logo_b64"] = base64.b64encode(_lf.read()).decode()
+            _logo_b64 = st.session_state["_sidebar_logo_b64"]
             st.markdown(f"""
 <div style="text-align:center;padding:16px 12px;margin:-16px -16px 24px;
             background: #FAFAFA; border-bottom: 1px solid #E5E7EB; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">

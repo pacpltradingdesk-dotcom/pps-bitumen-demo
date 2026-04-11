@@ -530,13 +530,13 @@ class BitumenCalculationEngine:
         rate_per_km = self.bulk_rate_per_km if load_type == "Bulk" else self.drum_rate_per_km
 
         freight = distance_km * rate_per_km
-        gst = (base_price + freight) * self.gst_rate
-        landed_cost = base_price + freight + gst
+        gst = base_price * self.gst_rate
+        landed_cost = base_price + gst + freight
 
         breakdown_items = [
             ("Base Price (ex-refinery)", base_price),
+            (f"GST @ {self.gst_rate * 100:.0f}%", gst),
             (f"Freight ({distance_km:.0f} km x {format_inr(rate_per_km, include_symbol=False)}/km)", freight),
-            (f"GST @ {self.gst_rate * 100:.0f}% (on base + freight)", gst),
             ("TOTAL LANDED COST", landed_cost),
         ]
 

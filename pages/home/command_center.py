@@ -248,22 +248,19 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
         pass
     if not intl_headlines:
         intl_headlines = [
-            "Brent Crude rises 0.8% on OPEC supply cut speculation",
-            "USD/INR steady ahead of US Fed minutes",
-            "International bitumen FOB prices up $4/MT in Singapore",
-            "Middle East tensions push shipping freight rates higher",
-            "WTI crude trims gains as US inventory data beats estimates",
-            "IMF revises India growth forecast to 6.8% for FY 2025-26",
-            "OPEC+ extends voluntary cuts through Q2 2026",
+            "(Sample) Brent Crude rises on OPEC supply cut speculation",
+            "(Sample) USD/INR steady ahead of US Fed policy update",
+            "(Sample) International bitumen FOB prices firm in Singapore",
+            "(Sample) Middle East tensions push shipping freight higher",
+            "(Sample) WTI crude trims gains on US inventory data",
         ]
     if not dom_headlines:
         dom_headlines = [
-            "NHAI awards Rs 14,200 Cr road projects across 6 states",
-            "MoRTH targets 12,000 km highway construction in FY 2025-26",
-            "PMGSY Phase IV connects 18,000 villages — bitumen demand peak",
-            "Budget 2025-26: Rs 2.78 lakh Cr for road + infra sector",
-            "IOCL VG-30 bitumen: next revision expected 1-April-2026",
-            "India bitumen demand forecast: 8.2 MMT in FY 2025-26",
+            "(Sample) NHAI awards highway projects across multiple states",
+            "(Sample) MoRTH targets highway construction expansion",
+            "(Sample) PMGSY road connectivity drives bitumen demand",
+            "(Sample) Union Budget allocates record infra spending",
+            "(Sample) IOCL VG-30 bitumen revision expected soon",
         ]
 
     # Global markets data
@@ -800,7 +797,7 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
 
     # ── Footer with quick nav + sync status ──
     # Get last sync time
-    sync_logs = _load_json("sync_log.json", [])
+    sync_logs = _load_json("sync_logs.json", [])
     last_sync = "Never"
     if isinstance(sync_logs, list) and sync_logs:
         try: last_sync = sync_logs[-1].get("timestamp", sync_logs[-1].get("date", "Unknown"))[:16]

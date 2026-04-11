@@ -1,0 +1,9 @@
+[
+    {
+        "timestamp": "2026-04-11 10:56:00 IST",
+        "type": "full_sync",
+        "status": "success",
+        "sources_updated": ["eia_crude", "frankfurter_fx", "openweather", "gnews_rss"],
+        "duration_sec": 12
+    }
+]

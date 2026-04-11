@@ -130,6 +130,12 @@ def render():
                 # Update live_prices.json so price reflects everywhere
                 updated = _update_live_prices(loc, grade, price)
                 if updated:
+                    # Reload calculation engine so calculator picks up new prices
+                    try:
+                        from calculation_engine import get_engine
+                        get_engine().reload_prices()
+                    except Exception:
+                        pass
                     st.success(f"✅ Entry logged + Live Price updated! {grade} @ ₹{price:,}/MT ({loc}) now reflects across Command Center, Market Snapshot, Pricing Calculator, Rate Broadcast & all pages.")
                 else:
                     st.success("Entry securely logged to the Database and Change History.")

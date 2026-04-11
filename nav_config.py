@@ -136,7 +136,6 @@ TOPBAR_MODULES: list[str] = [
 
 # ── Page redirects for consolidated/dropped pages ────────────────────────────
 PAGE_REDIRECTS: dict[str, str] = {
-    "📅 Sales Calendar": "🎯 CRM & Tasks",
     "📋 Discussion Guide": "🤝 Negotiation Assistant",
     "🔭 Contractor OSINT": "👷 Demand Analytics",
     "🏛️ Business Intelligence": "💡 Recommendations",

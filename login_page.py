@@ -64,11 +64,8 @@ div[data-testid="stForm"] .stTextInput div[data-testid="InputInstructions"] {
             if not uname or not pin:
                 st.error("Please enter username and PIN")
             elif _is_rate_limited(uname):
-                # Auto-clear rate limit after showing message
-                _failed_attempts.pop(uname, None)
-                st.warning("Rate limit cleared. Try again now.")
-                st.rerun()
-            elif login(username, pin):
+                st.error("Too many failed attempts. Please wait a few minutes before trying again.")
+            elif login(uname, pin):
                 st.rerun()
             else:
                 st.error("Invalid username or PIN. Default: admin / 0000")

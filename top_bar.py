@@ -113,7 +113,10 @@ def render_top_bar() -> None:
     }
     </style>""", unsafe_allow_html=True)
     num_modules = len(TOPBAR_MODULES)
-    cols = st.columns(num_modules + 1)  # +1 for More
+    if OVERFLOW_MODULES:
+        cols = st.columns(num_modules + 1)  # +1 for More
+    else:
+        cols = st.columns(num_modules)
 
     for i, mod_key in enumerate(TOPBAR_MODULES):
         mod = MODULE_NAV.get(mod_key, {})
@@ -129,33 +132,34 @@ def render_top_bar() -> None:
                 st.session_state["selected_page"] = mod["tabs"][0]["page"]
                 st.rerun()
 
-    # More button
-    with cols[num_modules]:
-        more_active = current_module in OVERFLOW_MODULES
-        if st.button(
-            "More \u25be" if not st.session_state.get("_more_open") else "More \u25b4",
-            key="_tnav_more",
-            use_container_width=True,
-            type="primary" if more_active else "secondary",
-        ):
-            st.session_state["_more_open"] = not st.session_state.get("_more_open", False)
-            st.rerun()
+    # More button (only if overflow modules exist)
+    if OVERFLOW_MODULES:
+        with cols[num_modules]:
+            more_active = current_module in OVERFLOW_MODULES
+            if st.button(
+                "More \u25be" if not st.session_state.get("_more_open") else "More \u25b4",
+                key="_tnav_more",
+                use_container_width=True,
+                type="primary" if more_active else "secondary",
+            ):
+                st.session_state["_more_open"] = not st.session_state.get("_more_open", False)
+                st.rerun()
 
-    # Overflow row (only when More is clicked)
-    if st.session_state.get("_more_open", False):
-        st.markdown('<div style="height: 8px;"></div>', unsafe_allow_html=True)
-        ov_cols = st.columns(len(OVERFLOW_MODULES))
-        for j, mod_key in enumerate(OVERFLOW_MODULES):
-            mod = MODULE_NAV.get(mod_key, {})
-            with ov_cols[j]:
-                if st.button(
-                    f"{mod.get('icon','')} {mod.get('label','')}",
-                    key=f"_tnav_ov_{j}",
-                    use_container_width=True,
-                    type="primary" if mod_key == current_module else "secondary",
-                ):
-                    st.session_state["_active_module"] = mod_key
-                    st.session_state["selected_page"] = mod["tabs"][0]["page"]
-                    st.session_state["_more_open"] = False
-                    st.rerun()
-        st.markdown('<div style="height: 16px;"></div>', unsafe_allow_html=True)
+        # Overflow row (only when More is clicked)
+        if st.session_state.get("_more_open", False):
+            st.markdown('<div style="height: 8px;"></div>', unsafe_allow_html=True)
+            ov_cols = st.columns(len(OVERFLOW_MODULES))
+            for j, mod_key in enumerate(OVERFLOW_MODULES):
+                mod = MODULE_NAV.get(mod_key, {})
+                with ov_cols[j]:
+                    if st.button(
+                        f"{mod.get('icon','')} {mod.get('label','')}",
+                        key=f"_tnav_ov_{j}",
+                        use_container_width=True,
+                        type="primary" if mod_key == current_module else "secondary",
+                    ):
+                        st.session_state["_active_module"] = mod_key
+                        st.session_state["selected_page"] = mod["tabs"][0]["page"]
+                        st.session_state["_more_open"] = False
+                        st.rerun()
+            st.markdown('<div style="height: 16px;"></div>', unsafe_allow_html=True)

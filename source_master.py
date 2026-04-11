@@ -25,6 +25,10 @@ INDIAN_REFINERIES = [
     {"name": "MRPL Mangalore", "city": "Mangalore", "state": "Karnataka", "category": "INDIAN_REFINERY"},
     {"name": "NRL Numaligarh", "city": "Numaligarh", "state": "Assam", "category": "INDIAN_REFINERY"},
     {"name": "ONGC Tatipaka", "city": "Tatipaka", "state": "Andhra Pradesh", "category": "INDIAN_REFINERY"},
+    {"name": "HMEL Bhatinda", "city": "Bhatinda", "state": "Punjab", "category": "INDIAN_REFINERY"},
+    {"name": "BORL Bina", "city": "Bina", "state": "Madhya Pradesh", "category": "INDIAN_REFINERY"},
+    {"name": "RIL Jamnagar", "city": "Jamnagar", "state": "Gujarat", "category": "INDIAN_REFINERY"},
+    {"name": "Nayara Vadinar", "city": "Vadinar", "state": "Gujarat", "category": "INDIAN_REFINERY"},
 ]
 
 # Import Terminals (Bulk Import Ports)
@@ -37,6 +41,8 @@ IMPORT_TERMINALS = [
     {"name": "Kandla Port Import", "city": "Kandla", "state": "Gujarat", "category": "IMPORT_TERMINAL"},
     {"name": "Mundra Port Import", "city": "Mundra", "state": "Gujarat", "category": "IMPORT_TERMINAL"},
     {"name": "JNPT Import Terminal", "city": "Nhava Sheva", "state": "Maharashtra", "category": "IMPORT_TERMINAL"},
+    {"name": "Haldia Port Import", "city": "Haldia", "state": "West Bengal", "category": "IMPORT_TERMINAL"},
+    {"name": "Ennore Port Import", "city": "Ennore", "state": "Tamil Nadu", "category": "IMPORT_TERMINAL"},
 ]
 
 # Private Decanters (Drum to Bulk Conversion)

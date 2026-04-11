@@ -122,9 +122,24 @@ def cleanup_expired():
         conn.close()
 
 
-def generate_share_url(token, host="localhost", port=8000):
-    """Generate the full shareable URL."""
-    return f"http://{host}:{port}/share/{token}"
+def generate_share_url(token, host=None, port=None):
+    """Generate the full shareable URL. Auto-detects Streamlit Cloud URL."""
+    if host is None:
+        try:
+            import streamlit as st
+            # On Streamlit Cloud, use the app URL
+            cloud_url = os.environ.get("STREAMLIT_SERVER_BASE_URL", "")
+            if cloud_url:
+                return f"{cloud_url}/share/{token}"
+            # Try to get from Streamlit config
+            app_url = st.get_option("browser.serverAddress") or "localhost"
+            app_port = st.get_option("browser.serverPort") or 8501
+            return f"http://{app_url}:{app_port}/?share={token}"
+        except Exception:
+            pass
+    host = host or "localhost"
+    port = port or 8501
+    return f"http://{host}:{port}/?share={token}"
 
 
 def render_shared_content(link_data):
