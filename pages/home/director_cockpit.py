@@ -196,14 +196,25 @@ def _css():
 .ck-qi .ql{font-size:0.58rem;font-weight:800;color:#94A3B8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px}
 .ck-qi .qv{font-size:0.92rem;font-weight:700;color:#1E293B}
 
+/* Step jump buttons — tiny, flat, blend under step bar */
+div[data-testid="column"] button[kind="secondary"][key^="step_jump"]{font-size:0;padding:0;height:0;border:none;background:transparent}
+/* Make step jump row compact */
+.ck-st + div[data-testid="stHorizontalBlock"]{margin-top:-12px;margin-bottom:-8px;opacity:0}
+.ck-st + div[data-testid="stHorizontalBlock"]:hover{opacity:1}
+
+/* Make step pills clickable-looking */
+.ck-s{cursor:pointer}
+.ck-s:hover:not(.a){background:rgba(79,70,229,0.04)}
+
 @media(max-width:768px){.ck-kpis{grid-template-columns:1fr 1fr}.ck-hd{flex-direction:column;text-align:center;gap:12px}.ck-qg{grid-template-columns:1fr 1fr}}
 </style>""", unsafe_allow_html=True)
 
 
-# ─── Step Bar ───────────────────────────────────────────────────────────────
+# ─── Step Bar (clickable) ──────────────────────────────────────────────────
 
 def _steps(cur):
     st_list = [("1","Market Snapshot"),("2","Today's Targets"),("3","Update Prices"),("4","Price Calculator"),("5","Send Quote")]
+    # Render visual step bar
     h = '<div class="ck-st">'
     for n, lb in st_list:
         i = int(n)
@@ -212,6 +223,16 @@ def _steps(cur):
         h += f'<div class="ck-s {c}"><span class="ck-n">{nd}</span>{lb}</div>'
     h += '</div>'
     st.markdown(h, unsafe_allow_html=True)
+
+    # Clickable buttons overlay (same 5 columns)
+    cols = st.columns(5)
+    for idx, (n, lb) in enumerate(st_list):
+        i = int(n)
+        with cols[idx]:
+            if i != cur:
+                if st.button(lb, key=f"step_jump_{i}", use_container_width=True):
+                    st.session_state["_ck"] = i
+                    st.rerun()
 
 
 # ─── Step 1 ─────────────────────────────────────────────────────────────────
