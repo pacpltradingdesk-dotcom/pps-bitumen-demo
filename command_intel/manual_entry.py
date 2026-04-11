@@ -95,12 +95,17 @@ def render():
         "📝 Entry Form", "📋 Entry History", "📈 Price Chart"
     ])
 
-    # Indian calendar targets
+    # Auto-calculate next revision date (1st or 16th of current/next month)
     today = datetime.date.today()
-    dates_options = [
-        format_date(datetime.date(today.year, today.month, 1)),
-        format_date(datetime.date(today.year, today.month, 16))
-    ]
+    if today.day <= 15:
+        # Next revision is 16th of this month
+        default_rev = datetime.date(today.year, today.month, 16)
+    else:
+        # Next revision is 1st of next month
+        if today.month == 12:
+            default_rev = datetime.date(today.year + 1, 1, 1)
+        else:
+            default_rev = datetime.date(today.year, today.month + 1, 1)
 
     # ─── TAB 1: Entry Form (existing) ───
     with tab_entry:
@@ -108,7 +113,7 @@ def render():
             st.markdown("#### Enter New Manual Data Point")
             c1, c2, c3 = st.columns(3)
 
-            rev_date = c1.selectbox("Target Revision Date (DD-MM-YYYY)", dates_options)
+            rev_date = c1.date_input("Target Revision Date", value=default_rev, format="DD-MM-YYYY")
             loc = c2.selectbox("Sub-Location", ["Mumbai", "Gujarat", "Delhi", "Chennai", "Custom"])
             grade = c3.selectbox("Grade", ["VG30", "VG10", "PMB", "CRMB"])
 
@@ -137,7 +142,7 @@ def render():
             df_entries = pd.DataFrame([
                 {
                     "Entry IST": format_datetime_ist(datetime.datetime.now()),
-                    "Target Revision": dates_options[0],
+                    "Target Revision": default_rev.strftime("%d-%m-%Y"),
                     "Location": "Mumbai",
                     "Grade": "VG30",
                     "Entered Price": format_inr(41250),
@@ -146,7 +151,7 @@ def render():
                 },
                 {
                     "Entry IST": format_datetime_ist(datetime.datetime.now() - datetime.timedelta(hours=24)),
-                    "Target Revision": dates_options[0],
+                    "Target Revision": default_rev.strftime("%d-%m-%Y"),
                     "Location": "Gujarat",
                     "Grade": "VG10",
                     "Entered Price": format_inr(39800),
