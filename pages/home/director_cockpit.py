@@ -1,8 +1,9 @@
 """
-PPS Anantam — Director Cockpit (4-Step Wizard)
+PPS Anantam — Director Cockpit (5-Step Wizard)
 ================================================
 Design: White-card fintech style. High-contrast numbers. Accent color strips.
 Inspired by Stripe/Vercel/Linear dashboards — max readability, zero clutter.
+Steps: Market Snapshot → Today's Targets → Update Prices → Price Calculator → Send Quote
 """
 
 import streamlit as st
@@ -202,7 +203,7 @@ def _css():
 # ─── Step Bar ───────────────────────────────────────────────────────────────
 
 def _steps(cur):
-    st_list = [("1","Market Snapshot"),("2","Today's Targets"),("3","Price Calculator"),("4","Send Quote")]
+    st_list = [("1","Market Snapshot"),("2","Today's Targets"),("3","Update Prices"),("4","Price Calculator"),("5","Send Quote")]
     h = '<div class="ck-st">'
     for n, lb in st_list:
         i = int(n)
@@ -279,12 +280,85 @@ def _step2():
     with b1:
         if st.button("\u2190 Back", key="s2b"): st.session_state["_ck"] = 1; st.rerun()
     with b2:
-        if st.button("Next \u2192 Calculator", type="primary", key="s2n"): st.session_state["_ck"] = 3; st.rerun()
+        if st.button("Next \u2192 Update Prices", type="primary", key="s2n"): st.session_state["_ck"] = 3; st.rerun()
 
 
-# ─── Step 3 ─────────────────────────────────────────────────────────────────
+# ─── Step 3: Manual Price Entry ────────────────────────────────────────────
 
 def _step3():
+    st.markdown('<div class="ck-sec"><div class="ic" style="background:#FEF3C7;">&#128221;</div><div><div class="tt">Update Prices</div><div class="su">Enter or update VG30/VG10 base prices — reflects everywhere instantly</div></div></div>', unsafe_allow_html=True)
+    st.markdown("")
+
+    # Load current prices
+    lp_path = os.path.join(BASE_DIR, "live_prices.json")
+    try:
+        with open(lp_path, "r", encoding="utf-8") as f:
+            lp = json.load(f)
+    except Exception:
+        lp = {}
+
+    cur_mumbai_vg30 = lp.get("DRUM_MUMBAI_VG30", 37000)
+    cur_kandla_vg30 = lp.get("DRUM_KANDLA_VG30", 35500)
+    cur_mumbai_vg10 = lp.get("DRUM_MUMBAI_VG10", 38000)
+    cur_kandla_vg10 = lp.get("DRUM_KANDLA_VG10", 36500)
+
+    # Show current prices
+    st.markdown(f"""<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:16px 20px;margin-bottom:16px;">
+<div style="font-size:0.72rem;font-weight:700;color:#16A34A;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">&#9989; Current Live Prices</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;">
+<div><span style="font-size:0.68rem;color:#64748B;">Mumbai VG30</span><br><strong style="font-size:1.1rem;color:#0F172A;">&#8377;{cur_mumbai_vg30:,}/MT</strong></div>
+<div><span style="font-size:0.68rem;color:#64748B;">Kandla VG30</span><br><strong style="font-size:1.1rem;color:#0F172A;">&#8377;{cur_kandla_vg30:,}/MT</strong></div>
+<div><span style="font-size:0.68rem;color:#64748B;">Mumbai VG10</span><br><strong style="font-size:1.1rem;color:#0F172A;">&#8377;{cur_mumbai_vg10:,}/MT</strong></div>
+<div><span style="font-size:0.68rem;color:#64748B;">Kandla VG10</span><br><strong style="font-size:1.1rem;color:#0F172A;">&#8377;{cur_kandla_vg10:,}/MT</strong></div>
+</div></div>""", unsafe_allow_html=True)
+
+    # Entry form
+    with st.form("ck_manual_price"):
+        st.markdown("#### Enter New Prices")
+        c1, c2 = st.columns(2)
+        with c1:
+            new_mumbai_vg30 = st.number_input("Mumbai VG30 (₹/MT)", min_value=10000, max_value=200000, value=cur_mumbai_vg30, step=100, key="ck_mv30")
+            new_mumbai_vg10 = st.number_input("Mumbai VG10 (₹/MT)", min_value=10000, max_value=200000, value=cur_mumbai_vg10, step=100, key="ck_mv10")
+        with c2:
+            new_kandla_vg30 = st.number_input("Kandla VG30 (₹/MT)", min_value=10000, max_value=200000, value=cur_kandla_vg30, step=100, key="ck_kv30")
+            new_kandla_vg10 = st.number_input("Kandla VG10 (₹/MT)", min_value=10000, max_value=200000, value=cur_kandla_vg10, step=100, key="ck_kv10")
+
+        remarks = st.text_input("Remarks (optional)", placeholder="e.g. IOCL revision, competitor quote...", key="ck_remarks")
+
+        submitted = st.form_submit_button("✅ Update Prices", type="primary", use_container_width=True)
+        if submitted:
+            # Update live_prices.json
+            lp["DRUM_MUMBAI_VG30"] = new_mumbai_vg30
+            lp["DRUM_KANDLA_VG30"] = new_kandla_vg30
+            lp["DRUM_MUMBAI_VG10"] = new_mumbai_vg10
+            lp["DRUM_KANDLA_VG10"] = new_kandla_vg10
+            try:
+                with open(lp_path, "w", encoding="utf-8") as f:
+                    json.dump(lp, f, indent=4, ensure_ascii=False)
+                # Clear cached market prices so new values show up
+                _get_market_prices.clear()
+                st.session_state["_ck_price_updated"] = True
+                st.rerun()
+            except Exception as e:
+                st.error(f"Failed to save prices: {e}")
+
+    # Show success if just updated
+    if st.session_state.pop("_ck_price_updated", False):
+        st.success("✅ Prices updated successfully! New rates will reflect across all pages — Command Center, Market Snapshot, Pricing Calculator, Rate Broadcast, etc.")
+
+    st.markdown("")
+    b1, b2, b3 = st.columns(3)
+    with b1:
+        if st.button("\u2190 Back", key="s3b"): st.session_state["_ck"] = 2; st.rerun()
+    with b2:
+        if st.button("Skip \u2192", key="s3s"): st.session_state["_ck"] = 4; st.rerun()
+    with b3:
+        if st.button("Next \u2192 Calculator", type="primary", key="s3n"): st.session_state["_ck"] = 4; st.rerun()
+
+
+# ─── Step 4: Price Calculator ──────────────────────────────────────────────
+
+def _step4():
     st.markdown('<div class="ck-sec"><div class="ic" style="background:#DBEAFE;">&#129518;</div><div><div class="tt">Instant Price Calculator</div><div class="su">Top sources + 3-tier offer</div></div></div>', unsafe_allow_html=True)
     st.markdown("")
 
@@ -333,26 +407,26 @@ def _step3():
         st.markdown("")
         tc = st.radio("Tier", ["Aggressive","Balanced","Premium"], index=1, horizontal=True, key="ct")
         st.session_state["_ck_t"] = tc.lower()
-        if st.button("Next \u2192 Send Quote", type="primary", key="s3n"):
-            st.session_state["_ck"] = 4; st.rerun()
+        if st.button("Next \u2192 Send Quote", type="primary", key="s4n"):
+            st.session_state["_ck"] = 5; st.rerun()
 
     st.markdown("")
-    if st.button("\u2190 Back", key="s3b"):
+    if st.button("\u2190 Back", key="s4b"):
         st.session_state.pop("_ck_srcs", None)
-        st.session_state["_ck"] = 2; st.rerun()
+        st.session_state["_ck"] = 3; st.rerun()
 
 
-# ─── Step 4 ─────────────────────────────────────────────────────────────────
+# ─── Step 5: Send Quote ───────────────────────────────────────────────────
 
-def _step4():
+def _step5():
     st.markdown('<div class="ck-sec"><div class="ic" style="background:#D1FAE5;">&#128228;</div><div><div class="tt">Send Quote</div><div class="su">Review, send, auto-log CRM</div></div></div>', unsafe_allow_html=True)
     st.markdown("")
 
     q = st.session_state.get("_ck_q")
     tk = st.session_state.get("_ck_t", "balanced")
     if not q:
-        st.warning("No quote. Go back to Step 3.")
-        if st.button("\u2190 Back", key="s4b0"): st.session_state["_ck"] = 3; st.rerun()
+        st.warning("No quote. Go back to Step 4 (Calculator).")
+        if st.button("\u2190 Back", key="s5b0"): st.session_state["_ck"] = 4; st.rerun()
         return
 
     td = q.get("offers",{}).get(tk,{}); pr = td.get("price",0)
@@ -448,9 +522,9 @@ def _step4():
     st.markdown("")
     b1, b2 = st.columns(2)
     with b1:
-        if st.button("\u2190 Back", key="s4b"): st.session_state["_ck"] = 3; st.rerun()
+        if st.button("\u2190 Back", key="s5b"): st.session_state["_ck"] = 4; st.rerun()
     with b2:
-        if st.button("New Quote", type="primary", key="s4r"):
+        if st.button("New Quote", type="primary", key="s5r"):
             for k in ["_ck","_ck_c","_ck_q","_ck_t","_ck_snt","_ck_srcs","_ck_share_url"]: st.session_state.pop(k,None)
             st.rerun()
 
@@ -467,4 +541,4 @@ def render():
     if "_ck" not in st.session_state: st.session_state["_ck"] = 1
     cur = st.session_state["_ck"]
     _steps(cur)
-    [_step1, _step2, _step3, _step4][cur - 1]()
+    [_step1, _step2, _step3, _step4, _step5][cur - 1]()

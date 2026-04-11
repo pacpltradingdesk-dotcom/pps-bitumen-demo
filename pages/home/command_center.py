@@ -474,8 +474,8 @@ document.getElementById('btnR').onclick=function(e){{e.stopPropagation();if(froz
 </div>
 """, unsafe_allow_html=True)
 
-    # Quick action buttons linked to process
-    qa1, qa2, qa3, qa4 = st.columns(4)
+    # Quick action buttons
+    qa1, qa2, qa3, qa4, qa5 = st.columns(5)
     with qa1:
         if st.button("🧮 Get Quote", use_container_width=True, key="cc_quote"):
             _go("💎 One-Click Quote")
@@ -486,8 +486,22 @@ document.getElementById('btnR').onclick=function(e){{e.stopPropagation();if(froz
         if st.button("🎯 CRM Tasks", use_container_width=True, key="cc_crm"):
             _go("🎯 CRM & Tasks")
     with qa4:
+        if st.button("📝 Manual Price Entry", use_container_width=True, key="cc_manual"):
+            _go("📝 Manual Price Entry")
+    with qa5:
         if st.button("📤 Rate Broadcast", use_container_width=True, key="cc_broadcast"):
             _go("📡 Rate Broadcast")
+
+    # Colorful strip below buttons
+    st.markdown("""
+<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:-8px;margin-bottom:12px;">
+  <div style="height:6px;border-radius:0 0 8px 8px;background:linear-gradient(90deg,#059669,#10B981);box-shadow:0 3px 10px rgba(5,150,105,0.5);"></div>
+  <div style="height:6px;border-radius:0 0 8px 8px;background:linear-gradient(90deg,#4F46E5,#6366F1);box-shadow:0 3px 10px rgba(79,70,229,0.5);"></div>
+  <div style="height:6px;border-radius:0 0 8px 8px;background:linear-gradient(90deg,#D97706,#F59E0B);box-shadow:0 3px 10px rgba(217,119,6,0.5);"></div>
+  <div style="height:6px;border-radius:0 0 8px 8px;background:linear-gradient(90deg,#7C3AED,#8B5CF6);box-shadow:0 3px 10px rgba(124,58,237,0.5);"></div>
+  <div style="height:6px;border-radius:0 0 8px 8px;background:linear-gradient(90deg,#E11D48,#F43F5E);box-shadow:0 3px 10px rgba(225,29,72,0.5);"></div>
+</div>
+""", unsafe_allow_html=True)
 
     # ═══ TICKER 3: IMPORT (after market brief) ═══
     if import_prices:

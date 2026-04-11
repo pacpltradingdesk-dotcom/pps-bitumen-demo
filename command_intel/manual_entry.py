@@ -37,6 +37,36 @@ except ImportError:
     Path = None
 
 ROOT = Path(__file__).parent.parent if Path else None
+LIVE_PRICES_PATH = ROOT / "live_prices.json" if ROOT else None
+
+
+def _update_live_prices(location, grade, price):
+    """Update live_prices.json with the manually entered price so it reflects everywhere."""
+    if not LIVE_PRICES_PATH or not json:
+        return
+    try:
+        lp = {}
+        if LIVE_PRICES_PATH.exists():
+            with open(LIVE_PRICES_PATH, "r", encoding="utf-8") as f:
+                lp = json.load(f)
+
+        # Map location + grade to live_prices keys
+        loc_map = {
+            "Mumbai": "DRUM_MUMBAI",
+            "Gujarat": "DRUM_KANDLA",
+            "Kandla": "DRUM_KANDLA",
+            "Delhi": "DRUM_MUMBAI",
+            "Chennai": "DRUM_MUMBAI",
+        }
+        prefix = loc_map.get(location, "DRUM_MUMBAI")
+        key = f"{prefix}_{grade.upper()}"
+        lp[key] = int(price)
+
+        with open(LIVE_PRICES_PATH, "w", encoding="utf-8") as f:
+            json.dump(lp, f, indent=4, ensure_ascii=False)
+        return True
+    except Exception:
+        return False
 
 
 def _load_crude_prices():
@@ -92,7 +122,12 @@ def render():
 
             c_sub, _ = st.columns([1, 4])
             if c_sub.form_submit_button("Submit CRM Override"):
-                st.success("Entry securely logged to the Database and Change History.")
+                # Update live_prices.json so price reflects everywhere
+                updated = _update_live_prices(loc, grade, price)
+                if updated:
+                    st.success(f"✅ Entry logged + Live Price updated! {grade} @ ₹{price:,}/MT ({loc}) now reflects across Command Center, Market Snapshot, Pricing Calculator, Rate Broadcast & all pages.")
+                else:
+                    st.success("Entry securely logged to the Database and Change History.")
 
         st.markdown("---")
 
