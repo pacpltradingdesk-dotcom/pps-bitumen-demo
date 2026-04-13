@@ -68,6 +68,15 @@ def render():
     from theme import inject_theme
     inject_theme()
 
+    # ── Ensure live data is fresh (refreshes if caches are stale) ──
+    try:
+        from freshness_guard import ensure_fresh
+        _freshness = ensure_fresh(show_spinner=True)
+        if _freshness.get("action") == "sync-refresh":
+            _load_json.clear()
+    except Exception:
+        _freshness = {"action": "error"}
+
     # ═══ Smooth page loading animation ═══
     st.markdown("""
 <style>
@@ -343,11 +352,31 @@ document.getElementById('btnR').onclick=function(e){{e.stopPropagation();if(froz
     # 2. GREETING + DATE
     # ═══════════════════════════════════════════════════════════════════════
 
+    _fresh_badge = ""
+    try:
+        _m_age = _freshness.get("market_age_min")
+        _action = _freshness.get("action", "fresh")
+        if _m_age is not None:
+            if _action == "bg-refresh":
+                _txt, _col = f"\u25CF Refreshing in background (data {int(_m_age)} min old)", "#F59E0B"
+            elif _action == "sync-refresh":
+                _txt, _col = "\u25CF Just refreshed", "#059669"
+            elif _m_age < 5:
+                _txt, _col = "\u25CF Live", "#059669"
+            elif _m_age < 30:
+                _txt, _col = f"\u25CF Updated {int(_m_age)} min ago", "#059669"
+            else:
+                _txt, _col = f"\u25CF Data {int(_m_age)} min old", "#F59E0B"
+            _fresh_badge = f'<span style="font-size:0.70rem;color:{_col};margin-left:14px;font-weight:600;">{_txt}</span>'
+    except Exception:
+        pass
+
     st.markdown(f"""
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
 <div>
 <span style="font-size:1.3rem;font-weight:800;color:#0F172A;">{greeting}, Sir</span>
 <span style="font-size:0.78rem;color:#94A3B8;margin-left:8px;">{today.strftime('%A, %d %B %Y')} &bull; {now.strftime('%I:%M %p')} IST</span>
+{_fresh_badge}
 </div>
 </div>""", unsafe_allow_html=True)
 

@@ -78,11 +78,13 @@ def _init_engines():
     try:
         from api_hub_engine import init_hub, start_hub_scheduler
         init_hub(); start_hub_scheduler(interval_min=60)
-    except Exception: pass
+    except Exception as _e:
+        import logging; logging.getLogger("startup").warning("API Hub scheduler failed: %s", _e)
     try:
         from sync_engine import start_sync_scheduler
         start_sync_scheduler(interval_minutes=60)
-    except Exception: pass
+    except Exception as _e:
+        import logging; logging.getLogger("startup").warning("Sync scheduler failed: %s", _e)
     try:
         from email_engine import start_email_scheduler
         start_email_scheduler()
