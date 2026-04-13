@@ -5,13 +5,30 @@ Full-screen login with company branding. Works on both light and dark themes.
 """
 import streamlit as st
 from role_engine import login, _is_rate_limited, _failed_attempts
+from role_engine import _try_restore_from_url, _check_session_timeout, _touch_session, _write_token_to_url, _clear_token_from_url
 
 
 def render_login():
     """Render login page. Returns True if authenticated."""
 
+    # 1. Already logged in this session? Touch + refresh token and continue.
     if st.session_state.get("_auth_user"):
-        return True
+        try:
+            if _check_session_timeout():
+                _touch_session()
+                _write_token_to_url(st.session_state.get("_auth_username", ""))
+                return True
+            else:
+                _clear_token_from_url()
+        except Exception:
+            return True
+
+    # 2. Session empty but URL has a valid HMAC token? Auto-restore.
+    try:
+        if _try_restore_from_url():
+            return True
+    except Exception:
+        pass
 
     # ── Hide Streamlit chrome ──
     st.markdown("""
