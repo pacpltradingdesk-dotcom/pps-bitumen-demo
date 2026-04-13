@@ -2,6 +2,72 @@ import streamlit as st
 import datetime
 
 
+# ─── Journey Maps Tab ──────────────────────────────────────────────────────
+def _render_journey_maps_tab():
+    """Visual flowchart of the 6 user journeys with clickable hops."""
+    try:
+        from navigation_engine import USER_JOURNEYS, navigate_to
+        from nav_config import get_module_for_page, MODULE_NAV
+    except Exception as e:
+        st.error(f"Journey maps unavailable: {e}")
+        return
+
+    st.subheader("🗺️ User Journey Maps")
+    st.caption(
+        "Real-world workflows — aapka kaam kaunse pages se ho kar jata hai. "
+        "Har step pe click karke direct jump kar sakte ho."
+    )
+
+    for jid, jdata in USER_JOURNEYS.items():
+        st.markdown(
+            f'<div style="margin-top:24px;padding:14px 18px;'
+            f'background:linear-gradient(135deg,#F5F3FF,#EEF2FF);'
+            f'border:1px solid #DDD6FE;border-radius:12px;">'
+            f'<div style="font-size:1.05rem;font-weight:800;color:#4F46E5;">'
+            f'{jdata["icon"]} {jdata["label"]}</div>'
+            f'<div style="font-size:0.75rem;color:#6B7280;margin-top:3px;">'
+            f'{len(jdata["pages"])} steps · click any card to jump there</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+        cols = st.columns(len(jdata["pages"]))
+        for i, page in enumerate(jdata["pages"]):
+            module_key = get_module_for_page(page) or ""
+            module_label = MODULE_NAV.get(module_key, {}).get("label", "")
+            page_label = page.split(" ", 1)[-1] if " " in page else page
+
+            with cols[i]:
+                arrow = "→" if i < len(jdata["pages"]) - 1 else "🎯"
+                st.markdown(
+                    f"""
+<div style="background:#FFFFFF;border:1px solid #E5E7EB;border-radius:10px;
+            padding:12px 10px;min-height:100px;text-align:center;
+            box-shadow:0 1px 3px rgba(0,0,0,0.04);margin-top:8px;">
+  <div style="font-size:0.58rem;color:#9CA3AF;font-weight:700;
+              text-transform:uppercase;margin-bottom:4px;">
+    Step {i+1}
+  </div>
+  <div style="font-size:0.82rem;font-weight:700;color:#111827;
+              margin-bottom:4px;line-height:1.2;">{page_label}</div>
+  <div style="font-size:0.62rem;color:#6B7280;">{module_label}</div>
+  <div style="font-size:1rem;color:#4F46E5;margin-top:6px;">{arrow}</div>
+</div>
+""",
+                    unsafe_allow_html=True,
+                )
+                if st.button("Go", key=f"_jm_{jid}_{i}",
+                             use_container_width=True):
+                    navigate_to(page)
+
+    st.markdown("---")
+    st.caption(
+        "💡 **Tip**: Har journey apne mein ek complete workflow hai. "
+        "Aap kisi bhi step se shuru kar sakte ho — next-step cards aapko "
+        "flow mein wapas le aayenge."
+    )
+
+
 def render():
     _today_str = datetime.date.today().strftime("%d %b %Y")
     st.markdown(f"""
@@ -45,7 +111,10 @@ def render():
     st.markdown("---")
 
     # Main tabs
-    tab_search, tab_browse, tab_stats = st.tabs(["🔍 Search", "📂 Browse by Category", "📊 Stats"])
+    tab_search, tab_browse, tab_journey, tab_stats = st.tabs([
+        "🔍 Search", "📂 Browse by Category",
+        "🗺️ Journey Maps", "📊 Stats",
+    ])
 
     # ─── TAB 1: Search with highlights ───
     with tab_search:
@@ -178,7 +247,11 @@ def render():
             else:
                 st.info("No questions in this section yet.")
 
-    # ─── TAB 3: Stats ───
+    # ─── TAB 3: Journey Maps ───
+    with tab_journey:
+        _render_journey_maps_tab()
+
+    # ─── TAB 4: Stats ───
     with tab_stats:
         st.subheader("📊 Knowledge Base Statistics")
 
