@@ -38,18 +38,83 @@ from typing import Any
 COMPANY = {
     "name":      "PPS Anantams Corporation Pvt Ltd",
     "short":     "PPS Anantams",
+    "tagline":   "Har decision data-driven · har rupiya margin-driven",
     "city":      "Vadodara, Gujarat",
     "gst":       "24AAHCV1611L2ZD",
     "pan":       "AAHCV1611L",
     "cin":       "U46632GJ2019PTC110676",
     "owner":     "Prince P Shah",
+    "email":     "desk@ppsanantams.com",
     "phone":     "+91 7795242424",
     "bank":      "ICICI Bank",
     "bank_ac":   "184105001402",
     "bank_ifsc": "ICIC0001841",
     "hsn":       "27132000",
     "terms":     "Ex-Terminal / Ex-Warehouse, 100% advance, 24hr validity",
+    "logo":      "pps_logo_brand.jpg",  # relative to share_formatter.py
 }
+
+
+# Brand palette
+BRAND = {
+    "navy":        "#0F1F3C",   # deep navy (header)
+    "navy_light":  "#1E3A5F",   # navy accent
+    "gold":        "#C9A84C",   # gold accent (labels / dividers)
+    "gold_dark":   "#A88430",
+    "amber_bg":    "#FFFBEB",   # grand-total band
+    "amber_fg":    "#92400E",
+    "green_soft":  "#ECFDF5",   # thank-you band
+    "green_fg":    "#065F46",
+    "grey_50":     "#F9FAFB",
+    "grey_100":    "#F3F4F6",
+    "grey_200":    "#E5E7EB",
+    "grey_500":    "#6B7280",
+    "grey_700":    "#374151",
+    "white":       "#FFFFFF",
+}
+
+
+# Amount to words (Indian system)
+def _num_to_words_indian(n: int) -> str:
+    """Convert an integer to Indian English words (lakh/crore). Best-effort."""
+    try:
+        n = int(n)
+    except (TypeError, ValueError):
+        return ""
+    if n == 0:
+        return "Zero"
+    below20 = ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven",
+               "Eight", "Nine", "Ten", "Eleven", "Twelve", "Thirteen",
+               "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"]
+    tens = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty",
+            "Seventy", "Eighty", "Ninety"]
+
+    def two(x):
+        if x < 20:
+            return below20[x]
+        return tens[x // 10] + (" " + below20[x % 10] if x % 10 else "")
+
+    def three(x):
+        if x >= 100:
+            return below20[x // 100] + " Hundred" + (" " + two(x % 100) if x % 100 else "")
+        return two(x)
+
+    parts = []
+    crore = n // 10000000
+    if crore:
+        parts.append(three(crore) + " Crore")
+        n %= 10000000
+    lakh = n // 100000
+    if lakh:
+        parts.append(three(lakh) + " Lakh")
+        n %= 100000
+    thousand = n // 1000
+    if thousand:
+        parts.append(three(thousand) + " Thousand")
+        n %= 1000
+    if n:
+        parts.append(three(n))
+    return " ".join(parts).strip()
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -604,24 +669,57 @@ def build_quote_pdf(customer_name: str, city: str, grade: str,
 
     story = []
 
-    # ── Header band ─────────────────────────────────────────────────
-    hdr_data = [[
+    # ── Header band with logo (2-col) ───────────────────────────────
+    import os as _os
+    _logo_path = _os.path.join(_os.path.dirname(__file__), COMPANY["logo"])
+
+    # Left: logo if exists, else spacer
+    if _os.path.exists(_logo_path):
+        try:
+            from reportlab.platypus import Image as _RLImage
+            logo_obj = _RLImage(_logo_path, width=22 * mm, height=22 * mm)
+        except Exception:
+            logo_obj = ""
+    else:
+        logo_obj = ""
+
+    # Right side: company title + tagline + location
+    right_block = [
         Paragraph("<b>QUOTATION</b>", brand_sub),
-    ], [
         Paragraph(COMPANY["short"], brand_title),
-    ], [
+        Paragraph(f"<font color='#C9A84C'><i>{COMPANY['tagline']}</i></font>",
+                  ParagraphStyle("tagline", parent=styles["Normal"],
+                                  fontName=_font_name, fontSize=7.5,
+                                  textColor=colors.HexColor("#C9A84C"),
+                                  leading=10)),
         Paragraph(f"Enterprise Bitumen Desk &middot; {COMPANY['city']}", brand_loc),
-    ]]
-    hdr = Table(hdr_data, colWidths=[180 * mm])
+    ]
+    right_tbl = Table([[p] for p in right_block], colWidths=[152 * mm])
+    right_tbl.setStyle(TableStyle([
+        ("LEFTPADDING",  (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ("TOPPADDING",   (0, 0), (-1, -1), 0),
+        ("BOTTOMPADDING",(0, 0), (-1, -1), 1),
+    ]))
+
+    hdr = Table([[logo_obj, right_tbl]], colWidths=[26 * mm, 154 * mm])
     hdr.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#1E3A5F")),
-        ("LEFTPADDING", (0, 0), (-1, -1), 16),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 16),
-        ("TOPPADDING", (0, 0), (-1, 0), 10),
-        ("BOTTOMPADDING", (0, -1), (-1, -1), 12),
+        ("BACKGROUND",    (0, 0), (-1, -1), colors.HexColor(BRAND["navy"])),
+        ("LEFTPADDING",   (0, 0), (-1, -1), 14),
+        ("RIGHTPADDING",  (0, 0), (-1, -1), 14),
+        ("TOPPADDING",    (0, 0), (-1, -1), 12),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 14),
+        ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
     ]))
     story.append(hdr)
-    story.append(Spacer(1, 6))
+
+    # Thin gold divider
+    gold_div = Table([[""]], colWidths=[180 * mm], rowHeights=[2.5])
+    gold_div.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(BRAND["gold"])),
+    ]))
+    story.append(gold_div)
+    story.append(Spacer(1, 8))
 
     # ── Quote meta + Customer block (2-col) ─────────────────────────
     meta_tbl = Table([[
@@ -680,7 +778,30 @@ def build_quote_pdf(customer_name: str, city: str, grade: str,
         ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
     ]))
     story.append(items)
-    story.append(Spacer(1, 14))
+
+    # ── Total in Words (Indian invoicing standard) ──────────────────
+    grand_total = total_value * 1.18
+    words = _num_to_words_indian(int(round(grand_total)))
+    if words:
+        tw_style = ParagraphStyle("tw", parent=styles["Normal"],
+                                   fontName=_font_name,
+                                   fontSize=8.5, leading=11,
+                                   textColor=colors.HexColor(BRAND["grey_700"]))
+        tw_tbl = Table([[
+            Paragraph(f"<b>Amount in words:</b> Rupees {words} Only",
+                      tw_style)
+        ]], colWidths=[180 * mm])
+        tw_tbl.setStyle(TableStyle([
+            ("BACKGROUND",   (0, 0), (-1, -1), colors.HexColor(BRAND["grey_50"])),
+            ("LINEBELOW",    (0, 0), (-1, -1), 0.4, colors.HexColor(BRAND["grey_200"])),
+            ("LINEABOVE",    (0, 0), (-1, -1), 0.4, colors.HexColor(BRAND["grey_200"])),
+            ("LEFTPADDING",  (0, 0), (-1, -1), 10),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+            ("TOPPADDING",   (0, 0), (-1, -1), 6),
+            ("BOTTOMPADDING",(0, 0), (-1, -1), 6),
+        ]))
+        story.append(tw_tbl)
+    story.append(Spacer(1, 12))
 
     # ── Terms (each as its own paragraph, numbered) ─────────────────
     story.append(Paragraph("Terms &amp; Conditions", section_h))
@@ -688,6 +809,32 @@ def build_quote_pdf(customer_name: str, city: str, grade: str,
         story.append(Paragraph(
             f'<font color="#4F46E5"><b>{i}.</b></font> &nbsp;{t}',
             term_p))
+    story.append(Spacer(1, 8))
+
+    # ── Thank-you band (gentle green) ───────────────────────────────
+    ty_style = ParagraphStyle("ty", parent=styles["Normal"],
+                               fontName=_font_bold, fontSize=10,
+                               textColor=colors.HexColor(BRAND["green_fg"]),
+                               alignment=TA_CENTER, leading=13)
+    ty_sub = ParagraphStyle("tysub", parent=styles["Normal"],
+                             fontName=_font_name, fontSize=8,
+                             textColor=colors.HexColor(BRAND["green_fg"]),
+                             alignment=TA_CENTER, leading=11)
+    ty_tbl = Table([[
+        Paragraph("THANK YOU FOR YOUR BUSINESS", ty_style),
+        ],[
+        Paragraph(f"Reply <b>CONFIRM</b> to lock this price &middot; Call {COMPANY['phone']} &middot; {COMPANY['email']}",
+                  ty_sub),
+    ]], colWidths=[180 * mm])
+    ty_tbl.setStyle(TableStyle([
+        ("BACKGROUND",   (0, 0), (-1, -1), colors.HexColor(BRAND["green_soft"])),
+        ("BOX",          (0, 0), (-1, -1), 0.5, colors.HexColor("#A7F3D0")),
+        ("LEFTPADDING",  (0, 0), (-1, -1), 14),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 14),
+        ("TOPPADDING",   (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING",(0, 0), (-1, -1), 6),
+    ]))
+    story.append(ty_tbl)
     story.append(Spacer(1, 10))
 
     # ── Bank + Signature (2-col) ─────────────────────────────────────
