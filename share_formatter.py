@@ -496,10 +496,57 @@ def build_quote_pdf(customer_name: str, city: str, grade: str,
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
         from reportlab.lib.units import mm
         from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
-                                         Table, TableStyle, PageBreak)
+                                         Table, TableStyle, ListFlowable, ListItem)
         from reportlab.lib.enums import TA_LEFT, TA_RIGHT, TA_CENTER
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
     except ImportError:
         return b""
+
+    # ── Font registration for ₹ glyph support ───────────────────────
+    # Default Helvetica lacks ₹ glyph → renders as tofu. Try common
+    # system Unicode TTFs; fall back to "Rs." prefix if none register.
+    _font_name = "Helvetica"
+    _font_bold = "Helvetica-Bold"
+    _rupee     = "Rs."
+    for candidate, bold_candidate, paths in [
+        ("DejaVuSans", "DejaVuSans-Bold", [
+            "C:/Windows/Fonts/DejaVuSans.ttf",
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/Library/Fonts/DejaVuSans.ttf",
+        ]),
+        ("NotoSans", "NotoSans-Bold", [
+            "C:/Windows/Fonts/NotoSans-Regular.ttf",
+            "/usr/share/fonts/truetype/noto/NotoSans-Regular.ttf",
+        ]),
+        ("Arial", "Arial-Bold", [
+            "C:/Windows/Fonts/arial.ttf",
+            "/Library/Fonts/Arial.ttf",
+        ]),
+    ]:
+        for path in paths:
+            try:
+                import os as _os
+                if _os.path.exists(path):
+                    pdfmetrics.registerFont(TTFont(candidate, path))
+                    # Try to register matching bold (best-effort)
+                    bold_path = path.replace("Regular", "Bold").replace(".ttf", "-Bold.ttf")
+                    alt_bold = path.replace(".ttf", "-Bold.ttf")
+                    for bp in (bold_path, alt_bold,
+                               "C:/Windows/Fonts/arialbd.ttf" if candidate == "Arial" else None):
+                        if bp and _os.path.exists(bp):
+                            pdfmetrics.registerFont(TTFont(bold_candidate, bp))
+                            _font_bold = bold_candidate
+                            break
+                    else:
+                        _font_bold = candidate  # use regular for bold if no bold
+                    _font_name = candidate
+                    _rupee = "\u20b9"
+                    break
+            except Exception:
+                continue
+        if _font_name != "Helvetica":
+            break
 
     if terms is None:
         terms = [
@@ -527,23 +574,31 @@ def build_quote_pdf(customer_name: str, city: str, grade: str,
 
     styles = getSampleStyleSheet()
     brand_title = ParagraphStyle("brand_title", parent=styles["Heading1"],
+                                  fontName=_font_bold,
                                   fontSize=18, textColor=colors.white,
                                   spaceAfter=0, leading=22)
     brand_sub   = ParagraphStyle("brand_sub", parent=styles["Normal"],
+                                  fontName=_font_bold,
                                   fontSize=8, textColor=colors.HexColor("#C9A84C"),
                                   spaceBefore=2, leading=11)
     brand_loc   = ParagraphStyle("brand_loc", parent=styles["Normal"],
+                                  fontName=_font_name,
                                   fontSize=8, textColor=colors.HexColor("#CBD5E1"),
                                   leading=11)
     section_h   = ParagraphStyle("section_h", parent=styles["Heading3"],
+                                  fontName=_font_bold,
                                   fontSize=10, textColor=colors.HexColor("#1E3A5F"),
                                   spaceAfter=4, spaceBefore=10, leading=14)
     normal      = ParagraphStyle("normal_p", parent=styles["Normal"],
-                                  fontSize=9, leading=13)
-    small       = ParagraphStyle("small_p", parent=styles["Normal"],
-                                  fontSize=7.5, textColor=colors.HexColor("#6B7280"),
-                                  leading=10)
+                                  fontName=_font_name,
+                                  fontSize=9, leading=14)
+    term_p      = ParagraphStyle("term_p", parent=styles["Normal"],
+                                  fontName=_font_name,
+                                  fontSize=9, leading=14,
+                                  leftIndent=14, spaceAfter=4,
+                                  bulletIndent=0)
     footer      = ParagraphStyle("footer_p", parent=styles["Normal"],
+                                  fontName=_font_name,
                                   fontSize=7, textColor=colors.HexColor("#9CA3AF"),
                                   alignment=TA_CENTER, leading=9)
 
@@ -590,48 +645,50 @@ def build_quote_pdf(customer_name: str, city: str, grade: str,
     story.append(Spacer(1, 12))
 
     # ── Items table ─────────────────────────────────────────────────
+    def _fmt_amt(n):
+        s = fmt_inr(n)
+        # Strip ₹ for table cells (header shows the symbol once)
+        return s.lstrip("\u20b9")
+
     items_data = [
-        ["#", "Description",                            "Qty (MT)",          "Rate (\u20b9/MT)",          "Value (\u20b9)"],
-        ["1", f"Bitumen {grade} — HSN {COMPANY['hsn']}",
-                                                         f"{qty_mt:,.0f}",    f"{fmt_inr(price_per_mt).lstrip(chr(0x20b9))}",
-                                                                                          f"{fmt_inr(total_value).lstrip(chr(0x20b9))}"],
-        ["", "GST @ 18%",                                "",                  "",           f"{fmt_inr(total_value * 0.18).lstrip(chr(0x20b9))}"],
-        ["", "Grand Total (incl. GST)",                  "",                  "",           f"{fmt_inr(total_value * 1.18).lstrip(chr(0x20b9))}"],
+        ["#", "Description",                             "Qty (MT)",         f"Rate ({_rupee}/MT)",    f"Value ({_rupee})"],
+        ["1", f"Bitumen {grade} — HSN {COMPANY['hsn']}", f"{qty_mt:,.0f}",   _fmt_amt(price_per_mt),    _fmt_amt(total_value)],
+        ["",  "GST @ 18%",                                "",                 "",                        _fmt_amt(total_value * 0.18)],
+        ["",  "Grand Total (incl. GST)",                  "",                 "",                        _fmt_amt(total_value * 1.18)],
     ]
     items = Table(items_data, colWidths=[12 * mm, 80 * mm, 26 * mm, 28 * mm, 34 * mm])
     items.setStyle(TableStyle([
         # Header
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1E3A5F")),
         ("TEXTCOLOR",  (0, 0), (-1, 0), colors.white),
-        ("FONTNAME",   (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTNAME",   (0, 0), (-1, 0), _font_bold),
         ("ALIGN",      (0, 0), (-1, 0), "CENTER"),
-        # Item row
+        # Body font
+        ("FONTNAME",   (0, 1), (-1, -1), _font_name),
         ("ALIGN",      (2, 1), (-1, -1), "RIGHT"),
         # GST row
-        ("FONTNAME",   (0, 2), (-1, 2), "Helvetica-Oblique"),
         ("TEXTCOLOR",  (0, 2), (-1, 2), colors.HexColor("#4B5563")),
         # Grand total
         ("BACKGROUND", (0, 3), (-1, 3), colors.HexColor("#FFFBEB")),
-        ("FONTNAME",   (0, 3), (-1, 3), "Helvetica-Bold"),
+        ("FONTNAME",   (0, 3), (-1, 3), _font_bold),
         ("TEXTCOLOR",  (0, 3), (-1, 3), colors.HexColor("#92400E")),
         ("FONTSIZE",   (0, 3), (-1, 3), 11),
         # Grid
         ("GRID",       (0, 0), (-1, -1), 0.4, colors.HexColor("#E5E7EB")),
         ("FONTSIZE",   (0, 0), (-1, -1), 9),
-        ("TOPPADDING", (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
     ]))
     story.append(items)
     story.append(Spacer(1, 14))
 
-    # ── Terms ────────────────────────────────────────────────────────
-    story.append(Paragraph("Terms & Conditions", section_h))
-    t_items = "".join(
-        f'<para spaceBefore="2"><font color="#4F46E5"><b>{i+1}.</b></font> {t}</para>'
-        for i, t in enumerate(terms)
-    )
-    story.append(Paragraph(t_items, normal))
-    story.append(Spacer(1, 12))
+    # ── Terms (each as its own paragraph, numbered) ─────────────────
+    story.append(Paragraph("Terms &amp; Conditions", section_h))
+    for i, t in enumerate(terms, 1):
+        story.append(Paragraph(
+            f'<font color="#4F46E5"><b>{i}.</b></font> &nbsp;{t}',
+            term_p))
+    story.append(Spacer(1, 10))
 
     # ── Bank + Signature (2-col) ─────────────────────────────────────
     bank_p = Paragraph(
@@ -639,7 +696,9 @@ def build_quote_pdf(customer_name: str, city: str, grade: str,
         f"{COMPANY['bank']}<br/>"
         f"A/C: <b>{COMPANY['bank_ac']}</b><br/>"
         f"IFSC: <b>{COMPANY['bank_ifsc']}</b><br/>"
-        f"GST: {COMPANY['gst']}", normal)
+        f"GST: {COMPANY['gst']}<br/>"
+        f"Total Payable: <b>{_rupee}{_fmt_amt(total_value * 1.18)}</b>",
+        normal)
     sig_p = Paragraph(
         f"<b>For {COMPANY['name']}</b><br/><br/><br/>"
         f"_______________________<br/>"
