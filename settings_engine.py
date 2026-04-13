@@ -125,7 +125,7 @@ DEFAULT_SETTINGS = {
     # Role-Based Access Control
     "rbac_enabled": False,
     "rbac_default_role": "viewer",
-    "rbac_session_timeout_min": 480,
+    "rbac_session_timeout_min": 1440,
 
     # Universal Action Bar
     "action_bar_enabled": True,

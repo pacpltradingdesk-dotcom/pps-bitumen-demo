@@ -13,11 +13,125 @@ Usage:
         # show send buttons
 """
 
+import base64
 import hashlib
+import hmac
+import json
+import os
+import secrets
 import time
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
 
 IST = timezone(timedelta(hours=5, minutes=30))
+
+# ── Persistent Auth Token (URL-based, survives tab/browser close) ────────────
+
+_AUTH_SECRET_FILE = Path(__file__).parent / ".auth_secret"
+_AUTH_TOKEN_KEY = "auth_t"  # URL query-param name
+
+
+def _get_auth_secret() -> bytes:
+    """Load or generate a stable HMAC secret for signing auth tokens."""
+    try:
+        if _AUTH_SECRET_FILE.exists():
+            return _AUTH_SECRET_FILE.read_bytes()
+        sec = secrets.token_bytes(32)
+        _AUTH_SECRET_FILE.write_bytes(sec)
+        try:
+            os.chmod(_AUTH_SECRET_FILE, 0o600)
+        except Exception:
+            pass
+        return sec
+    except Exception:
+        # Fallback: stable-ish per-process secret
+        return hashlib.sha256(b"pps-anantam-fallback-key").digest()
+
+
+def _make_auth_token(username: str, expiry_ts: int) -> str:
+    """Create signed token: base64(json({u, e, s})) where s = HMAC-SHA256(u|e)."""
+    secret = _get_auth_secret()
+    msg = f"{username}|{expiry_ts}".encode("utf-8")
+    sig = hmac.new(secret, msg, hashlib.sha256).hexdigest()
+    payload = json.dumps({"u": username, "e": expiry_ts, "s": sig},
+                         separators=(",", ":")).encode("utf-8")
+    return base64.urlsafe_b64encode(payload).decode("ascii").rstrip("=")
+
+
+def _verify_auth_token(token: str) -> str | None:
+    """Return username if token valid & not expired, else None."""
+    try:
+        pad = "=" * (-len(token) % 4)
+        data = json.loads(base64.urlsafe_b64decode(token + pad).decode("utf-8"))
+        username = data.get("u", "")
+        expiry = int(data.get("e", 0))
+        sig = data.get("s", "")
+        if not username or not sig:
+            return None
+        if time.time() > expiry:
+            return None
+        secret = _get_auth_secret()
+        expected = hmac.new(secret, f"{username}|{expiry}".encode("utf-8"),
+                            hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(sig, expected):
+            return None
+        return username
+    except Exception:
+        return None
+
+
+def _write_token_to_url(username: str):
+    """Persist a 24h auth token into st.query_params so browser refresh / tab reopen
+    can auto-restore the session."""
+    try:
+        import streamlit as st
+        expiry_ts = int(time.time() + _get_session_timeout_minutes() * 60)
+        token = _make_auth_token(username, expiry_ts)
+        st.query_params[_AUTH_TOKEN_KEY] = token
+    except Exception:
+        pass
+
+
+def _clear_token_from_url():
+    try:
+        import streamlit as st
+        if _AUTH_TOKEN_KEY in st.query_params:
+            del st.query_params[_AUTH_TOKEN_KEY]
+    except Exception:
+        pass
+
+
+def _try_restore_from_url() -> bool:
+    """If user has a valid auth token in URL but no session, restore session.
+    Returns True if restored."""
+    try:
+        import streamlit as st
+        if st.session_state.get("_auth_user"):
+            return True  # already logged in
+        token = st.query_params.get(_AUTH_TOKEN_KEY)
+        if not token:
+            return False
+        username = _verify_auth_token(token)
+        if not username:
+            # Expired or tampered — strip it
+            _clear_token_from_url()
+            return False
+        from database import get_user_by_username
+        user = get_user_by_username(username)
+        if not user or not user.get("is_active"):
+            _clear_token_from_url()
+            return False
+        role = user.get("role", "viewer")
+        if role == "admin":
+            role = "director"
+        st.session_state["_auth_user"] = dict(user)
+        st.session_state["_auth_role"] = role
+        st.session_state["_auth_username"] = user["username"]
+        st.session_state["_auth_display"] = user.get("display_name") or user["username"]
+        st.session_state["_auth_last_activity"] = time.time()
+        return True
+    except Exception:
+        return False
 
 # ── Role Privilege Levels ─────────────────────────────────────────────────────
 
@@ -74,12 +188,12 @@ def _clear_failed_attempts(username: str):
 # ── Session Timeout ──────────────────────────────────────────────────────────
 
 def _get_session_timeout_minutes() -> int:
-    """Get session timeout from settings."""
+    """Get session timeout from settings. Default 24 hours."""
     try:
         from settings_engine import get as get_setting
-        return int(get_setting("rbac_session_timeout_min", 30))
+        return int(get_setting("rbac_session_timeout_min", 1440))
     except Exception:
-        return 30
+        return 1440
 
 
 def _check_session_timeout() -> bool:
@@ -161,6 +275,7 @@ def login(username: str, pin: str) -> bool:
             st.session_state["_auth_last_activity"] = time.time()
             update_user(user["id"], {"last_login": _now_ist()})
             _clear_failed_attempts(username)
+            _write_token_to_url(user["username"])
             # Audit log
             try:
                 from database import insert_audit_log
@@ -188,6 +303,7 @@ def logout():
         for key in ["_auth_user", "_auth_role", "_auth_username",
                      "_auth_display", "_auth_last_activity"]:
             st.session_state.pop(key, None)
+        _clear_token_from_url()
         # Audit log
         try:
             from database import insert_audit_log
@@ -270,12 +386,19 @@ def render_login_form() -> bool:
 
     import streamlit as st
 
+    # Try auto-restore from persistent URL token (survives tab/browser close)
+    if not st.session_state.get("_auth_user"):
+        _try_restore_from_url()
+
     # Check session timeout for existing sessions
     if st.session_state.get("_auth_user"):
         if _check_session_timeout():
             _touch_session()
+            # Refresh URL token so expiry rolls forward (sliding 24h window)
+            _write_token_to_url(st.session_state.get("_auth_username", ""))
             return True
         else:
+            _clear_token_from_url()
             st.info("Session expired. Please login again.")
 
     st.markdown("""
