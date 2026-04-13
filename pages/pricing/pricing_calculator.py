@@ -525,3 +525,10 @@ _Terms: 100% Advance. Valid for 24 Hrs._
             st.info("Select configuration and click 'Calculate Cost' to see detailed information.")
         else:
             st.info("Please select a city to begin.")
+
+    # ── Smart navigation: contextual next steps ──
+    try:
+        from navigation_engine import render_next_step_cards
+        render_next_step_cards("🧮 Pricing Calculator")
+    except Exception:
+        pass

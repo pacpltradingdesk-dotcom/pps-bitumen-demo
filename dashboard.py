@@ -200,6 +200,14 @@ if _sidebar_page:
 selected_page = resolve_page(st.session_state.get("selected_page", "🎯 Command Center"))
 st.session_state["selected_page"] = selected_page
 
+# Track page visit for recent-history / "Continue where you left off" widget
+try:
+    from navigation_engine import track_page_visit, render_breadcrumb
+    track_page_visit(selected_page)
+    render_breadcrumb(selected_page)
+except Exception:
+    pass
+
 # Action bar moved to sidebar Quick Actions — no longer rendered in main content
 inject_print_css()
 

@@ -246,3 +246,10 @@ def _render_calendar_tab(crm):
     ms2.metric("Overdue", overdue_count)
     ms3.metric("Due Today", today_count)
     ms4.metric("Upcoming", upcoming_count)
+
+    # ── Smart navigation: contextual next steps ──
+    try:
+        from navigation_engine import render_next_step_cards
+        render_next_step_cards("🎯 CRM & Tasks")
+    except Exception:
+        pass

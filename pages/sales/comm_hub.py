@@ -92,3 +92,10 @@ def render():
 
     except Exception as _e:
         st.error(f"Communication Hub failed to load: {_e}")
+
+    # ── Smart navigation: contextual next steps ──
+    try:
+        from navigation_engine import render_next_step_cards
+        render_next_step_cards("💬 Communication Hub")
+    except Exception:
+        pass

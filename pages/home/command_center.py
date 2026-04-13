@@ -842,3 +842,11 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
 <span style="font-size:0.58rem;color:#94A3B8;">Last Sync: {last_sync} &bull; Page loaded: {now.strftime('%H:%M:%S IST')}</span>
 </div>
 </div>""", unsafe_allow_html=True)
+
+    # ── Smart navigation: Continue + Next Steps ──
+    try:
+        from navigation_engine import render_continue_widget, render_next_step_cards
+        render_continue_widget()
+        render_next_step_cards("🎯 Command Center")
+    except Exception:
+        pass
