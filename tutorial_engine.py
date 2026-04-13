@@ -80,11 +80,14 @@ _STEPS = [
 ]
 
 
-# Hidden Streamlit button labels — these get JS-clicked by the tooltip
-_CTRL_PREV   = "__PPS_TOUR_PREV__"
-_CTRL_NEXT   = "__PPS_TOUR_NEXT__"
-_CTRL_SKIP   = "__PPS_TOUR_SKIP__"
-_CTRL_FINISH = "__PPS_TOUR_FINISH__"
+# Hidden Streamlit button labels — these get JS-clicked by the tooltip.
+# IMPORTANT: do NOT use underscores — Streamlit parses button labels as
+# markdown, so __text__ becomes bold and the underscores get stripped
+# from the rendered DOM, breaking our text-match lookup. Use hyphens.
+_CTRL_PREV   = "PPS-TOUR-PREV-CTRL"
+_CTRL_NEXT   = "PPS-TOUR-NEXT-CTRL"
+_CTRL_SKIP   = "PPS-TOUR-SKIP-CTRL"
+_CTRL_FINISH = "PPS-TOUR-FINISH-CTRL"
 
 
 # ── JS injection ────────────────────────────────────────────────────────────
