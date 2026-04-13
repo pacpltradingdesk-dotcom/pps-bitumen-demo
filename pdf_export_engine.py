@@ -1,13 +1,3 @@
-try:
-    from india_localization import format_inr, format_inr_short, format_date, format_datetime_ist, get_financial_year, get_fy_quarter
-except ImportError:
-    import sys
-    import os
-    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-    try:
-        from india_localization import format_inr, format_inr_short, format_date, format_datetime_ist, get_financial_year, get_fy_quarter
-    except:
-        pass
 """
 PDF Export Engine — PPS Anantams Logistics AI
 =============================================
@@ -28,6 +18,17 @@ Filename convention: <PageName>_DD-MM-YYYY_HHmmIST.pdf
 """
 
 from __future__ import annotations
+
+try:
+    from india_localization import format_inr, format_inr_short, format_date, format_datetime_ist, get_financial_year, get_fy_quarter
+except ImportError:
+    import sys as _sys
+    import os as _os
+    _sys.path.append(_os.path.dirname(_os.path.dirname(__file__)))
+    try:
+        from india_localization import format_inr, format_inr_short, format_date, format_datetime_ist, get_financial_year, get_fy_quarter
+    except Exception:
+        pass
 
 import io
 import json

@@ -1,13 +1,3 @@
-try:
-    from india_localization import format_inr, format_inr_short, format_date, format_datetime_ist, get_financial_year, get_fy_quarter
-except ImportError:
-    import sys
-    import os
-    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-    try:
-        from india_localization import format_inr, format_inr_short, format_date, format_datetime_ist, get_financial_year, get_fy_quarter
-    except:
-        pass
 """
 CRM Automation Dashboard — 6-Tab Streamlit Interface
 =====================================================
@@ -18,6 +8,17 @@ PPS Anantam Capital Pvt Ltd — CRM Automation v1.0
 """
 
 from __future__ import annotations
+
+try:
+    from india_localization import format_inr, format_inr_short, format_date, format_datetime_ist, get_financial_year, get_fy_quarter
+except ImportError:
+    import sys as _sys
+    import os as _os
+    _sys.path.append(_os.path.dirname(_os.path.dirname(__file__)))
+    try:
+        from india_localization import format_inr, format_inr_short, format_date, format_datetime_ist, get_financial_year, get_fy_quarter
+    except Exception:
+        pass
 
 import datetime
 import json
