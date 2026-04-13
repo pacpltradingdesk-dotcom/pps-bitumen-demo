@@ -73,10 +73,19 @@ def render():
         st.write("- **Quoted**: Auto-create Follow-up (2hr)")
         st.write("- **Payment**: Auto-create Daily Reminder")
 
+    # Pre-fill Client Name from active customer context if set
+    _ctx_client_default = ""
+    try:
+        from navigation_engine import get_context
+        _ctx_client_default = get_context("customer_name", "") or ""
+    except Exception:
+        pass
+
     # Quick Add Task
-    with st.expander("➕ Add New Task Manually", expanded=False):
+    with st.expander("➕ Add New Task Manually",
+                     expanded=bool(_ctx_client_default)):
         with st.form("new_task_form"):
-            new_client = st.text_input("Client Name")
+            new_client = st.text_input("Client Name", value=_ctx_client_default)
             new_type = st.selectbox("Task Type", ["Call", "Email", "Visit", "Follow-up", "Payment"])
             new_note = st.text_area("Notes")
             new_priority = st.selectbox("Priority", ["High", "Medium", "Low"])

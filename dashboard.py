@@ -200,11 +200,13 @@ if _sidebar_page:
 selected_page = resolve_page(st.session_state.get("selected_page", "🎯 Command Center"))
 st.session_state["selected_page"] = selected_page
 
-# Track page visit for recent-history / "Continue where you left off" widget
+# Track page visit + breadcrumb + active customer context strip
 try:
-    from navigation_engine import track_page_visit, render_breadcrumb
+    from navigation_engine import (track_page_visit, render_breadcrumb,
+                                    render_active_context_strip)
     track_page_visit(selected_page)
     render_breadcrumb(selected_page)
+    render_active_context_strip()
 except Exception:
     pass
 

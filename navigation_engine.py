@@ -725,14 +725,87 @@ NEXT_STEPS: dict[str, list[dict]] = {
 # Core navigation helper
 # ═══════════════════════════════════════════════════════════════════════════
 
-def navigate_to(page: str):
-    """Programmatically jump to a page. Sets module + page + rerun."""
+def navigate_to(page: str, ctx: dict | None = None):
+    """
+    Programmatically jump to a page. Sets module + page + rerun.
+    Optionally merges a context dict (customer, grade, etc.) into
+    the global context bucket so the target page can pre-fill.
+    """
+    if ctx:
+        for k, v in ctx.items():
+            set_context(k, v)
     page = resolve_page(page)
     module = get_module_for_page(page)
     if module:
         st.session_state["_active_module"] = module
     st.session_state["selected_page"] = page
     st.rerun()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Global Context — shared data bucket that persists across pages
+# ═══════════════════════════════════════════════════════════════════════════
+# Standard keys:
+#   customer_name   — primary customer full name
+#   customer_id     — DB row id (if known)
+#   customer_phone  — 10-digit or +91-prefixed
+#   customer_email
+#   customer_city
+#   customer_state
+#   customer_category — "Purchase Party" / "Sales Client" / etc
+#   customer_grade  — preferred bitumen grade (VG30 / VG10)
+#   active_deal_id
+#   active_quote_id
+
+_CTX_KEY = "_ctx"
+
+
+def set_context(key: str, value):
+    """Set a global context value that persists across pages."""
+    st.session_state.setdefault(_CTX_KEY, {})[key] = value
+
+
+def get_context(key: str, default=None):
+    """Read a context value. Returns default if not set."""
+    return st.session_state.get(_CTX_KEY, {}).get(key, default)
+
+
+def clear_context(key: str | None = None):
+    """Clear one key or (if key is None) the entire context bucket."""
+    ctx = st.session_state.get(_CTX_KEY, {})
+    if key is None:
+        st.session_state[_CTX_KEY] = {}
+    elif key in ctx:
+        del ctx[key]
+
+
+def all_context() -> dict:
+    """Return a shallow copy of the full context bucket."""
+    return dict(st.session_state.get(_CTX_KEY, {}))
+
+
+def set_active_customer(name: str, phone: str = "", email: str = "",
+                        city: str = "", state: str = "",
+                        category: str = "", cid=None, grade: str = ""):
+    """Convenience: set all customer-related context fields at once."""
+    set_context("customer_name",  name or "")
+    set_context("customer_phone", phone or "")
+    set_context("customer_email", email or "")
+    set_context("customer_city",  city or "")
+    set_context("customer_state", state or "")
+    set_context("customer_category", category or "")
+    if cid is not None:
+        set_context("customer_id", cid)
+    if grade:
+        set_context("customer_grade", grade)
+
+
+def clear_active_customer():
+    """Remove all customer context fields."""
+    for k in ("customer_name", "customer_id", "customer_phone", "customer_email",
+              "customer_city", "customer_state", "customer_category",
+              "customer_grade"):
+        clear_context(k)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -893,6 +966,139 @@ def render_breadcrumb(current_page: str):
 """,
         unsafe_allow_html=True,
     )
+
+
+def render_active_context_strip():
+    """
+    If a customer is set in context, show a compact strip under the
+    breadcrumb: "👤 Rohan Kumar · Pune · VG30 · [Clear]"
+    Nothing rendered when context is empty.
+    """
+    name = get_context("customer_name")
+    if not name:
+        return
+
+    parts = [f"👤 <b>{name}</b>"]
+    city  = get_context("customer_city")
+    state = get_context("customer_state")
+    loc = " · ".join(x for x in [city, state] if x)
+    if loc:
+        parts.append(f"<span style='color:#6B7280;'>{loc}</span>")
+    grade = get_context("customer_grade")
+    if grade:
+        parts.append(f"<span style='color:#059669;font-weight:600;'>{grade}</span>")
+    phone = get_context("customer_phone")
+    if phone:
+        parts.append(f"<span style='color:#6B7280;'>📞 {phone}</span>")
+
+    content = " · ".join(parts)
+    st.markdown(
+        f"""
+<div style="display:flex;align-items:center;justify-content:space-between;
+            background:linear-gradient(90deg,#ECFDF5,#F0FDF4);
+            border:1px solid #BBF7D0;border-radius:10px;padding:8px 16px;
+            margin:-8px 0 14px 0;font-size:0.82rem;color:#064E3B;">
+  <div>{content}</div>
+  <div style="font-size:0.7rem;color:#059669;font-weight:600;">
+    Active Customer · sab pages pe use hogi
+  </div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+    # Clear button (small, right-aligned)
+    _sp, _btn = st.columns([9, 1])
+    with _btn:
+        if st.button("Clear", key="_ctx_clear_btn", use_container_width=True,
+                     help="Reset active customer — sab pages ka pre-fill hat jayega"):
+            clear_active_customer()
+            st.rerun()
+
+
+@st.cache_data(ttl=600)
+def _load_contact_options(limit: int = 1000) -> list[dict]:
+    """Load top contacts for the picker dropdown (cached)."""
+    try:
+        from database import get_connection
+        conn = get_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute("""
+                SELECT rowid, name, phone, email, city, state, category
+                FROM tbl_contacts
+                WHERE name IS NOT NULL AND name != ''
+                ORDER BY rowid DESC
+                LIMIT ?
+            """, (limit,))
+            rows = cur.fetchall()
+            return [{
+                "id":    r[0],
+                "name":  r[1] or "",
+                "phone": r[2] or "",
+                "email": r[3] or "",
+                "city":  r[4] or "",
+                "state": r[5] or "",
+                "category": r[6] or "",
+            } for r in rows if r[1]]
+        finally:
+            try: cur.close()
+            except Exception: pass
+    except Exception:
+        return []
+
+
+def render_customer_picker_sidebar():
+    """
+    Compact customer picker for the sidebar. Uses a searchable selectbox
+    over the contacts DB. Setting here updates global context immediately.
+    """
+    with st.expander("🎯 Active Customer", expanded=bool(get_context("customer_name"))):
+        current = get_context("customer_name") or ""
+        if current:
+            st.caption(f"Currently: **{current}**")
+
+        contacts = _load_contact_options(1000)
+        if not contacts:
+            st.caption("Koi contact nahi mila — DB empty.")
+            return
+
+        # Build option labels
+        options = ["(none)"] + [
+            f'{c["name"]}  ·  {c["city"]}' if c["city"] else c["name"]
+            for c in contacts
+        ]
+        # Find current index
+        default_idx = 0
+        if current:
+            for i, c in enumerate(contacts):
+                if c["name"] == current:
+                    default_idx = i + 1
+                    break
+
+        sel = st.selectbox(
+            "Pick customer",
+            options,
+            index=default_idx,
+            key="_ctx_picker",
+            label_visibility="collapsed",
+        )
+        if sel and sel != "(none)":
+            # Find selected contact
+            for c in contacts:
+                label = f'{c["name"]}  ·  {c["city"]}' if c["city"] else c["name"]
+                if label == sel:
+                    if c["name"] != current:
+                        set_active_customer(
+                            name=c["name"], phone=c["phone"], email=c["email"],
+                            city=c["city"], state=c["state"],
+                            category=c["category"], cid=c["id"],
+                        )
+                        st.rerun()
+                    break
+        elif sel == "(none)" and current:
+            clear_active_customer()
+            st.rerun()
 
 
 def render_journey_tips(current_page: str):

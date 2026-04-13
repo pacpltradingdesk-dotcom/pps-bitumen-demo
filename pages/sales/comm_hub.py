@@ -22,6 +22,17 @@ def render():
 """, unsafe_allow_html=True)
 
     st.info("Auto-generates WhatsApp, Email, and Call scripts for sales team.")
+
+    # Pull context (customer name + city + grade) for pre-fill
+    _ctx_cust = ""; _ctx_city_v = ""; _ctx_grade = "VG30"
+    try:
+        from navigation_engine import get_context
+        _ctx_cust   = get_context("customer_name", "") or ""
+        _ctx_city_v = get_context("customer_city", "") or ""
+        _ctx_grade  = get_context("customer_grade", "VG30") or "VG30"
+    except Exception:
+        pass
+
     try:
         from communication_engine import CommunicationHub
 
@@ -32,10 +43,14 @@ def render():
             _msg_type = st.selectbox("Message Type", ["Offer", "Follow-up", "Reactivation", "Payment Reminder"])
             _cc1, _cc2 = st.columns(2)
             with _cc1:
-                _comm_cust = st.text_input("Customer Name", placeholder="e.g. L&T Construction", key="comm_cust")
-                _comm_city = st.text_input("City", placeholder="e.g. Mumbai", key="comm_city")
+                _comm_cust = st.text_input("Customer Name", value=_ctx_cust,
+                                           placeholder="e.g. L&T Construction", key="comm_cust")
+                _comm_city = st.text_input("City", value=_ctx_city_v,
+                                           placeholder="e.g. Mumbai", key="comm_city")
             with _cc2:
-                _comm_grade = st.selectbox("Grade", ["VG30", "VG10", "VG40"], key="comm_grade")
+                _grade_opts = ["VG30", "VG10", "VG40"]
+                _grade_idx = _grade_opts.index(_ctx_grade) if _ctx_grade in _grade_opts else 0
+                _comm_grade = st.selectbox("Grade", _grade_opts, index=_grade_idx, key="comm_grade")
                 _comm_qty = st.number_input("Quantity (MT)", min_value=10, value=100, step=10, key="comm_qty")
             _comm_price = st.number_input("Price (INR/MT)", min_value=20000, max_value=80000, value=42000, step=500, key="comm_price")
 

@@ -63,14 +63,30 @@ def render():
 
     optimizer = _get_optimizer()
 
+    # Pull any pre-selected customer from global context (set by picker / nav)
+    _ctx_customer = ""
+    _ctx_city     = ""
+    _ctx_state    = ""
+    try:
+        from navigation_engine import get_context
+        _ctx_customer = get_context("customer_name", "") or ""
+        _ctx_city     = get_context("customer_city", "") or ""
+        _ctx_state    = get_context("customer_state", "") or ""
+    except Exception:
+        pass
+
     col_left, col_mid, col_right = st.columns([1.2, 1.3, 2.0])
 
     # --- COLUMN 1: SELECTION PANEL & SALES CONTEXT ---
     with col_left:
         st.markdown("### \U0001f50d Parameters & Context")
 
-        # 1. Selection Mode
-        search_mode = st.radio("Search By", ["Location", "Customer"], horizontal=True, label_visibility="collapsed")
+        # 1. Selection Mode — auto-switch to Customer mode if context set
+        _default_mode = "Customer" if _ctx_customer else "Location"
+        _mode_idx = ["Location", "Customer"].index(_default_mode)
+        search_mode = st.radio("Search By", ["Location", "Customer"],
+                                index=_mode_idx,
+                                horizontal=True, label_visibility="collapsed")
 
         selected_city = None
         selected_client_name = None
@@ -80,21 +96,27 @@ def render():
 
             all_cities = sorted(list(CITY_STATE_MAP.keys()))
             state_options = ["All States"] + ALL_STATES
-            selected_state = st.selectbox("\U0001f4cd Select State", state_options, key="state_select")
+            # Pre-select from context if available
+            _state_default = state_options.index(_ctx_state) if _ctx_state in state_options else 0
+            selected_state = st.selectbox("\U0001f4cd Select State", state_options,
+                                          index=_state_default, key="state_select")
 
             if selected_state == "All States":
                 city_options = all_cities
             else:
                 city_options = sorted(get_cities_by_state(selected_state))
 
-            selected_city = st.selectbox("\U0001f3d9\ufe0f Select City", city_options, key="city_select")
+            _city_default = city_options.index(_ctx_city) if _ctx_city in city_options else 0
+            selected_city = st.selectbox("\U0001f3d9\ufe0f Select City", city_options,
+                                          index=_city_default, key="city_select")
 
             if selected_city and selected_state == "All States":
                 detected_state = get_state_by_city(selected_city)
 
         else:
             cust_names = sorted(list(customer_city_map.keys()))
-            selected_cust = st.selectbox("Select Customer", cust_names)
+            _cust_default = cust_names.index(_ctx_customer) if _ctx_customer in cust_names else 0
+            selected_cust = st.selectbox("Select Customer", cust_names, index=_cust_default)
             if selected_cust:
                 selected_city = customer_city_map[selected_cust]
                 selected_client_name = selected_cust

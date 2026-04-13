@@ -140,8 +140,16 @@ def render_sidebar_features(module: str) -> str:
                 st.session_state["selected_page"] = tab["page"]
                 st.rerun()
 
+        # ── Active Customer Picker ─────────────────────────────────────
+        st.markdown('<div style="margin-top:20px;"></div>', unsafe_allow_html=True)
+        try:
+            from navigation_engine import render_customer_picker_sidebar
+            render_customer_picker_sidebar()
+        except Exception:
+            pass
+
         # ── Quick Find + Tutorial buttons ──────────────────────────────
-        st.markdown('<div style="margin-top:24px;"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="margin-top:18px;"></div>', unsafe_allow_html=True)
         try:
             from command_palette import (render_command_palette_button,
                                          render_command_palette,

@@ -88,6 +88,31 @@ def render():
             if len(filtered) > 500:
                 st.warning(f"Showing first 500 of {len(filtered):,}. Use search to narrow down.")
 
+            # ── Set Active Customer from this list ─────────────────────
+            st.markdown("##### 🎯 Set Active Customer")
+            st.caption("Kisi ek contact ko 'Active' banao — uska data Pricing Calc, Comm Hub, CRM sab pe auto-fill ho jayega.")
+            _names = [c.get("name", "") for c in filtered[:500] if c.get("name")]
+            if _names:
+                _pick = st.selectbox("Contact chuno", ["(select)"] + _names, key="_pick_active_contact")
+                if _pick and _pick != "(select)":
+                    _c = next((c for c in filtered if c.get("name") == _pick), None)
+                    if _c and st.button(f"Set '{_pick}' as Active",
+                                         key="_set_active_contact_btn",
+                                         type="primary", use_container_width=True):
+                        try:
+                            from navigation_engine import set_active_customer
+                            set_active_customer(
+                                name=_c.get("name", ""),
+                                phone=str(_c.get("contact", "") or ""),
+                                city=_c.get("city", "") or "",
+                                state=_c.get("state", "") or "",
+                                category=_c.get("category", "") or "",
+                            )
+                            st.success(f"✅ Active: {_c['name']} — ab har page pe yeh customer pre-filled hoga.")
+                            st.rerun()
+                        except Exception as _e:
+                            st.error(f"Failed: {_e}")
+
             # Export
             exp_col1, exp_col2 = st.columns(2)
             with exp_col1:
