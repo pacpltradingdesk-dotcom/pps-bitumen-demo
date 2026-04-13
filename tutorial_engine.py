@@ -225,24 +225,27 @@ def _inject_tour_js(step: dict, idx: int, total: int):
       el.classList.remove('pps-tour-target');
     });
 
-    // ─── Hide the Streamlit control buttons (PREV/NEXT/SKIP/FINISH) ────
+    // ─── Find & hide the Streamlit control buttons (PREV/NEXT/SKIP/FINISH) ──
+    // IMPORTANT: do NOT use pointer-events:none, visibility:hidden, or
+    // display:none — all of those block programmatic .click() calls.
+    // Move off-screen with absolute positioning only.
     var ctrlLabels = [DATA.ctrl_prev, DATA.ctrl_next, DATA.ctrl_skip, DATA.ctrl_finish];
     var ctrlButtons = {};
     doc.querySelectorAll('button').forEach(function(btn) {
       var txt = (btn.textContent || '').trim();
       for (var j = 0; j < ctrlLabels.length; j++) {
-        if (txt === ctrlLabels[j]) {
+        // Use includes() instead of === in case streamlit adds whitespace
+        if (txt === ctrlLabels[j] || txt.indexOf(ctrlLabels[j]) !== -1) {
           ctrlButtons[ctrlLabels[j]] = btn;
-          // Hide the wrapping Streamlit block if possible
-          var wrap = btn.closest('.stButton') || btn.parentElement;
-          if (wrap && wrap.style.display !== 'none') {
+          // Hide the Streamlit wrapper by moving far off-screen.
+          var wrap = btn.closest('.stButton') || btn.closest('[data-testid="stButton"]') || btn.parentElement;
+          if (wrap) {
             wrap.style.position = 'absolute';
-            wrap.style.left = '-9999px';
-            wrap.style.top = '0';
+            wrap.style.left = '-99999px';
+            wrap.style.top = '-99999px';
             wrap.style.width = '1px';
             wrap.style.height = '1px';
             wrap.style.overflow = 'hidden';
-            wrap.style.pointerEvents = 'none';
           }
         }
       }
@@ -371,8 +374,31 @@ def _inject_tour_js(step: dict, idx: int, total: int):
     // ─── Wire tooltip buttons to hidden Streamlit controls ──────
     function clickCtrl(label) {
       var btn = ctrlButtons[label];
+      if (!btn) {
+        // Fallback: re-scan parent doc for the button (may have re-rendered)
+        var all = doc.querySelectorAll('button');
+        for (var i = 0; i < all.length; i++) {
+          var t = (all[i].textContent || '').trim();
+          if (t === label || t.indexOf(label) !== -1) { btn = all[i]; break; }
+        }
+      }
       if (btn) {
-        btn.click();
+        // Native click — most reliable when button isn't blocked by
+        // pointer-events:none or display:none. Do NOT also dispatchEvent,
+        // doing both fires the click twice → double state change.
+        try {
+          btn.click();
+        } catch (e) {
+          try {
+            btn.dispatchEvent(new MouseEvent('click', {
+              bubbles: true, cancelable: true, view: win
+            }));
+          } catch (e2) {
+            console.warn('PPS tour: click failed', e2);
+          }
+        }
+      } else {
+        console.warn('PPS tour: control button not found:', label);
       }
     }
 
