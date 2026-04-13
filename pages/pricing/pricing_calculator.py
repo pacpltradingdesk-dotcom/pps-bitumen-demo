@@ -523,6 +523,30 @@ def render():
                     use_container_width=True
                 )
 
+            # Premium PDF (new branded version)
+            try:
+                from share_formatter import build_quote_pdf
+                _premium_pdf = build_quote_pdf(
+                    client_name_for_pdf or (selected_client_name or "Customer"),
+                    selected_city or "",
+                    product_name or "VG30",
+                    100,
+                    float(final_cost or 0),
+                    source=source_name or "",
+                    quote_no=quote_no,
+                )
+                if _premium_pdf:
+                    st.download_button(
+                        label="✨ Download Premium Branded PDF",
+                        data=_premium_pdf,
+                        file_name=f"PPS_Premium_Quote_{quote_no}.pdf",
+                        mime="application/pdf",
+                        use_container_width=True,
+                        key="dl_premium_price_pdf",
+                    )
+            except Exception:
+                pass
+
             # WHATSAPP INTEGRATION
             wa_message = f"""*PPS Anantams Price Offer* \U0001f69b
 Product: {product_name}

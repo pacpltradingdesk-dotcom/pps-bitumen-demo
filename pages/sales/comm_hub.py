@@ -56,31 +56,93 @@ def render():
 
             _channel = st.radio("Channel", ["WhatsApp", "Email", "Call Script"], horizontal=True)
 
+            # Try premium formatter, fallback to legacy templates
+            try:
+                from share_formatter import (
+                    format_quote_whatsapp, format_followup_whatsapp,
+                    format_reactivation_whatsapp, format_payment_reminder_whatsapp,
+                    format_quote_telegram, format_quote_email_html,
+                )
+                _premium = True
+            except Exception:
+                _premium = False
+
             if st.button("Generate", type="primary", use_container_width=True, key="comm_gen"):
                 if _comm_cust:
                     if _channel == "WhatsApp":
-                        if _msg_type == "Offer":
-                            _msg = _comm.whatsapp_offer(_comm_cust, _comm_city, _comm_grade, _comm_qty, _comm_price)
-                        elif _msg_type == "Follow-up":
-                            _msg = _comm.whatsapp_followup(_comm_cust)
-                        elif _msg_type == "Reactivation":
-                            _msg = _comm.whatsapp_reactivation(_comm_cust, _comm_city, _comm_price, _comm_price + 2000, 2000)
+                        if _premium and _msg_type == "Offer":
+                            _msg = format_quote_whatsapp(_comm_cust, _comm_city,
+                                    _comm_grade, _comm_qty, _comm_price)
+                        elif _premium and _msg_type == "Follow-up":
+                            _msg = format_followup_whatsapp(_comm_cust)
+                        elif _premium and _msg_type == "Reactivation":
+                            _msg = format_reactivation_whatsapp(_comm_cust,
+                                    _comm_city, _comm_price, _comm_price + 2000)
+                        elif _premium and _msg_type == "Payment Reminder":
+                            _msg = format_payment_reminder_whatsapp(_comm_cust,
+                                    500000, days_overdue=0)
                         else:
-                            _msg = _comm.whatsapp_payment_reminder(_comm_cust, 500000)
-                        st.text_area("WhatsApp Message (copy & send):", _msg, height=300)
+                            # Legacy fallback
+                            if _msg_type == "Offer":
+                                _msg = _comm.whatsapp_offer(_comm_cust, _comm_city, _comm_grade, _comm_qty, _comm_price)
+                            elif _msg_type == "Follow-up":
+                                _msg = _comm.whatsapp_followup(_comm_cust)
+                            elif _msg_type == "Reactivation":
+                                _msg = _comm.whatsapp_reactivation(_comm_cust, _comm_city, _comm_price, _comm_price + 2000, 2000)
+                            else:
+                                _msg = _comm.whatsapp_payment_reminder(_comm_cust, 500000)
+                        st.text_area("📱 WhatsApp Message (copy & send):", _msg,
+                                     height=380, key="wa_out")
+                        st.caption("✨ Premium format — Unicode box headers, sectioned content, full bank + CTA footer.")
+
                     elif _channel == "Email":
-                        if _msg_type == "Offer":
-                            _email = _comm.email_offer(_comm_cust, _comm_city, _comm_grade, _comm_qty, _comm_price)
+                        if _premium and _msg_type == "Offer":
+                            _email = format_quote_email_html(_comm_cust,
+                                    _comm_city, _comm_grade, _comm_qty, _comm_price)
+                            st.text_input("Subject:", _email["subject"], key="email_subj_out")
+                            _prev_t, _prev_h = st.tabs(["📄 Text", "🎨 HTML Preview"])
+                            with _prev_t:
+                                st.text_area("Plain text body:", _email["body_text"], height=300)
+                            with _prev_h:
+                                st.markdown("Preview of what recipient will see:")
+                                st.components.v1.html(_email["body_html"], height=640, scrolling=True)
                         else:
-                            _email = _comm.email_followup(_comm_cust, city=_comm_city, price=_comm_price)
-                        st.text_input("Subject:", _email.get("subject", ""), key="email_subj_out")
-                        st.text_area("Body:", _email.get("body", ""), height=350)
+                            if _msg_type == "Offer":
+                                _email = _comm.email_offer(_comm_cust, _comm_city, _comm_grade, _comm_qty, _comm_price)
+                            else:
+                                _email = _comm.email_followup(_comm_cust, city=_comm_city, price=_comm_price)
+                            st.text_input("Subject:", _email.get("subject", ""), key="email_subj_out")
+                            st.text_area("Body:", _email.get("body", ""), height=350)
                     else:
                         _script = _comm.call_script_offer(_comm_cust, _comm_city, _comm_grade, _comm_price)
                         st.text_area("Call Script:", _script, height=400)
 
                     _comm.log_communication(_comm_cust, _channel, _msg_type)
                     st.success(f"{_channel} {_msg_type} generated and logged.")
+
+                    # Optional: Premium PDF + Telegram variants
+                    if _premium and _msg_type == "Offer":
+                        _ex1, _ex2 = st.columns(2)
+                        with _ex1:
+                            try:
+                                from share_formatter import build_quote_pdf
+                                _pdf = build_quote_pdf(_comm_cust, _comm_city,
+                                        _comm_grade, _comm_qty, _comm_price)
+                                if _pdf:
+                                    st.download_button("📄 Download Premium PDF Quote",
+                                        data=_pdf,
+                                        file_name=f"PPS_Quote_{_comm_cust.replace(' ','_')}_{_comm_grade}.pdf",
+                                        mime="application/pdf",
+                                        use_container_width=True,
+                                        key="dl_premium_pdf")
+                            except Exception as _e:
+                                st.caption(f"PDF gen: {_e}")
+                        with _ex2:
+                            _tg = format_quote_telegram(_comm_cust, _comm_city,
+                                    _comm_grade, _comm_qty, _comm_price)
+                            with st.popover("✈️ Telegram Version", use_container_width=True):
+                                st.caption("Markdown-v2 escaped for Telegram bot:")
+                                st.code(_tg, language="markdown")
                 else:
                     st.warning("Please enter customer name.")
 

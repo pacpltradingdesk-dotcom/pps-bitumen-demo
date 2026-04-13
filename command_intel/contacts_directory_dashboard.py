@@ -114,18 +114,34 @@ def render():
                             st.error(f"Failed: {_e}")
 
             # Export
-            exp_col1, exp_col2 = st.columns(2)
+            exp_col1, exp_col2, exp_col3 = st.columns(3)
             with exp_col1:
                 full_df = pd.DataFrame(filtered)
                 csv = full_df.to_csv(index=False)
-                st.download_button("📥 Export CSV", data=csv,
+                st.download_button("📥 CSV", data=csv,
                                    file_name="pps_contacts_export.csv", mime="text/csv",
                                    use_container_width=True)
             with exp_col2:
                 json_str = json.dumps(filtered, indent=2, default=str)
-                st.download_button("📥 Export JSON", data=json_str,
+                st.download_button("📥 JSON", data=json_str,
                                    file_name="pps_contacts_export.json", mime="application/json",
                                    use_container_width=True)
+            with exp_col3:
+                # Premium styled XLSX
+                try:
+                    from share_formatter import build_styled_excel
+                    xlsx_bytes = build_styled_excel(
+                        {"Contacts": filtered[:5000]},
+                        title="Contacts Directory Export",
+                    )
+                    if xlsx_bytes:
+                        st.download_button("✨ Premium XLSX", data=xlsx_bytes,
+                            file_name="pps_contacts_premium.xlsx",
+                            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                            use_container_width=True,
+                            key="dl_premium_contacts_xlsx")
+                except Exception:
+                    pass
         else:
             st.info("No contacts match your search criteria.")
 
