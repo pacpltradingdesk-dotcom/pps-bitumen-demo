@@ -68,6 +68,13 @@ def render(mkt: dict, _CONFIDENCE_OK: bool = False, render_data_health_card=None
         Optional callable to render the data-health card (Phase D).
     """
 
+    # Auto-refresh stale caches on page load (safety net for dead schedulers)
+    try:
+        from freshness_guard import ensure_fresh
+        ensure_fresh(show_spinner=True)
+    except Exception:
+        pass
+
     # ── Load data for Home dashboard ─────────────────────────────────────────
     # Price prediction data — cached
     try:

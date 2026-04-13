@@ -505,6 +505,13 @@ def render_market_ticker():
       3. Refinery  (TTL 6 hr)    -- IOCL/BPCL/HPCL VG-30 prices
       4. Import    (TTL 3 hr)    -- Drum & bulk import prices
     """
+    # Auto-refresh stale caches (safety net for dead background schedulers)
+    try:
+        from freshness_guard import ensure_fresh
+        ensure_fresh(show_spinner=False)
+    except Exception:
+        pass
+
     tenders  = _fetch_tender_news()
     markets  = _fetch_global_markets()
     refinery = _fetch_refinery_prices()
