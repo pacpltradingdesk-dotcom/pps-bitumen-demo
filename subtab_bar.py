@@ -131,6 +131,9 @@ def render_sidebar_features(module: str) -> str:
         if st.button("📖 Tutorial", key="_sidebar_tutorial_btn",
                      use_container_width=True, help="Dashboard ka guided tutorial"):
             st.session_state["_show_tutorial"] = True
+        # Auto-open tutorial on first login (welcome flow)
+        if st.session_state.pop("_welcome_pending", False):
+            st.session_state["_show_tutorial"] = True
         if st.session_state.get("_show_tutorial"):
             try:
                 from tutorial_engine import render_tutorial_dialog

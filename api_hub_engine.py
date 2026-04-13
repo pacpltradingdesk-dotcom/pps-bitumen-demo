@@ -453,14 +453,38 @@ def _append_tbl(
                 rec["_source_confidence"] = source_confidence
             if source_provider:
                 rec["_source_provider"] = source_provider
-            # Dedup: skip if same benchmark/key + same minute already exists
+            # Dedup key priority:
+            #   1. url (news articles)
+            #   2. benchmark / from_currency / city (market/fx/weather)
+            #   3. headline (fallback for news without url)
+            # Without this, news records with empty benchmark field all dedupe
+            # against each other within the same minute → only 1 per minute saved.
             ts_prefix = str(rec.get("date_time", ""))[:16]
-            bm = rec.get("benchmark", rec.get("from_currency", rec.get("city", "")))
-            is_dup = any(
-                str(e.get("date_time", ""))[:16] == ts_prefix
-                and e.get("benchmark", e.get("from_currency", e.get("city", ""))) == bm
-                for e in existing[-50:]  # check last 50 only for speed
+            dedup_key = (
+                rec.get("url")
+                or rec.get("benchmark")
+                or rec.get("from_currency")
+                or rec.get("city")
+                or rec.get("headline", "")[:80]
             )
+            def _key_of(e):
+                return (
+                    e.get("url")
+                    or e.get("benchmark")
+                    or e.get("from_currency")
+                    or e.get("city")
+                    or e.get("headline", "")[:80]
+                )
+            # If dedup_key is a URL/headline, match by that key alone (any time).
+            # Otherwise fall back to same-minute + same-bm dedupe for time-series data.
+            if rec.get("url") or rec.get("headline"):
+                is_dup = any(_key_of(e) == dedup_key for e in existing[-200:])
+            else:
+                is_dup = any(
+                    str(e.get("date_time", ""))[:16] == ts_prefix
+                    and _key_of(e) == dedup_key
+                    for e in existing[-50:]
+                )
             if not is_dup:
                 existing.append(rec)
         if len(existing) > max_records:

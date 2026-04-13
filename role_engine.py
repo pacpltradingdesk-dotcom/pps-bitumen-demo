@@ -273,6 +273,8 @@ def login(username: str, pin: str) -> bool:
             st.session_state["_auth_username"] = user["username"]
             st.session_state["_auth_display"] = user.get("display_name") or user["username"]
             st.session_state["_auth_last_activity"] = time.time()
+            # First-login welcome flag — tutorial auto-opens once per session
+            st.session_state["_welcome_pending"] = True
             update_user(user["id"], {"last_login": _now_ist()})
             _clear_failed_attempts(username)
             _write_token_to_url(user["username"])
