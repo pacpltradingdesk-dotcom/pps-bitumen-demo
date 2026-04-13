@@ -874,3 +874,625 @@ def build_quote_pdf(customer_name: str, city: str, grade: str,
 
     doc.build(story)
     return buf.getvalue()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Shared branded header helper
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _branded_header(doc_type_label: str, _font_name: str, _font_bold: str,
+                     styles, mm, Table, TableStyle, Paragraph, Spacer, colors,
+                     ParagraphStyle):
+    """Shared header band with logo + title + tagline. Returns list of flowables."""
+    import os as _os
+    from reportlab.platypus import Image as _RLImage
+
+    brand_title = ParagraphStyle("brand_title_" + doc_type_label,
+                                  parent=styles["Heading1"],
+                                  fontName=_font_bold, fontSize=18,
+                                  textColor=colors.white, leading=22)
+    brand_sub   = ParagraphStyle("brand_sub_" + doc_type_label,
+                                  parent=styles["Normal"], fontName=_font_bold,
+                                  fontSize=8, textColor=colors.HexColor(BRAND["gold"]),
+                                  spaceBefore=2, leading=11)
+    brand_tag   = ParagraphStyle("brand_tag_" + doc_type_label,
+                                  parent=styles["Normal"], fontName=_font_name,
+                                  fontSize=7.5, textColor=colors.HexColor(BRAND["gold"]),
+                                  leading=10)
+    brand_loc   = ParagraphStyle("brand_loc_" + doc_type_label,
+                                  parent=styles["Normal"], fontName=_font_name,
+                                  fontSize=8, textColor=colors.HexColor("#CBD5E1"),
+                                  leading=11)
+
+    logo_path = _os.path.join(_os.path.dirname(__file__), COMPANY["logo"])
+    logo_obj = ""
+    if _os.path.exists(logo_path):
+        try:
+            logo_obj = _RLImage(logo_path, width=22 * mm, height=22 * mm)
+        except Exception:
+            pass
+
+    right_block = [
+        Paragraph(f"<b>{doc_type_label}</b>", brand_sub),
+        Paragraph(COMPANY["short"], brand_title),
+        Paragraph(f"<i>{COMPANY['tagline']}</i>", brand_tag),
+        Paragraph(f"Enterprise Bitumen Desk &middot; {COMPANY['city']}", brand_loc),
+    ]
+    right_tbl = Table([[p] for p in right_block], colWidths=[152 * mm])
+    right_tbl.setStyle(TableStyle([
+        ("LEFTPADDING",  (0, 0), (-1, -1), 0),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+        ("TOPPADDING",   (0, 0), (-1, -1), 0),
+        ("BOTTOMPADDING",(0, 0), (-1, -1), 1),
+    ]))
+    hdr = Table([[logo_obj, right_tbl]], colWidths=[26 * mm, 154 * mm])
+    hdr.setStyle(TableStyle([
+        ("BACKGROUND",    (0, 0), (-1, -1), colors.HexColor(BRAND["navy"])),
+        ("LEFTPADDING",   (0, 0), (-1, -1), 14),
+        ("RIGHTPADDING",  (0, 0), (-1, -1), 14),
+        ("TOPPADDING",    (0, 0), (-1, -1), 12),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 14),
+        ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
+    ]))
+    gold_div = Table([[""]], colWidths=[180 * mm], rowHeights=[2.5])
+    gold_div.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(BRAND["gold"])),
+    ]))
+    return [hdr, gold_div, Spacer(1, 8)]
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# TAX INVOICE
+# ═══════════════════════════════════════════════════════════════════════════
+
+def build_invoice_pdf(customer_name: str, customer_gst: str,
+                      customer_address: str, customer_state: str,
+                      invoice_no: str, invoice_date: str,
+                      items: list[dict],  # [{'desc','qty','rate'}, ...]
+                      place_of_supply: str = "") -> bytes:
+    """
+    Premium Tax Invoice PDF.
+    items = list of dicts with desc/qty/rate (₹ per MT).
+    IGST if inter-state, else CGST+SGST.
+    """
+    try:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import mm
+        from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
+                                         Table, TableStyle)
+        from reportlab.lib.enums import TA_LEFT, TA_CENTER
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+    except ImportError:
+        return b""
+
+    # Font registration (same as quote)
+    _font_name = "Helvetica"
+    _font_bold = "Helvetica-Bold"
+    _rupee = "Rs."
+    for candidate, bold_candidate, paths in [
+        ("DejaVuSans", "DejaVuSans-Bold",
+         ["C:/Windows/Fonts/DejaVuSans.ttf",
+          "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"]),
+        ("Arial", "Arial-Bold",
+         ["C:/Windows/Fonts/arial.ttf", "/Library/Fonts/Arial.ttf"]),
+    ]:
+        for p in paths:
+            try:
+                import os as _os
+                if _os.path.exists(p):
+                    pdfmetrics.registerFont(TTFont(candidate, p))
+                    bp = p.replace(".ttf", "-Bold.ttf")
+                    if candidate == "Arial":
+                        bp = "C:/Windows/Fonts/arialbd.ttf"
+                    if _os.path.exists(bp):
+                        pdfmetrics.registerFont(TTFont(bold_candidate, bp))
+                        _font_bold = bold_candidate
+                    else:
+                        _font_bold = candidate
+                    _font_name = candidate
+                    _rupee = "\u20b9"
+                    break
+            except Exception:
+                continue
+        if _font_name != "Helvetica":
+            break
+
+    is_inter_state = customer_state and "Gujarat" not in customer_state
+
+    # Compute totals
+    taxable = sum(it["qty"] * it["rate"] for it in items)
+    if is_inter_state:
+        igst = taxable * 0.18
+        cgst = sgst = 0
+    else:
+        cgst = sgst = taxable * 0.09
+        igst = 0
+    grand = taxable + cgst + sgst + igst
+
+    def _fmt_amt(n):
+        return fmt_inr(n).lstrip("\u20b9")
+
+    buf = _io.BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=A4,
+                             leftMargin=15 * mm, rightMargin=15 * mm,
+                             topMargin=12 * mm, bottomMargin=12 * mm,
+                             title=f"Invoice {invoice_no}",
+                             author=COMPANY["name"])
+    styles = getSampleStyleSheet()
+    normal = ParagraphStyle("n", parent=styles["Normal"], fontName=_font_name,
+                             fontSize=9, leading=13)
+    small  = ParagraphStyle("s", parent=styles["Normal"], fontName=_font_name,
+                             fontSize=7.5, textColor=colors.HexColor(BRAND["grey_500"]),
+                             leading=10)
+    section_h = ParagraphStyle("sh", parent=styles["Heading3"], fontName=_font_bold,
+                                fontSize=10, textColor=colors.HexColor(BRAND["navy_light"]),
+                                spaceAfter=4, spaceBefore=10, leading=14)
+    footer = ParagraphStyle("f", parent=styles["Normal"], fontName=_font_name,
+                             fontSize=7, textColor=colors.HexColor("#9CA3AF"),
+                             alignment=TA_CENTER, leading=9)
+
+    story = []
+    story.extend(_branded_header("TAX INVOICE", _font_name, _font_bold, styles,
+                                  mm, Table, TableStyle, Paragraph, Spacer,
+                                  colors, ParagraphStyle))
+
+    # Invoice meta + parties
+    meta = Table([[
+        Paragraph(f"<b>Invoice #:</b> {invoice_no}<br/>"
+                  f"<b>Date:</b> {invoice_date}<br/>"
+                  f"<b>Place of Supply:</b> {place_of_supply or customer_state}<br/>"
+                  f"<b>Reverse Charge:</b> No", normal),
+        Paragraph(f"<b>Bill To:</b><br/>"
+                  f"<b>{customer_name}</b><br/>"
+                  f"{customer_address}<br/>"
+                  f"GSTIN: {customer_gst or 'Unregistered'}<br/>"
+                  f"State: {customer_state}", normal),
+    ]], colWidths=[85 * mm, 95 * mm])
+    meta.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor(BRAND["grey_200"])),
+        ("LINEBETWEEN", (0, 0), (-1, -1), 0.5, colors.HexColor(BRAND["grey_200"])),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+    ]))
+    story.append(meta)
+    story.append(Spacer(1, 12))
+
+    # Items table
+    rows = [["#", "Description", "HSN", "Qty (MT)", f"Rate ({_rupee})", f"Amount ({_rupee})"]]
+    for i, it in enumerate(items, 1):
+        amt = it["qty"] * it["rate"]
+        rows.append([str(i), it.get("desc", "Bitumen"), COMPANY["hsn"],
+                     f"{it['qty']:,.0f}", _fmt_amt(it["rate"]), _fmt_amt(amt)])
+    rows.append(["", "Taxable Value", "", "", "", _fmt_amt(taxable)])
+    if is_inter_state:
+        rows.append(["", "IGST @ 18%", "", "", "", _fmt_amt(igst)])
+    else:
+        rows.append(["", "CGST @ 9%", "", "", "", _fmt_amt(cgst)])
+        rows.append(["", "SGST @ 9%", "", "", "", _fmt_amt(sgst)])
+    rows.append(["", "Grand Total", "", "", "", _fmt_amt(grand)])
+
+    items_tbl = Table(rows,
+                      colWidths=[10 * mm, 62 * mm, 22 * mm, 22 * mm, 28 * mm, 36 * mm])
+    last_row = len(rows) - 1
+    items_tbl.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(BRAND["navy"])),
+        ("TEXTCOLOR",  (0, 0), (-1, 0), colors.white),
+        ("FONTNAME",   (0, 0), (-1, 0), _font_bold),
+        ("ALIGN",      (0, 0), (-1, 0), "CENTER"),
+        ("FONTNAME",   (0, 1), (-1, -1), _font_name),
+        ("ALIGN",      (3, 1), (-1, -1), "RIGHT"),
+        # Grand total row
+        ("BACKGROUND", (0, last_row), (-1, last_row), colors.HexColor(BRAND["amber_bg"])),
+        ("FONTNAME",   (0, last_row), (-1, last_row), _font_bold),
+        ("TEXTCOLOR",  (0, last_row), (-1, last_row), colors.HexColor(BRAND["amber_fg"])),
+        ("FONTSIZE",   (0, last_row), (-1, last_row), 11),
+        ("GRID",       (0, 0), (-1, -1), 0.4, colors.HexColor(BRAND["grey_200"])),
+        ("FONTSIZE",   (0, 0), (-1, -1), 9),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+    ]))
+    story.append(items_tbl)
+
+    # Amount in words
+    words = _num_to_words_indian(int(round(grand)))
+    if words:
+        tw = Table([[Paragraph(f"<b>Amount in words:</b> Rupees {words} Only",
+                                ParagraphStyle("tw", parent=styles["Normal"],
+                                                fontName=_font_name, fontSize=8.5,
+                                                leading=11))]],
+                   colWidths=[180 * mm])
+        tw.setStyle(TableStyle([
+            ("BACKGROUND",(0,0),(-1,-1),colors.HexColor(BRAND["grey_50"])),
+            ("BOX",(0,0),(-1,-1),0.4,colors.HexColor(BRAND["grey_200"])),
+            ("LEFTPADDING",(0,0),(-1,-1),10),
+            ("TOPPADDING",(0,0),(-1,-1),6),
+            ("BOTTOMPADDING",(0,0),(-1,-1),6),
+        ]))
+        story.append(tw)
+    story.append(Spacer(1, 10))
+
+    # Declarations
+    story.append(Paragraph("Declarations", section_h))
+    decl = [
+        "We declare that this invoice shows the actual price of goods described and all particulars are true and correct.",
+        "Bitumen conforms to IS 73:2018 specification for VG grade bitumen.",
+        "All disputes subject to Vadodara, Gujarat jurisdiction only.",
+        "Payment due per agreed terms; interest @ 18% p.a. on overdue balances.",
+    ]
+    for i, d in enumerate(decl, 1):
+        story.append(Paragraph(f"<font color='{BRAND['navy_light']}'><b>{i}.</b></font> &nbsp;{d}",
+                                ParagraphStyle("d", parent=styles["Normal"],
+                                                fontName=_font_name, fontSize=9,
+                                                leading=13, leftIndent=14, spaceAfter=4)))
+    story.append(Spacer(1, 10))
+
+    # Bank + signature
+    bank_p = Paragraph(
+        f"<b>Payment Details</b><br/>"
+        f"{COMPANY['bank']}<br/>"
+        f"A/C: <b>{COMPANY['bank_ac']}</b><br/>"
+        f"IFSC: <b>{COMPANY['bank_ifsc']}</b><br/>"
+        f"GST: {COMPANY['gst']}<br/>"
+        f"<b>Amount Due: {_rupee}{_fmt_amt(grand)}</b>", normal)
+    sig_p = Paragraph(
+        f"<b>For {COMPANY['name']}</b><br/><br/><br/>"
+        f"_______________________<br/>"
+        f"Authorized Signatory<br/>"
+        f"<font color='{BRAND['grey_500']}' size='8'>{COMPANY['owner']} &middot; {COMPANY['phone']}</font>",
+        normal)
+    bs = Table([[bank_p, sig_p]], colWidths=[90 * mm, 90 * mm])
+    bs.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, 0), colors.HexColor(BRAND["grey_50"])),
+        ("BOX", (0, 0), (-1, -1), 0.4, colors.HexColor(BRAND["grey_200"])),
+        ("LINEBETWEEN", (0, 0), (-1, -1), 0.4, colors.HexColor(BRAND["grey_200"])),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+        ("TOPPADDING", (0, 0), (-1, -1), 10),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+    ]))
+    story.append(bs)
+    story.append(Spacer(1, 8))
+    story.append(Paragraph(
+        f"{COMPANY['name']} &middot; CIN {COMPANY['cin']} &middot; "
+        f"PAN {COMPANY['pan']} &middot; {COMPANY['city']} &middot; "
+        f"Original Copy for Recipient", footer))
+
+    doc.build(story)
+    return buf.getvalue()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PURCHASE ORDER
+# ═══════════════════════════════════════════════════════════════════════════
+
+def build_purchase_order_pdf(supplier_name: str, supplier_address: str,
+                             supplier_gst: str,
+                             po_no: str, po_date: str,
+                             delivery_date: str, delivery_address: str,
+                             items: list[dict]) -> bytes:
+    """Premium Purchase Order PDF (bitumen buyer side)."""
+    try:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import mm
+        from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
+                                         Table, TableStyle)
+        from reportlab.lib.enums import TA_CENTER
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+    except ImportError:
+        return b""
+
+    _font_name = "Helvetica"
+    _font_bold = "Helvetica-Bold"
+    _rupee = "Rs."
+    for p in ["C:/Windows/Fonts/arial.ttf",
+              "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"]:
+        import os as _os
+        if _os.path.exists(p):
+            try:
+                pdfmetrics.registerFont(TTFont("MainFont", p))
+                _font_name = "MainFont"
+                bp = "C:/Windows/Fonts/arialbd.ttf" if "arial" in p else p.replace(".ttf", "-Bold.ttf")
+                if _os.path.exists(bp):
+                    pdfmetrics.registerFont(TTFont("MainBold", bp))
+                    _font_bold = "MainBold"
+                else:
+                    _font_bold = "MainFont"
+                _rupee = "\u20b9"
+                break
+            except Exception:
+                continue
+
+    def _fmt_amt(n):
+        return fmt_inr(n).lstrip("\u20b9")
+
+    taxable = sum(it["qty"] * it["rate"] for it in items)
+    gst = taxable * 0.18
+    grand = taxable + gst
+
+    buf = _io.BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=A4,
+                             leftMargin=15 * mm, rightMargin=15 * mm,
+                             topMargin=12 * mm, bottomMargin=12 * mm,
+                             title=f"Purchase Order {po_no}",
+                             author=COMPANY["name"])
+    styles = getSampleStyleSheet()
+    normal = ParagraphStyle("n", parent=styles["Normal"], fontName=_font_name,
+                             fontSize=9, leading=13)
+    section_h = ParagraphStyle("sh", parent=styles["Heading3"], fontName=_font_bold,
+                                fontSize=10, textColor=colors.HexColor(BRAND["navy_light"]),
+                                spaceAfter=4, spaceBefore=10, leading=14)
+    footer = ParagraphStyle("f", parent=styles["Normal"], fontName=_font_name,
+                             fontSize=7, textColor=colors.HexColor("#9CA3AF"),
+                             alignment=TA_CENTER, leading=9)
+
+    story = []
+    story.extend(_branded_header("PURCHASE ORDER", _font_name, _font_bold, styles,
+                                  mm, Table, TableStyle, Paragraph, Spacer,
+                                  colors, ParagraphStyle))
+
+    # Meta block
+    meta = Table([[
+        Paragraph(f"<b>PO #:</b> {po_no}<br/>"
+                  f"<b>PO Date:</b> {po_date}<br/>"
+                  f"<b>Required By:</b> {delivery_date}<br/>"
+                  f"<b>Buyer GST:</b> {COMPANY['gst']}", normal),
+        Paragraph(f"<b>Supplier:</b><br/><b>{supplier_name}</b><br/>"
+                  f"{supplier_address}<br/>"
+                  f"GSTIN: {supplier_gst or 'Unregistered'}", normal),
+    ]], colWidths=[85 * mm, 95 * mm])
+    meta.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor(BRAND["grey_200"])),
+        ("LINEBETWEEN", (0, 0), (-1, -1), 0.5, colors.HexColor(BRAND["grey_200"])),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 10),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+    ]))
+    story.append(meta)
+    story.append(Spacer(1, 10))
+
+    # Delivery address
+    da = Table([[Paragraph(
+        f"<b>Ship To:</b> {delivery_address}", normal)]],
+        colWidths=[180 * mm])
+    da.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(BRAND["grey_50"])),
+        ("BOX", (0, 0), (-1, -1), 0.4, colors.HexColor(BRAND["grey_200"])),
+        ("LEFTPADDING", (0, 0), (-1, -1), 10),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+    ]))
+    story.append(da)
+    story.append(Spacer(1, 12))
+
+    # Items table
+    rows = [["#", "Description", "HSN", "Qty (MT)", f"Rate ({_rupee}/MT)", f"Amount ({_rupee})"]]
+    for i, it in enumerate(items, 1):
+        rows.append([str(i), it.get("desc", "Bitumen VG30"), COMPANY["hsn"],
+                     f"{it['qty']:,.0f}", _fmt_amt(it["rate"]),
+                     _fmt_amt(it["qty"] * it["rate"])])
+    rows.append(["", "Sub-total", "", "", "", _fmt_amt(taxable)])
+    rows.append(["", "GST @ 18%", "", "", "", _fmt_amt(gst)])
+    rows.append(["", "Order Value", "", "", "", _fmt_amt(grand)])
+    items_tbl = Table(rows,
+                      colWidths=[10 * mm, 62 * mm, 22 * mm, 22 * mm, 28 * mm, 36 * mm])
+    items_tbl.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor(BRAND["navy"])),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("FONTNAME", (0, 0), (-1, 0), _font_bold),
+        ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+        ("FONTNAME", (0, 1), (-1, -1), _font_name),
+        ("ALIGN", (3, 1), (-1, -1), "RIGHT"),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor(BRAND["amber_bg"])),
+        ("FONTNAME", (0, -1), (-1, -1), _font_bold),
+        ("TEXTCOLOR", (0, -1), (-1, -1), colors.HexColor(BRAND["amber_fg"])),
+        ("FONTSIZE", (0, -1), (-1, -1), 11),
+        ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor(BRAND["grey_200"])),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("TOPPADDING", (0, 0), (-1, -1), 7),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+    ]))
+    story.append(items_tbl)
+    story.append(Spacer(1, 12))
+
+    # Terms
+    story.append(Paragraph("Order Terms", section_h))
+    terms = [
+        f"Delivery required by {delivery_date} at specified address.",
+        "Goods must conform to IS 73:2018 bitumen specification.",
+        "Quality test certificate to accompany each tanker.",
+        "Payment: 50% advance, 50% on receipt + quality acceptance.",
+        "Any delay beyond agreed date attracts 2% penalty per week.",
+        "All disputes subject to Vadodara, Gujarat jurisdiction.",
+    ]
+    for i, t in enumerate(terms, 1):
+        story.append(Paragraph(
+            f"<font color='{BRAND['navy_light']}'><b>{i}.</b></font> &nbsp;{t}",
+            ParagraphStyle("t", parent=styles["Normal"], fontName=_font_name,
+                            fontSize=9, leading=13, leftIndent=14, spaceAfter=3)))
+    story.append(Spacer(1, 10))
+
+    # Authorization
+    auth = Table([[
+        Paragraph(f"<b>For {COMPANY['name']} (Buyer)</b><br/><br/><br/>"
+                  f"_______________________<br/>"
+                  f"Authorized Signatory<br/>"
+                  f"<font color='{BRAND['grey_500']}' size='8'>{COMPANY['owner']} &middot; {COMPANY['phone']}</font>",
+                  normal),
+        Paragraph(f"<b>Acknowledged by Supplier</b><br/><br/><br/>"
+                  f"_______________________<br/>"
+                  f"Signature &middot; Stamp<br/>"
+                  f"<font color='{BRAND['grey_500']}' size='8'>{supplier_name}</font>",
+                  normal),
+    ]], colWidths=[90 * mm, 90 * mm])
+    auth.setStyle(TableStyle([
+        ("BOX", (0, 0), (-1, -1), 0.4, colors.HexColor(BRAND["grey_200"])),
+        ("LINEBETWEEN", (0, 0), (-1, -1), 0.4, colors.HexColor(BRAND["grey_200"])),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        ("TOPPADDING", (0, 0), (-1, -1), 10),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+    ]))
+    story.append(auth)
+    story.append(Spacer(1, 8))
+    story.append(Paragraph(
+        f"{COMPANY['name']} &middot; GST {COMPANY['gst']} &middot; "
+        f"{COMPANY['city']} &middot; PO confidential — For {supplier_name} only",
+        footer))
+
+    doc.build(story)
+    return buf.getvalue()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# DIRECTOR BRIEF (executive report)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def build_director_brief_pdf(date_str: str, kpis: list[dict],
+                              sections: list[dict]) -> bytes:
+    """
+    Premium executive brief PDF.
+
+    kpis     = [{'label','value','delta','color'}]   — shown as 3-col grid
+    sections = [{'title','bullets':[str,...]}, ...]  — narrative sections
+    """
+    try:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib import colors
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import mm
+        from reportlab.platypus import (SimpleDocTemplate, Paragraph, Spacer,
+                                         Table, TableStyle)
+        from reportlab.lib.enums import TA_CENTER
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+    except ImportError:
+        return b""
+
+    _font_name = "Helvetica"
+    _font_bold = "Helvetica-Bold"
+    for p in ["C:/Windows/Fonts/arial.ttf",
+              "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"]:
+        import os as _os
+        if _os.path.exists(p):
+            try:
+                pdfmetrics.registerFont(TTFont("MainFontDB", p))
+                _font_name = "MainFontDB"
+                bp = "C:/Windows/Fonts/arialbd.ttf" if "arial" in p else p.replace(".ttf", "-Bold.ttf")
+                if _os.path.exists(bp):
+                    pdfmetrics.registerFont(TTFont("MainBoldDB", bp))
+                    _font_bold = "MainBoldDB"
+                else:
+                    _font_bold = "MainFontDB"
+                break
+            except Exception:
+                continue
+
+    buf = _io.BytesIO()
+    doc = SimpleDocTemplate(buf, pagesize=A4,
+                             leftMargin=15 * mm, rightMargin=15 * mm,
+                             topMargin=12 * mm, bottomMargin=12 * mm,
+                             title="Director Brief",
+                             author=COMPANY["name"])
+    styles = getSampleStyleSheet()
+    normal = ParagraphStyle("n", parent=styles["Normal"], fontName=_font_name,
+                             fontSize=9.5, leading=14)
+    bullet = ParagraphStyle("b", parent=styles["Normal"], fontName=_font_name,
+                             fontSize=9.5, leading=14, leftIndent=12, spaceAfter=4)
+    section_h = ParagraphStyle("sh", parent=styles["Heading2"], fontName=_font_bold,
+                                fontSize=11.5, textColor=colors.HexColor(BRAND["navy_light"]),
+                                spaceAfter=6, spaceBefore=12, leading=14)
+    kpi_label = ParagraphStyle("kl", parent=styles["Normal"], fontName=_font_name,
+                                fontSize=7.5, textColor=colors.HexColor(BRAND["grey_500"]),
+                                alignment=TA_CENTER, leading=10)
+    kpi_val = ParagraphStyle("kv", parent=styles["Normal"], fontName=_font_bold,
+                              fontSize=16, textColor=colors.HexColor(BRAND["navy"]),
+                              alignment=TA_CENTER, leading=20)
+    kpi_delta = ParagraphStyle("kd", parent=styles["Normal"], fontName=_font_name,
+                                fontSize=8, alignment=TA_CENTER, leading=10)
+    footer = ParagraphStyle("f", parent=styles["Normal"], fontName=_font_name,
+                             fontSize=7, textColor=colors.HexColor("#9CA3AF"),
+                             alignment=TA_CENTER, leading=9)
+    date_p = ParagraphStyle("dp", parent=styles["Normal"], fontName=_font_name,
+                             fontSize=10, textColor=colors.HexColor(BRAND["grey_700"]),
+                             leading=14)
+
+    story = []
+    story.extend(_branded_header("DIRECTOR BRIEF", _font_name, _font_bold, styles,
+                                  mm, Table, TableStyle, Paragraph, Spacer,
+                                  colors, ParagraphStyle))
+
+    story.append(Paragraph(f"<b>Date:</b> {date_str} &middot; "
+                            f"<b>Prepared for:</b> {COMPANY['owner']}", date_p))
+    story.append(Spacer(1, 10))
+
+    # KPI grid (auto 3 per row)
+    if kpis:
+        kpi_cells = []
+        for k in kpis:
+            delta = k.get("delta", "")
+            color = k.get("color", BRAND["grey_500"])
+            cell = [
+                Paragraph(k.get("label", ""), kpi_label),
+                Paragraph(k.get("value", ""), kpi_val),
+                Paragraph(f"<font color='{color}'>{delta}</font>" if delta else "", kpi_delta),
+            ]
+            kpi_cells.append(cell)
+        # Build as a table of 3 per row
+        per_row = 3
+        while len(kpi_cells) % per_row != 0:
+            kpi_cells.append([""])
+        grouped = [kpi_cells[i:i + per_row] for i in range(0, len(kpi_cells), per_row)]
+        for grp in grouped:
+            tbl = Table([[
+                Table([[c[0]], [c[1]], [c[2]]],
+                       colWidths=[56 * mm])
+                for c in grp
+            ]], colWidths=[60 * mm] * per_row)
+            # Style outer table
+            tbl.setStyle(TableStyle([
+                ("LEFTPADDING", (0, 0), (-1, -1), 2),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+                ("TOPPADDING", (0, 0), (-1, -1), 0),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+            ]))
+            # Style inner KPI cards
+            for i, c in enumerate(grp):
+                inner = tbl._cellvalues[0][i]
+                if hasattr(inner, "setStyle"):
+                    inner.setStyle(TableStyle([
+                        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(BRAND["grey_50"])),
+                        ("BOX", (0, 0), (-1, -1), 0.4, colors.HexColor(BRAND["grey_200"])),
+                        ("TOPPADDING", (0, 0), (-1, -1), 8),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                        ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                    ]))
+            story.append(tbl)
+            story.append(Spacer(1, 6))
+    story.append(Spacer(1, 6))
+
+    # Narrative sections
+    for sec in sections:
+        story.append(Paragraph(sec.get("title", ""), section_h))
+        for b in sec.get("bullets", []):
+            story.append(Paragraph(
+                f"<font color='{BRAND['gold']}'>&bull;</font> &nbsp;{b}",
+                bullet))
+
+    # Footer
+    story.append(Spacer(1, 14))
+    story.append(Paragraph(
+        f"{COMPANY['name']} &middot; CIN {COMPANY['cin']} &middot; "
+        f"Confidential — For {COMPANY['owner']} only &middot; "
+        f"Auto-generated on {_today()} {_now_time()}", footer))
+
+    doc.build(story)
+    return buf.getvalue()
