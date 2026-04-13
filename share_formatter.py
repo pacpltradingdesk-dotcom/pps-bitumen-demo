@@ -1356,12 +1356,18 @@ def build_purchase_order_pdf(supplier_name: str, supplier_address: str,
 # ═══════════════════════════════════════════════════════════════════════════
 
 def build_director_brief_pdf(date_str: str, kpis: list[dict],
-                              sections: list[dict]) -> bytes:
+                              sections: list[dict],
+                              overall_status: str = "GOOD",
+                              top_action: str = "",
+                              mood: str = "") -> bytes:
     """
-    Premium executive brief PDF.
+    Premium executive brief PDF — v2 executive dashboard style.
 
-    kpis     = [{'label','value','delta','color'}]   — shown as 3-col grid
-    sections = [{'title','bullets':[str,...]}, ...]  — narrative sections
+    kpis     = [{'label','value','delta','color','direction'}]  # direction: up/down/flat
+    sections = [{'title','bullets':[...], 'accent': '#color', 'icon': '●'}]
+    overall_status = "GOOD" / "WATCH" / "ALERT"
+    top_action = one-line call-to-action shown in amber band
+    mood = optional subtitle / day-mood line
     """
     try:
         from reportlab.lib.pagesizes import A4
@@ -1424,75 +1430,222 @@ def build_director_brief_pdf(date_str: str, kpis: list[dict],
                              fontSize=10, textColor=colors.HexColor(BRAND["grey_700"]),
                              leading=14)
 
+    # Status color palette
+    status_style = {
+        "GOOD":  {"bg": "#ECFDF5", "fg": "#065F46", "border": "#A7F3D0"},
+        "WATCH": {"bg": "#FFFBEB", "fg": "#92400E", "border": "#FDE68A"},
+        "ALERT": {"bg": "#FEF2F2", "fg": "#991B1B", "border": "#FECACA"},
+    }.get(overall_status.upper(), {"bg": BRAND["grey_50"], "fg": BRAND["grey_700"], "border": BRAND["grey_200"]})
+
     story = []
     story.extend(_branded_header("DIRECTOR BRIEF", _font_name, _font_bold, styles,
                                   mm, Table, TableStyle, Paragraph, Spacer,
                                   colors, ParagraphStyle))
 
-    story.append(Paragraph(f"<b>Date:</b> {date_str} &middot; "
-                            f"<b>Prepared for:</b> {COMPANY['owner']}", date_p))
-    story.append(Spacer(1, 10))
+    # ── Date + Overall Status Pill ──────────────────────────────────
+    meta_style = ParagraphStyle("dm", parent=styles["Normal"], fontName=_font_name,
+                                 fontSize=10, textColor=colors.HexColor(BRAND["grey_700"]),
+                                 leading=14)
+    status_pill_style = ParagraphStyle("sp", parent=styles["Normal"],
+                                        fontName=_font_bold, fontSize=11,
+                                        textColor=colors.HexColor(status_style["fg"]),
+                                        alignment=TA_CENTER, leading=14)
+    mood_style = ParagraphStyle("ms", parent=styles["Normal"], fontName=_font_name,
+                                 fontSize=8.5, textColor=colors.HexColor(BRAND["grey_500"]),
+                                 leading=11, spaceAfter=2)
 
-    # KPI grid (auto 3 per row)
+    header_grid = Table([[
+        Paragraph(f"<b>Date:</b> {date_str}<br/>"
+                  f"<b>Prepared for:</b> {COMPANY['owner']}"
+                  + (f"<br/><font color='{BRAND['grey_500']}' size='8'>{mood}</font>" if mood else ""),
+                  meta_style),
+        Table([[Paragraph(f"STATUS: {overall_status.upper()}", status_pill_style)]],
+              colWidths=[55 * mm], rowHeights=[18 * mm]),
+    ]], colWidths=[125 * mm, 55 * mm])
+    header_grid.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("LEFTPADDING", (0, 0), (0, 0), 0),
+    ]))
+    # Style the status pill
+    inner_pill = header_grid._cellvalues[0][1]
+    if hasattr(inner_pill, "setStyle"):
+        inner_pill.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(status_style["bg"])),
+            ("BOX",        (0, 0), (-1, -1), 1.2, colors.HexColor(status_style["border"])),
+            ("VALIGN",     (0, 0), (-1, -1), "MIDDLE"),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ]))
+    story.append(header_grid)
+    story.append(Spacer(1, 8))
+
+    # ── Top Action Band (amber) ─────────────────────────────────────
+    if top_action:
+        act_style = ParagraphStyle("act", parent=styles["Normal"],
+                                    fontName=_font_bold, fontSize=10,
+                                    textColor=colors.HexColor(BRAND["amber_fg"]),
+                                    leading=14)
+        act_sub_style = ParagraphStyle("acts", parent=styles["Normal"],
+                                        fontName=_font_name, fontSize=7.5,
+                                        textColor=colors.HexColor(BRAND["amber_fg"]),
+                                        leading=10,
+                                        textTransform=None)
+        act_tbl = Table([[
+            Paragraph("TOP PRIORITY TODAY", act_sub_style),
+        ], [
+            Paragraph(top_action, act_style),
+        ]], colWidths=[180 * mm])
+        act_tbl.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(BRAND["amber_bg"])),
+            ("BOX",        (0, 0), (-1, -1), 0.6, colors.HexColor("#FDE68A")),
+            ("LINEBEFORE", (0, 0), (0, -1), 4,   colors.HexColor(BRAND["gold_dark"])),
+            ("LEFTPADDING",(0, 0), (-1, -1), 14),
+            ("RIGHTPADDING",(0, 0), (-1, -1), 14),
+            ("TOPPADDING", (0, 0), (0, 0), 8),
+            ("BOTTOMPADDING", (0, 0), (0, 0), 0),
+            ("TOPPADDING", (0, 1), (0, 1), 0),
+            ("BOTTOMPADDING", (0, 1), (0, 1), 8),
+        ]))
+        story.append(act_tbl)
+        story.append(Spacer(1, 7))
+
+    # ── KPI grid with colored borders ──────────────────────────────
     if kpis:
-        kpi_cells = []
-        for k in kpis:
-            delta = k.get("delta", "")
-            color = k.get("color", BRAND["grey_500"])
-            cell = [
-                Paragraph(k.get("label", ""), kpi_label),
-                Paragraph(k.get("value", ""), kpi_val),
-                Paragraph(f"<font color='{color}'>{delta}</font>" if delta else "", kpi_delta),
-            ]
-            kpi_cells.append(cell)
-        # Build as a table of 3 per row
+        # KPI pad style: delta color drives LEFT border color
+        def _dir_indicator(direction, delta):
+            if not direction:
+                # Infer from delta prefix
+                if delta.startswith("+") or "up" in delta.lower():
+                    direction = "up"
+                elif delta.startswith("-") or "down" in delta.lower() or "overdue" in delta.lower():
+                    direction = "down"
+                else:
+                    direction = "flat"
+            if direction == "up":
+                return "\u25B2", "#16A34A"
+            if direction == "down":
+                return "\u25BC", "#DC2626"
+            return "\u25CF", BRAND["grey_500"]
+
         per_row = 3
-        while len(kpi_cells) % per_row != 0:
-            kpi_cells.append([""])
-        grouped = [kpi_cells[i:i + per_row] for i in range(0, len(kpi_cells), per_row)]
-        for grp in grouped:
-            tbl = Table([[
-                Table([[c[0]], [c[1]], [c[2]]],
-                       colWidths=[56 * mm])
-                for c in grp
-            ]], colWidths=[60 * mm] * per_row)
-            # Style outer table
-            tbl.setStyle(TableStyle([
+        # Build cards
+        cards = []
+        for k in kpis:
+            label = k.get("label", "")
+            value = k.get("value", "")
+            delta = k.get("delta", "")
+            direction = k.get("direction", "")
+            arrow, arrow_color = _dir_indicator(direction, delta)
+            border_color = k.get("color") or arrow_color
+
+            card_label = Paragraph(label, kpi_label)
+            card_val   = Paragraph(value, kpi_val)
+            delta_html = (f"<font color='{arrow_color}'><b>{arrow}</b> {delta}</font>"
+                          if delta else "")
+            card_delta = Paragraph(delta_html, kpi_delta)
+
+            card = Table([[card_label], [card_val], [card_delta]],
+                          colWidths=[56 * mm])
+            card.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(BRAND["white"])),
+                ("BOX",        (0, 0), (-1, -1), 0.4, colors.HexColor(BRAND["grey_200"])),
+                ("LINEBEFORE", (0, 0), (0, -1), 4, colors.HexColor(border_color)),
+                ("TOPPADDING", (0, 0), (-1, -1), 7),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
+                ("LEFTPADDING", (0, 0), (-1, -1), 10),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ]))
+            cards.append(card)
+        while len(cards) % per_row != 0:
+            cards.append("")
+        for i in range(0, len(cards), per_row):
+            row = cards[i:i + per_row]
+            grid = Table([row], colWidths=[60 * mm] * per_row)
+            grid.setStyle(TableStyle([
                 ("LEFTPADDING", (0, 0), (-1, -1), 2),
                 ("RIGHTPADDING", (0, 0), (-1, -1), 2),
                 ("TOPPADDING", (0, 0), (-1, -1), 0),
                 ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
             ]))
-            # Style inner KPI cards
-            for i, c in enumerate(grp):
-                inner = tbl._cellvalues[0][i]
-                if hasattr(inner, "setStyle"):
-                    inner.setStyle(TableStyle([
-                        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor(BRAND["grey_50"])),
-                        ("BOX", (0, 0), (-1, -1), 0.4, colors.HexColor(BRAND["grey_200"])),
-                        ("TOPPADDING", (0, 0), (-1, -1), 8),
-                        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-                        ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                    ]))
-            story.append(tbl)
-            story.append(Spacer(1, 6))
-    story.append(Spacer(1, 6))
+            story.append(grid)
+            story.append(Spacer(1, 4))
+    story.append(Spacer(1, 4))
 
-    # Narrative sections
-    for sec in sections:
-        story.append(Paragraph(sec.get("title", ""), section_h))
+    # ── Narrative sections with colored accent bar ──────────────────
+    # Use glyphs that Arial / DejaVu have reliably (tested: ▲ ▼ ● ■ •)
+    default_accents = [
+        ("\u25A0", BRAND["grey_500"]),   # ■ Yesterday (grey)
+        ("\u25B2", "#4F46E5"),           # ▲ Today (indigo)
+        ("\u2666", BRAND["gold"]),        # ♦ 15-day (gold diamond suit)
+        ("\u25CF", "#DC2626"),            # ● Risks (red)
+    ]
+    for idx, sec in enumerate(sections):
+        title = sec.get("title", "")
+        accent = sec.get("accent") or default_accents[idx % len(default_accents)][1]
+        icon   = sec.get("icon") or default_accents[idx % len(default_accents)][0]
+
+        # Section header with accent bar
+        h_tbl = Table([[
+            Paragraph(f"<font color='{accent}'><b>{icon}</b></font> "
+                      f"&nbsp;<font color='{BRAND['navy_light']}'><b>{title}</b></font>",
+                      ParagraphStyle("sh2", parent=styles["Normal"],
+                                      fontName=_font_bold, fontSize=11,
+                                      leading=14))
+        ]], colWidths=[180 * mm])
+        h_tbl.setStyle(TableStyle([
+            ("LINEBEFORE", (0, 0), (0, 0), 3, colors.HexColor(accent)),
+            ("LEFTPADDING", (0, 0), (-1, -1), 8),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ]))
+        story.append(h_tbl)
+
+        # Bullets (use • which every font has). Escape ampersands so
+        # "L&T" doesn't turn into "L&T;" via accidental HTML entity.
         for b in sec.get("bullets", []):
+            safe_b = b.replace("&", "&amp;")
+            # Undo double-escape if caller already used &amp;
+            safe_b = safe_b.replace("&amp;amp;", "&amp;")
             story.append(Paragraph(
-                f"<font color='{BRAND['gold']}'>&bull;</font> &nbsp;{b}",
-                bullet))
+                f"<font color='{accent}'><b>\u2022</b></font> &nbsp;{safe_b}",
+                ParagraphStyle("bl2", parent=styles["Normal"],
+                                fontName=_font_name, fontSize=9,
+                                leading=12.5, leftIndent=14, spaceAfter=2)))
+        story.append(Spacer(1, 2))
+
+    # ── Signature / Read & Acknowledged band ────────────────────────
+    story.append(Spacer(1, 4))
+    ack_tbl = Table([[
+        Paragraph(f"<b>Prepared by:</b> PPS AI Engine<br/>"
+                  f"<font color='{BRAND['grey_500']}' size='8'>Auto-generated {_today()} {_now_time()}</font>",
+                  ParagraphStyle("ack1", parent=styles["Normal"],
+                                  fontName=_font_name, fontSize=9, leading=12)),
+        Paragraph(f"<b>Read &amp; Acknowledged</b><br/><br/>"
+                  f"_______________________<br/>"
+                  f"{COMPANY['owner']}<br/>"
+                  f"<font color='{BRAND['grey_500']}' size='8'>Director &middot; {COMPANY['short']}</font>",
+                  ParagraphStyle("ack2", parent=styles["Normal"],
+                                  fontName=_font_name, fontSize=9, leading=12)),
+    ]], colWidths=[90 * mm, 90 * mm])
+    ack_tbl.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, 0), colors.HexColor(BRAND["grey_50"])),
+        ("BOX", (0, 0), (-1, -1), 0.4, colors.HexColor(BRAND["grey_200"])),
+        ("LINEBETWEEN", (0, 0), (-1, -1), 0.4, colors.HexColor(BRAND["grey_200"])),
+        ("LEFTPADDING", (0, 0), (-1, -1), 12),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+        ("TOPPADDING", (0, 0), (-1, -1), 10),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+    ]))
+    story.append(ack_tbl)
 
     # Footer
-    story.append(Spacer(1, 14))
+    story.append(Spacer(1, 8))
     story.append(Paragraph(
         f"{COMPANY['name']} &middot; CIN {COMPANY['cin']} &middot; "
-        f"Confidential — For {COMPANY['owner']} only &middot; "
-        f"Auto-generated on {_today()} {_now_time()}", footer))
+        f"Confidential — For {COMPANY['owner']} only",
+        footer))
 
     doc.build(story)
     return buf.getvalue()
