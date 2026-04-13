@@ -126,6 +126,22 @@ def render_sidebar_features(module: str) -> str:
                 st.session_state["selected_page"] = tab["page"]
                 st.rerun()
 
+        # ── Tutorial / Help button ─────────────────────────────────────
+        st.markdown('<div style="margin-top:24px;"></div>', unsafe_allow_html=True)
+        if st.button("📖 Tutorial", key="_sidebar_tutorial_btn",
+                     use_container_width=True, help="Dashboard ka guided tutorial"):
+            st.session_state["_show_tutorial"] = True
+        if st.session_state.get("_show_tutorial"):
+            try:
+                from tutorial_engine import render_tutorial_dialog
+                render_tutorial_dialog()
+                # Native st.dialog is modal; flag auto-clears on close.
+                # For fallback mode, the dialog itself handles the flag.
+                st.session_state["_show_tutorial"] = False
+            except Exception as _e:
+                st.error(f"Tutorial load failed: {_e}")
+                st.session_state["_show_tutorial"] = False
+
         # ── Quick Actions (functional popover actions) ─────────────────
         st.markdown('<div style="margin-top:32px; margin-bottom:12px; font-size:0.65rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid #E5E7EB; padding-bottom:8px;">QUICK ACTIONS</div>', unsafe_allow_html=True)
 
