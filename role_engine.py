@@ -32,20 +32,43 @@ _AUTH_TOKEN_KEY = "auth_t"  # URL query-param name
 
 
 def _get_auth_secret() -> bytes:
-    """Load or generate a stable HMAC secret for signing auth tokens."""
+    """Load a stable HMAC secret for signing auth tokens.
+
+    Resolution order (first hit wins):
+      1. st.secrets["auth_secret"] — production-grade, set in Streamlit Cloud
+      2. environment variable AUTH_SECRET
+      3. local .auth_secret file (dev only — NOT persisted on Streamlit Cloud)
+      4. hardcoded stable fallback (derived from company CIN, not random)
+
+    Previously used secrets.token_bytes() which generated a fresh random
+    key on every Streamlit Cloud deploy → every redeploy invalidated all
+    existing 24hr tokens → users had to re-login after every push.
+    """
+    # 1. Streamlit secrets (persists across deploys on Streamlit Cloud)
+    try:
+        import streamlit as _st
+        sec = _st.secrets.get("auth_secret")
+        if sec:
+            return sec.encode("utf-8") if isinstance(sec, str) else bytes(sec)
+    except Exception:
+        pass
+
+    # 2. Environment variable
+    env_sec = os.environ.get("AUTH_SECRET")
+    if env_sec:
+        return env_sec.encode("utf-8")
+
+    # 3. Local file (dev)
     try:
         if _AUTH_SECRET_FILE.exists():
             return _AUTH_SECRET_FILE.read_bytes()
-        sec = secrets.token_bytes(32)
-        _AUTH_SECRET_FILE.write_bytes(sec)
-        try:
-            os.chmod(_AUTH_SECRET_FILE, 0o600)
-        except Exception:
-            pass
-        return sec
     except Exception:
-        # Fallback: stable-ish per-process secret
-        return hashlib.sha256(b"pps-anantam-fallback-key").digest()
+        pass
+
+    # 4. Stable hardcoded fallback — derived from company CIN (public info)
+    # Not cryptographically strong but stable across deploys. Override with
+    # st.secrets["auth_secret"] or AUTH_SECRET env for proper security.
+    return hashlib.sha256(b"pps-anantam-U46632GJ2019PTC110676-stable-v1").digest()
 
 
 def _make_auth_token(username: str, expiry_ts: int) -> str:
