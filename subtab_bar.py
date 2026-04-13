@@ -72,6 +72,22 @@ def render_sidebar_features(module: str) -> str:
         current_page = tabs[0]["page"]
 
     with st.sidebar:
+        # ── Active Tour Panel (renders AT TOP when tour active) ────────
+        # Auto-open tutorial on first login (welcome flow)
+        if st.session_state.pop("_welcome_pending", False):
+            st.session_state["_show_tutorial"] = True
+            st.session_state["_tour_step"] = 0
+        if st.session_state.get("_show_tutorial"):
+            try:
+                from tutorial_engine import render_tour
+                render_tour()
+                st.markdown("<hr style='margin:8px 0 16px;opacity:0.3;'>",
+                            unsafe_allow_html=True)
+            except Exception as _e:
+                st.error(f"Tour failed: {_e}")
+                st.session_state["_show_tutorial"] = False
+                st.session_state["_tour_step"] = 0
+
         # Brand logo (cached in session state)
         import base64
         _logo_path = _ROOT / "pps_logo_brand.jpg"
@@ -126,26 +142,13 @@ def render_sidebar_features(module: str) -> str:
                 st.session_state["selected_page"] = tab["page"]
                 st.rerun()
 
-        # ── Tutorial / Help button ─────────────────────────────────────
+        # ── Tutorial button (re-open tour) ─────────────────────────────
         st.markdown('<div style="margin-top:24px;"></div>', unsafe_allow_html=True)
         if st.button("📖 Tutorial", key="_sidebar_tutorial_btn",
-                     use_container_width=True, help="Dashboard ka guided tutorial"):
+                     use_container_width=True, help="Guided tour phir se shuru karo"):
             st.session_state["_show_tutorial"] = True
             st.session_state["_tour_step"] = 0
-        # Auto-open tutorial on first login (welcome flow)
-        if st.session_state.pop("_welcome_pending", False):
-            st.session_state["_show_tutorial"] = True
-            st.session_state["_tour_step"] = 0
-        if st.session_state.get("_show_tutorial"):
-            try:
-                from tutorial_engine import render_tutorial_dialog
-                render_tutorial_dialog()
-                # Flag stays True so tour persists across Next/Prev reruns.
-                # Tutorial engine clears the flag on Skip / Finish.
-            except Exception as _e:
-                st.error(f"Tutorial load failed: {_e}")
-                st.session_state["_show_tutorial"] = False
-                st.session_state["_tour_step"] = 0
+            st.rerun()
 
         # ── Quick Actions (functional popover actions) ─────────────────
         st.markdown('<div style="margin-top:32px; margin-bottom:12px; font-size:0.65rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid #E5E7EB; padding-bottom:8px;">QUICK ACTIONS</div>', unsafe_allow_html=True)
