@@ -163,3 +163,29 @@ def render_top_bar() -> None:
                         st.session_state["_more_open"] = False
                         st.rerun()
             st.markdown('<div style="height: 16px;"></div>', unsafe_allow_html=True)
+
+    # ── Compact user strip (top-right) with logout ─────────────────────────
+    if st.session_state.get("_auth_user"):
+        _name = st.session_state.get("_auth_display", "User")
+        _role = st.session_state.get("_auth_role", "viewer").title()
+        _spacer, _user_col, _logout_col = st.columns([6, 2, 1])
+        with _user_col:
+            st.markdown(
+                f'<div style="text-align:right;padding-top:6px;font-size:0.78rem;'
+                f'color:#475569;"><b style="color:#0F172A;">{_name}</b>'
+                f' <span style="color:#94A3B8;">·</span> '
+                f'<span style="color:#6366F1;font-weight:600;">{_role}</span></div>',
+                unsafe_allow_html=True,
+            )
+        with _logout_col:
+            if st.button("🚪 Logout", key="_topbar_logout",
+                         use_container_width=True,
+                         help="Session khatam karo"):
+                try:
+                    from role_engine import logout
+                    logout()
+                except Exception:
+                    for k in ["_auth_user", "_auth_role", "_auth_username",
+                              "_auth_display", "_auth_last_activity"]:
+                        st.session_state.pop(k, None)
+                st.rerun()
