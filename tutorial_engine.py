@@ -1,235 +1,361 @@
 """
-Tutorial Engine — In-App User Guide
-====================================
-Renders a role-aware tutorial dialog accessible via the sidebar button.
-Content mirrors USER_GUIDE.md but condensed for on-screen consumption.
+Tutorial Engine — Interactive Step-by-Step Tour
+================================================
+Animated walkthrough: har step mein ek UI element dikhta hai, usme
+cursor move hota hai aur click animation play hoti hai. Next button
+se next step pe jaate hain.
 
 Entry point:
     from tutorial_engine import render_tutorial_dialog
-    render_tutorial_dialog()  # call when user clicks the Tutorial button
+    render_tutorial_dialog()
 """
 from __future__ import annotations
 
 import streamlit as st
 
 
-# ── Content blocks ──────────────────────────────────────────────────────────
+# ── Tour Steps ──────────────────────────────────────────────────────────────
+# Har step mein:
+#   icon       — emoji for the fake button/element
+#   label      — button/section text
+#   title      — step heading
+#   body       — hindi-english explanation
+#   where      — navigation hint (module > page)
 
-_INTRO = """
-**PPS Anantam Dashboard** — Prince P Shah sir ki bitumen trading business ka
-unified command center. 9 modules, 80+ pages, 60+ engines.
+_STEPS = [
+    {
+        "icon": "🏛️",
+        "label": "PPS Anantam Dashboard",
+        "title": "Welcome to PPS Anantam",
+        "body": "Yeh aapka bitumen trading command center hai. 9 modules, 80+ pages. Chalo ek quick tour lete hain — bas 2 minute mein sab samajh aa jayega.",
+        "where": "Login ke baad yahan pahuchte ho",
+        "kind": "hero",
+    },
+    {
+        "icon": "🏠",
+        "label": "Home",
+        "title": "Step 1: Top Bar — 9 Modules",
+        "body": "Upar navigation bar mein 9 modules hain: Home, Pricing, Sales, Intelligence, Documents, Logistics, Reports, + 'More' mein Compliance & System. Kisi bhi module pe click karne se us module ki pages sidebar mein aajayengi.",
+        "where": "Top Navigation Bar",
+        "kind": "click",
+    },
+    {
+        "icon": "🎯",
+        "label": "Command Center",
+        "title": "Step 2: Command Center",
+        "body": "Home ka main page — 5 KPI cards (Brent, WTI, USD/INR, VG30, AI Signal), alerts panel, aur quick actions. Roz subah 5 min ke liye yahan aao.",
+        "where": "Home > Command Center",
+        "kind": "click",
+    },
+    {
+        "icon": "💰",
+        "label": "Pricing Calculator",
+        "title": "Step 3: Quote Banao",
+        "body": "Customer ke liye price nikalna hai? Yahan aao — location chuno, grade select karo, load type batao → ranked prices dikhenge, PDF quote ready.",
+        "where": "Pricing > Pricing Calculator",
+        "kind": "click",
+    },
+    {
+        "icon": "💼",
+        "label": "CRM Tasks",
+        "title": "Step 4: Daily Worklist",
+        "body": "Subah 9 baje yahan aao — Due / Overdue / Upcoming tasks dikhenge. Hot leads, follow-ups, calendar view — sab ek jagah. 25K+ contacts managed.",
+        "where": "Sales & CRM > CRM Tasks",
+        "kind": "click",
+    },
+    {
+        "icon": "🧠",
+        "label": "Market Signals",
+        "title": "Step 5: Market Intelligence",
+        "body": "10-signal composite — crude, FX, news, govt infra, tenders sab ek score mein. BULLISH / NEUTRAL / BEARISH verdict turant. Bade decision se pehle yahan check karo.",
+        "where": "Intelligence > Market Signals",
+        "kind": "click",
+    },
+    {
+        "icon": "📊",
+        "label": "Director Brief",
+        "title": "Step 6: Executive Reports",
+        "body": "6-page executive PDF briefing — yesterday + today + 15-day outlook. Prince sir ko forward karne ke liye ready format.",
+        "where": "Reports > Director Brief",
+        "kind": "click",
+    },
+    {
+        "icon": "📄",
+        "label": "Quick Actions",
+        "title": "Step 7: Sidebar Quick Actions",
+        "body": "Left sidebar mein 6 shortcut buttons — PDF, Print, Excel, Share, WhatsApp, Telegram. Kisi bhi page se direct share / export ho sakta hai.",
+        "where": "Sidebar — Quick Actions section",
+        "kind": "click",
+    },
+    {
+        "icon": "🔐",
+        "label": "24hr Session",
+        "title": "Step 8: Login Once, 24 Hours",
+        "body": "Ek baar login karo — 24 ghante tak session zinda. Browser band kar do, tab close karo, kuch bhi — wapas aane pe auto-logged in. Logout button sidebar ke neeche.",
+        "where": "Automatic — sab pages pe",
+        "kind": "info",
+    },
+    {
+        "icon": "📖",
+        "label": "Tutorial",
+        "title": "Step 9: Yeh Tutorial — Kabhi Bhi",
+        "body": "Agar kuch bhool jao ya confuse ho, sidebar ka '📖 Tutorial' button dabao — yeh tour dobara chalega. Ya full guide ke liye 'USER_GUIDE.md' padho.",
+        "where": "Sidebar — Tutorial button",
+        "kind": "info",
+    },
+    {
+        "icon": "🎉",
+        "label": "All Set!",
+        "title": "Bas! Ab Use Karo",
+        "body": "Aap ready ho. Shuru karne ke liye Home > Command Center pe jao. Koi dikkat ho to Settings > Knowledge Base mein FAQ search karo.",
+        "where": "Happy trading!",
+        "kind": "hero",
+    },
+]
 
-**Login:** Default `admin / 0000` — 24hr session.
-**Navigate:** Top bar = 9 modules. Sidebar = features for active module.
-Sidebar ke neeche Quick Actions (PDF/Print/Excel/Share/WA/TG).
+
+# ── CSS + Animated Button ───────────────────────────────────────────────────
+
+def _step_css() -> str:
+    """One-shot CSS injected with the step card."""
+    return """
+<style>
+.tour-wrap {
+  background: linear-gradient(135deg, #0f1729 0%, #1e293b 100%);
+  border-radius: 16px;
+  padding: 32px 28px;
+  margin: 12px 0;
+  color: #fff;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  position: relative;
+  overflow: hidden;
+}
+.tour-wrap::before {
+  content: "";
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 20% 0%, rgba(99,102,241,0.25), transparent 60%);
+  pointer-events: none;
+}
+.tour-stage {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 36px 20px;
+  margin: 0 0 24px 0;
+  min-height: 180px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+/* Mock button (the element being demonstrated) */
+.tour-btn {
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.05rem;
+  padding: 14px 28px;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(79,70,229,0.35);
+  display: inline-flex; align-items: center; gap: 10px;
+  position: relative;
+  animation: btn-press 2.2s ease-in-out infinite;
+  z-index: 2;
+}
+.tour-btn.hero {
+  background: linear-gradient(135deg, #c9a84c, #e3c26b);
+  color: #0f1729;
+  font-size: 1.15rem;
+  padding: 18px 34px;
+  box-shadow: 0 8px 30px rgba(201,168,76,0.4);
+  animation: btn-pulse 2.5s ease-in-out infinite;
+}
+@keyframes btn-press {
+  0%, 100% { transform: scale(1); box-shadow: 0 6px 20px rgba(79,70,229,0.35); }
+  45%      { transform: scale(1.05); box-shadow: 0 12px 30px rgba(79,70,229,0.55); }
+  50%      { transform: scale(0.94); box-shadow: 0 3px 8px rgba(79,70,229,0.25); }
+  55%      { transform: scale(1.05); }
+}
+@keyframes btn-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.04); }
+}
+/* Ripple emitted from the button on "click" */
+.tour-ripple {
+  position: absolute;
+  border: 2px solid #4F46E5;
+  border-radius: 50%;
+  width: 80px; height: 80px;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  animation: ripple 2.2s ease-out infinite;
+  z-index: 1;
+}
+.tour-ripple.r2 { animation-delay: 0.7s; }
+.tour-ripple.r3 { animation-delay: 1.4s; }
+@keyframes ripple {
+  0%   { opacity: 0.9; width: 40px; height: 40px; }
+  100% { opacity: 0;   width: 280px; height: 280px; border-width: 0.5px; }
+}
+/* Cursor moving to the button */
+.tour-cursor {
+  position: absolute;
+  top: 20%; left: 30%;
+  font-size: 1.6rem;
+  animation: cursor-move 2.2s ease-in-out infinite;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+  z-index: 3;
+  pointer-events: none;
+}
+@keyframes cursor-move {
+  0%       { top: 18%; left: 26%; opacity: 1; }
+  40%      { top: 48%; left: 48%; opacity: 1; }
+  45%, 55% { top: 50%; left: 50%; transform: scale(0.85); }
+  60%      { top: 50%; left: 50%; transform: scale(1); }
+  100%     { top: 18%; left: 26%; opacity: 1; }
+}
+/* Step title + body */
+.tour-title {
+  font-size: 1.4rem; font-weight: 800; margin: 0 0 10px 0;
+  background: linear-gradient(90deg, #fff, #c9a84c);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.tour-body {
+  font-size: 0.95rem; line-height: 1.6; color: #cbd5e1; margin: 0 0 12px 0;
+}
+.tour-where {
+  display: inline-block;
+  background: rgba(99,102,241,0.15);
+  border: 1px solid rgba(99,102,241,0.35);
+  color: #a5b4fc;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 4px;
+}
+/* Progress dots */
+.tour-dots {
+  display: flex; gap: 6px; justify-content: center; margin: 16px 0 4px 0;
+}
+.tour-dots span {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  transition: all 0.3s;
+}
+.tour-dots span.active {
+  background: #c9a84c;
+  width: 24px; border-radius: 4px;
+}
+.tour-dots span.done {
+  background: rgba(201,168,76,0.5);
+}
+.tour-counter {
+  font-size: 0.72rem; color: #94a3b8; text-align: center;
+  text-transform: uppercase; letter-spacing: 0.1em; margin-top: 6px;
+}
+</style>
 """
 
-_JOURNEYS = {
-    "👔 Director": [
-        ("🏠 Home → Command Center", "5 KPIs + alerts scan (Brent, WTI, USD/INR, VG30, AI Signal)"),
-        ("🏠 Home → Director Cockpit", "Yesterday summary + today priorities + 15-day outlook"),
-        ("🧠 Intelligence → Market Signals", "10-signal composite — BULLISH / NEUTRAL / BEARISH"),
-        ("📊 Reports → Director Brief", "Download 6-page executive PDF briefing"),
-        ("📊 Reports → Risk Scoring", "Overall Health Score — Market/Supply/Financial/Compliance"),
-    ],
-    "💼 Sales": [
-        ("💼 Sales → CRM Tasks", "Today's worklist — Due / Overdue / Upcoming"),
-        ("💼 Sales → Daily Log", "Log yesterday's customer meetings"),
-        ("🧠 Intelligence → News", "Market news scan"),
-        ("💰 Pricing → Pricing Calculator", "Customer pe quote banao — 3-column cost flow"),
-        ("💼 Sales → Comm Hub", "WhatsApp / Email / Call template generate karo"),
-        ("💼 Sales → Negotiation AI", "Bade deal se pehle 3-tier offer brief"),
-    ],
-    "🚚 Operations": [
-        ("💰 Pricing → Pricing Calculator", "Finalize pricing after order confirmed"),
-        ("📄 Documents → Document Mgmt", "Create PO / SO (FY2526/PO/0001 format)"),
-        ("🚚 Logistics → Feasibility Engine", "3-route comparison — kaunsa source best?"),
-        ("🚚 Logistics → Tanker Tracking", "Track dispatch real-time"),
-        ("🏛️ Compliance → E-Way Bill", "Generate e-way bill for transport"),
-        ("🚚 Logistics → Maritime Logistics", "Import shipment — vessel + port tracking"),
-    ],
-    "👀 Viewer / Customer": [
-        ("🏠 Home → Client Showcase", "Marketing landing page"),
-        ("🏠 Home → Live Market", "Current prices — Brent, WTI, VG30, USD/INR"),
-        ("🧠 Intelligence → News", "Latest market news"),
-        ("🏠 Home → Subscription Pricing", "SaaS pricing plans"),
-    ],
-}
 
-_MODULES = [
-    ("🏠 Home", [
-        "**Command Center** — Executive dashboard, 5 KPIs + alerts + quick actions",
-        "**Live Market** — Real-time crude + FX + VG30 prices, BUY/SELL signals",
-        "**Opportunities** — AI auto-discovered deals with WhatsApp templates",
-        "**Director Cockpit** — Yesterday / Today / 15-day outlook (role-gated)",
-        "**Client Showcase** — Public marketing page",
-        "**Subscription Pricing** — SaaS tiers display",
-    ]),
-    ("💰 Pricing", [
-        "**Pricing Calculator** — 3-column quote generator with PDF",
-        "**One-Click Quote** — 5-step wizard for urgent quotes",
-        "**Import Cost Model** — FOB → CIF → Landed simulator",
-        "**Price Prediction** — 24-month forecast calendar",
-        "**Manual Entry** — Admin override with calendar picker",
-        "**SOS Pricing** — Emergency quick quotes",
-        "**Past Revisions** — Prediction accuracy review",
-    ]),
-    ("💼 Sales & CRM", [
-        "**CRM Tasks** — Daily worklist + calendar view",
-        "**Sales Workspace** — Deal room for active negotiations",
-        "**Negotiation AI** — 3-tier offer brief + objections",
-        "**Comm Hub** — WA / Email / Call template generator",
-        "**CRM Automation** — 24K contacts, festival broadcasts",
-        "**Contacts Directory** — 25K+ searchable database",
-        "**Contact Importer** — Bulk import (Excel/CSV/PDF)",
-        "**Daily Log** — Meeting notes + AI annotations",
-        "**Sales Calendar** — State seasons + holidays (28 states)",
-        "**Comm Tracking** — Unified WA/Email/Call logs",
-    ]),
-    ("🧠 Intelligence", [
-        "**Market Signals** — 10-signal composite BULLISH/BEARISH",
-        "**Real-Time Insights** — Live monitor + disruption map",
-        "**News Dashboard** — International + Domestic feeds",
-        "**Business Advisor** — Buy/Sell advisory + 6 risk types",
-        "**Purchase Advisor** — Urgency scoring + supplier rankings",
-        "**Recommendation Engine** — Today's recs + forecasts",
-        "**Global Markets** — Crude + Bitumen + FX charts",
-        "**Competitor Intel** — IOCL/HPCL OSINT tracking",
-        "**Telegram Analyzer** — Channel monitoring for price intel",
-        "**Intelligence Hub** — Central KPI aggregation",
-    ]),
-    ("📄 Documents", [
-        "**Document Mgmt** — PO / SO / Payment orders (FY-based numbering)",
-        "**Party Master** — Supplier + customer master data",
-        "**PDF Archive** — All generated PDFs (download/delete)",
-    ]),
-    ("🚚 Logistics", [
-        "**Maritime Logistics** — Vessel map + port congestion",
-        "**Supply Chain** — Iraq→Port→Tanker→Delivery→Payment",
-        "**Port Tracker** — HS 271320 bitumen imports",
-        "**Feasibility Engine** — 3-route cost comparison",
-        "**Ecosystem Management** — Suppliers + Clients + Logistics",
-        "**Refinery Supply** — Production heatmap + shutdown alerts",
-        "**Tanker Tracking** — Real-time tanker location",
-        "**Infra Demand** — Highway projects → bitumen demand",
-    ]),
-    ("📊 Reports", [
-        "**Financial Intel** — P&L + cashflow + aging + scenarios",
-        "**Strategy Panel** — Trade recommendations with confidence",
-        "**Demand Analytics** — Contractor profiles + patterns",
-        "**Correlation Dashboard** — Highway KM vs Bitumen demand",
-        "**Road Budget** — NHAI pipeline + state allocation",
-        "**Risk Scoring** — Overall Health Score composite",
-        "**Director Brief** — 6-page executive PDF",
-        "**Profitability** — Deal-wise margin analysis",
-        "**Credit Aging** — 30/60/90/120-day receivables",
-    ]),
-    ("🏛️ Compliance (in 'More ▾')", [
-        "**Govt Hub** — PPAC, MoRTH, NHAI, data.gov.in catalog",
-        "**GST Legal Monitor** — GST status + e-invoice + GSTR match",
-        "**Change Log** — Live + API + SRE history",
-        "**NHAI Tender Dashboard** — Highway tender tracking",
-        "**E-Way Bill** — Generation + tracking",
-    ]),
-    ("⚙️ System & AI (in 'More ▾')", [
-        "**AI Chat** — Trading chatbot multi-turn",
-        "**AI Fallback** — 5-provider chain (OpenAI→Claude)",
-        "**AI Setup** — Environment + module registry",
-        "**AI Learning** — Model accuracy + weight tuning",
-        "**Health Monitor** — Traffic light system health",
-        "**API Hub** — 25 connectors management",
-        "**Settings** — 200+ config keys (margins, GST, APIs)",
-        "**Bug Tracker** — P0-P3 bug tracking",
-        "**Developer Ops** — Workers + models + errors",
-        "**Flow Map** — 9-layer architecture view",
-        "**SRE Dashboard** — Reliability metrics",
-        "**Sync Status** — Data freshness + missing inputs",
-        "**Knowledge Base** — FAQs + search",
-        "**System Control** — Advanced admin (9 sections)",
-    ]),
-]
+def _render_stage(step: dict) -> str:
+    """Build the animated stage HTML for one step."""
+    kind = step.get("kind", "click")
+    btn_cls = "tour-btn hero" if kind == "hero" else "tour-btn"
+    ripples = ""
+    cursor = ""
+    if kind == "click":
+        ripples = """
+<div class="tour-ripple"></div>
+<div class="tour-ripple r2"></div>
+<div class="tour-ripple r3"></div>
+"""
+        cursor = '<div class="tour-cursor">👆</div>'
 
-_QUICK_TIPS = [
-    "🔄 **Auto-refresh**: Home page pe caches 30 min+ purane ho to auto refresh ho jate hain.",
-    "🔐 **24hr Login**: Ek baar login karo, 24 hours tak session zinda rahega (tab close karke bhi).",
-    "📱 **Sidebar Quick Actions**: Har page se PDF, Print, Excel, WhatsApp, Telegram direct ho sakta hai.",
-    "🎯 **Command Center** is home — yahan se sab alerts + KPIs ek jagah.",
-    "🔔 **Alerts**: P0 (red) = turant dekho, P1 (yellow) = aaj dekho, P2 (blue) = info only.",
-    "💬 **AI Chat**: System > AI Chat mein kuch bhi pucho — trading context samajhta hai.",
-    "📊 **Data Issues?**: System > Sync Status > 'Run Sync' click karo.",
-    "🆘 **Mushkil mein?**: System > Knowledge Base mein FAQ search karo.",
-]
+    return f"""
+<div class="tour-stage">
+  {ripples}
+  <div class="{btn_cls}">
+    <span style="font-size:1.3rem;">{step["icon"]}</span>
+    <span>{step["label"]}</span>
+  </div>
+  {cursor}
+</div>
+"""
 
 
-# ── Dialog renderer ─────────────────────────────────────────────────────────
+def _render_dots(current: int, total: int) -> str:
+    dots = []
+    for i in range(total):
+        if i < current:
+            dots.append('<span class="done"></span>')
+        elif i == current:
+            dots.append('<span class="active"></span>')
+        else:
+            dots.append('<span></span>')
+    return f'<div class="tour-dots">{"".join(dots)}</div>'
+
 
 def _render_tutorial_content():
-    """Core content — role-aware tabs + module reference + tips."""
+    """Render the interactive tour with Next/Prev navigation."""
+    total = len(_STEPS)
+    idx = st.session_state.get("_tour_step", 0)
+    idx = max(0, min(idx, total - 1))
+    step = _STEPS[idx]
 
-    # Role detect
-    role = st.session_state.get("_auth_role", "director").lower()
-    if role == "admin":
-        role = "director"
-    role_title = role.title()
+    # Inject CSS once
+    st.markdown(_step_css(), unsafe_allow_html=True)
 
-    st.markdown("### 📖 PPS Anantam — Dashboard Tutorial")
-    st.caption(f"Logged in as: **{role_title}**  |  24hr session active")
-
-    # Intro
-    with st.expander("🎯 Yeh dashboard kya hai? (Start here)", expanded=True):
-        st.markdown(_INTRO)
-
-    # Journey tabs
-    st.markdown("#### 🚶 Day-in-the-life — Apna role chuno")
-    journey_keys = list(_JOURNEYS.keys())
-
-    # Default to user's role
-    role_map = {"director": 0, "sales": 1, "operations": 2, "viewer": 3}
-    _default_idx = role_map.get(role, 0)
-
-    _tabs = st.tabs(journey_keys)
-    for idx, (journey_name, steps) in enumerate(_JOURNEYS.items()):
-        with _tabs[idx]:
-            for i, (page, desc) in enumerate(steps, 1):
-                st.markdown(
-                    f"""
-<div style="background:#F9FAFB;border-left:3px solid #4F46E5;padding:10px 14px;margin:8px 0;border-radius:6px;">
-<div style="font-size:0.75rem;color:#6B7280;font-weight:600;">STEP {i}</div>
-<div style="font-size:0.9rem;font-weight:600;color:#111827;margin:2px 0;">{page}</div>
-<div style="font-size:0.8rem;color:#4B5563;">{desc}</div>
+    # Main step card
+    st.markdown(
+        f"""
+<div class="tour-wrap">
+  {_render_stage(step)}
+  <div class="tour-title">{step["title"]}</div>
+  <div class="tour-body">{step["body"]}</div>
+  <div class="tour-where">📍 {step["where"]}</div>
+  {_render_dots(idx, total)}
+  <div class="tour-counter">Step {idx + 1} of {total}</div>
 </div>
 """,
-                    unsafe_allow_html=True,
-                )
+        unsafe_allow_html=True,
+    )
 
-    # Modules reference
-    st.markdown("---")
-    st.markdown("#### 🗂️ All modules & pages (1-line reference)")
-    for mod_name, pages in _MODULES:
-        with st.expander(mod_name, expanded=False):
-            for line in pages:
-                st.markdown(f"- {line}")
+    # Navigation buttons
+    col_prev, col_skip, col_next = st.columns([1, 1, 1])
 
-    # Quick tips
-    st.markdown("---")
-    st.markdown("#### 💡 Quick Tips")
-    for tip in _QUICK_TIPS:
-        st.markdown(f"- {tip}")
+    with col_prev:
+        if st.button("← Previous", key=f"_tour_prev_{idx}",
+                     use_container_width=True, disabled=(idx == 0)):
+            st.session_state["_tour_step"] = idx - 1
+            st.rerun()
 
-    st.markdown("---")
-    st.caption("📄 Full reference: `USER_GUIDE.md` in project root.")
+    with col_skip:
+        if st.button("Skip Tour", key=f"_tour_skip_{idx}",
+                     use_container_width=True):
+            st.session_state["_tour_step"] = 0
+            st.session_state["_show_tutorial"] = False
+            st.rerun()
+
+    with col_next:
+        if idx < total - 1:
+            if st.button("Next →", key=f"_tour_next_{idx}",
+                         use_container_width=True, type="primary"):
+                st.session_state["_tour_step"] = idx + 1
+                st.rerun()
+        else:
+            if st.button("🎉 Finish", key=f"_tour_finish_{idx}",
+                         use_container_width=True, type="primary"):
+                st.session_state["_tour_step"] = 0
+                st.session_state["_show_tutorial"] = False
+                st.rerun()
 
 
 # ── Public API ──────────────────────────────────────────────────────────────
 
 def render_tutorial_dialog():
-    """
-    Call this when the Tutorial button is clicked.
-    Uses st.dialog if available (Streamlit 1.35+), else inline container.
-    """
-    # Prefer native dialog for cleaner UX
+    """Open the tutorial as a modal dialog (or inline fallback)."""
     try:
-        @st.dialog("📖 Tutorial — PPS Anantam Dashboard", width="large")
+        @st.dialog("📖 PPS Anantam — Interactive Tour", width="large")
         def _dlg():
             _render_tutorial_content()
         _dlg()
@@ -237,9 +363,6 @@ def render_tutorial_dialog():
     except Exception:
         pass
 
-    # Fallback: inline container (for older Streamlit)
+    # Fallback for older Streamlit (< 1.35)
     with st.container(border=True):
         _render_tutorial_content()
-        if st.button("Close", key="_tut_close", type="secondary"):
-            st.session_state["_show_tutorial"] = False
-            st.rerun()
