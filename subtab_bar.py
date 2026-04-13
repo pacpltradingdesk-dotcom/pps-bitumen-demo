@@ -72,7 +72,7 @@ def render_sidebar_features(module: str) -> str:
         current_page = tabs[0]["page"]
 
     with st.sidebar:
-        # ── Active Tour Panel (renders AT TOP when tour active) ────────
+        # ── Active Tour (floating tooltip — rendered near actual button) ──
         # Auto-open tutorial on first login (welcome flow)
         if st.session_state.pop("_welcome_pending", False):
             st.session_state["_show_tutorial"] = True
@@ -81,8 +81,6 @@ def render_sidebar_features(module: str) -> str:
             try:
                 from tutorial_engine import render_tour
                 render_tour()
-                st.markdown("<hr style='margin:8px 0 16px;opacity:0.3;'>",
-                            unsafe_allow_html=True)
             except Exception as _e:
                 st.error(f"Tour failed: {_e}")
                 st.session_state["_show_tutorial"] = False
