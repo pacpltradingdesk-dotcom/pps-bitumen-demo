@@ -97,5 +97,6 @@ def render():
     try:
         from navigation_engine import render_next_step_cards
         render_next_step_cards("💬 Communication Hub")
+        st.session_state["_ns_rendered_inline"] = True
     except Exception:
         pass

@@ -848,5 +848,6 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
         from navigation_engine import render_continue_widget, render_next_step_cards
         render_continue_widget()
         render_next_step_cards("🎯 Command Center")
+        st.session_state["_ns_rendered_inline"] = True
     except Exception:
         pass

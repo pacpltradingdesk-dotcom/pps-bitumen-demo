@@ -530,5 +530,6 @@ _Terms: 100% Advance. Valid for 24 Hrs._
     try:
         from navigation_engine import render_next_step_cards
         render_next_step_cards("🧮 Pricing Calculator")
+        st.session_state["_ns_rendered_inline"] = True
     except Exception:
         pass

@@ -140,8 +140,18 @@ def render_sidebar_features(module: str) -> str:
                 st.session_state["selected_page"] = tab["page"]
                 st.rerun()
 
-        # ── Tutorial button (re-open tour) ─────────────────────────────
+        # ── Quick Find + Tutorial buttons ──────────────────────────────
         st.markdown('<div style="margin-top:24px;"></div>', unsafe_allow_html=True)
+        try:
+            from command_palette import (render_command_palette_button,
+                                         render_command_palette,
+                                         inject_ctrl_k_listener)
+            render_command_palette_button()
+            render_command_palette()  # renders only if _show_cmd_palette is True
+            inject_ctrl_k_listener()
+        except Exception as _e_cp:
+            st.caption(f"Quick Find unavailable: {_e_cp}")
+
         if st.button("📖 Tutorial", key="_sidebar_tutorial_btn",
                      use_container_width=True, help="Guided tour phir se shuru karo"):
             st.session_state["_show_tutorial"] = True

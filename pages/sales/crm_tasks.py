@@ -251,5 +251,6 @@ def _render_calendar_tab(crm):
     try:
         from navigation_engine import render_next_step_cards
         render_next_step_cards("🎯 CRM & Tasks")
+        st.session_state["_ns_rendered_inline"] = True
     except Exception:
         pass

@@ -725,6 +725,18 @@ PAGE_DISPATCH = {
 handler = PAGE_DISPATCH.get(selected_page)
 if handler:
     handler()
+    # Central hook: render contextual Next Step cards after EVERY page.
+    # Pages that added cards inline won't duplicate — NEXT_STEPS lookup
+    # determines if cards render. Pages without entries render nothing.
+    try:
+        from navigation_engine import render_next_step_cards, NEXT_STEPS
+        # Skip if this page already calls render_next_step_cards inline
+        # (we track which pages self-render via a sentinel in session_state)
+        _inline_rendered = st.session_state.pop("_ns_rendered_inline", False)
+        if not _inline_rendered and selected_page in NEXT_STEPS:
+            render_next_step_cards(selected_page)
+    except Exception:
+        pass
 else:
     st.warning(f"Page not found: {selected_page}")
     st.info("Use the navigation bar to select a page.")
