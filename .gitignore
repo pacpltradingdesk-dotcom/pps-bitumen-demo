@@ -50,3 +50,39 @@ whatsapp_config.json
 
 # Heavy cache (not needed for demo)
 api_cache.json
+
+# Runtime logs (regenerated on app startup)
+ai_fallback_log.json
+ai_learning_log.json
+api_change_log.json
+api_dev_log.json
+api_error_log.json
+api_health_log.json
+sync_logs.json
+sre_audit_log.json
+sre_alerts.json
+sre_health_status.json
+sre_metrics.json
+hub_activity_log.json
+auto_insights.json
+market_alerts.json
+dead_letter_queue.json
+api_stats.json
+
+# Last-known-good API cache (runtime)
+lkg_cache/
+
+# News fetch runtime state
+news_data/change_history.json
+news_data/fetch_log.json
+
+# Demo outputs
+demo_pdfs/
+
+# Git worktrees
+.worktrees/
+
+# Phase 1 backups
+.bak.archive/
+*.pre-phase1.bak
+
