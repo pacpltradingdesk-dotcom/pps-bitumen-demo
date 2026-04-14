@@ -1091,6 +1091,8 @@ def _run_schema_migrations():
             (5, "Add transporters + payment_orders columns + seed new clauses", _migration_005_transporters_and_payment_cols),
             (6, "Add CRM automation tables: contacts, rotation log, festival, price log", _migration_006_crm_automation),
             (7, "Add VIP scoring, DPDP consent columns, sms_queue table", _migration_007_vip_and_sms),
+            (8, "Phase 1: customer_profiles + import_history tables",
+             _migration_008_phase1_import_tables),
         ]
 
         for version, desc, migration_fn in migrations:
@@ -1329,6 +1331,51 @@ def _migration_007_vip_and_sms(cur):
         )
     """)
     cur.execute("CREATE INDEX IF NOT EXISTS idx_sms_queue_status ON sms_queue(status)")
+
+
+def _migration_008_phase1_import_tables(cur):
+    """Phase 1: customer_profiles + import_history tables, imported_from on customers."""
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS customer_profiles (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            name         TEXT NOT NULL,
+            company      TEXT,
+            city         TEXT,
+            state        TEXT,
+            whatsapp     TEXT,
+            email        TEXT,
+            category     TEXT,
+            notes        TEXT,
+            source_file  TEXT,
+            imported_at  TEXT NOT NULL
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS import_history (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            file_name     TEXT NOT NULL,
+            target_table  TEXT NOT NULL,
+            rows_inserted INTEGER NOT NULL,
+            rows_skipped  INTEGER NOT NULL,
+            rows_errored  INTEGER NOT NULL,
+            imported_at   TEXT NOT NULL,
+            reverted      INTEGER DEFAULT 0
+        )
+    """)
+    cur.execute("""
+        CREATE INDEX IF NOT EXISTS idx_customer_profiles_name
+        ON customer_profiles(name)
+    """)
+    cur.execute("""
+        CREATE INDEX IF NOT EXISTS idx_import_history_imported_at
+        ON import_history(imported_at DESC)
+    """)
+    # Add imported_from column to tables where it is missing
+    for tbl in ("customers", "suppliers", "contacts"):
+        try:
+            cur.execute(f"ALTER TABLE {tbl} ADD COLUMN imported_from TEXT")
+        except sqlite3.OperationalError:
+            pass  # Column already exists
 
 
 def _safe_add_column(cur, table: str, column: str, col_def: str):
