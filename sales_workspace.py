@@ -117,9 +117,26 @@ def render_client_360(client_name):
             st.info("🕒 Unloading Hours: 08:00 AM - 06:00 PM Only.")
             
         with t3:
-            st.button("📲 Open WhatsApp", use_container_width=True)
-            st.button("📧 Email Quote", use_container_width=True)
-            st.button("📝 Edit Profile", use_container_width=True)
+            try:
+                from navigation_engine import get_context
+                _wa_phone = (get_context("customer_phone", "") or "").lstrip("+")
+            except Exception:
+                _wa_phone = ""
+            if _wa_phone:
+                st.link_button(
+                    "📲 Open WhatsApp",
+                    f"https://wa.me/{_wa_phone}",
+                    use_container_width=True,
+                )
+            else:
+                if st.button("📲 Open WhatsApp", use_container_width=True, key="_sw_wa"):
+                    st.warning("Set an Active Customer in the sidebar first to enable this.")
+            if st.button("📧 Email Quote", use_container_width=True, key="_sw_email"):
+                st.session_state["_nav_goto"] = "💬 Communication Hub"
+                st.rerun()
+            if st.button("📝 Edit Profile", use_container_width=True, key="_sw_profile"):
+                st.session_state["_nav_goto"] = "📱 Contacts Directory"
+                st.rerun()
 
 # --- COMPONENT: DEAL ROOM ---
 
@@ -300,8 +317,33 @@ def render_deal_room():
             # Quote Generator
             b1, b2 = st.columns(2)
             with b1:
-                if st.button("📤 Generate SALES-STYLE PDF Quote", use_container_width=True):
-                    st.success("Generated PDF with: \n- Price Breakup\n- 3 Why Choose Us Points\n- Validity Countdown")
+                if st.button("📤 Generate SALES-STYLE PDF Quote", use_container_width=True,
+                             key="_sw_gen_pdf"):
+                    # Real PDF generation via the production engine
+                    try:
+                        from pdf_export_engine import generate_quote_pdf
+                        _pdf_bytes = generate_quote_pdf(
+                            customer=selected_client,
+                            grade=grade,
+                            quantity_mt=qty,
+                            price_per_mt=final_price,
+                            destination=dest_city,
+                            why_us=comp_intel.get("our_strength", ""),
+                        )
+                        st.download_button(
+                            "⬇️ Download PDF Quote",
+                            data=_pdf_bytes,
+                            file_name=f"PPS_Quote_{selected_client.replace(' ', '_')}_{datetime.date.today()}.pdf",
+                            mime="application/pdf",
+                            key="_sw_dl_pdf",
+                        )
+                        st.success("PDF ready — click Download above.")
+                    except Exception as _e:
+                        # Fallback: route to the dedicated Pricing Calculator
+                        # which has the canonical PDF flow
+                        st.session_state["_nav_goto"] = "🧮 Pricing Calculator"
+                        st.info(f"Routing to Pricing Calculator for full quote: {_e}")
+                        st.rerun()
             with b2:
                 if st.button("💬 WhatsApp Quote (Formatted)", use_container_width=True):
                     wa_msg = f"""*BITUMEN OFFER - {datetime.date.today()}*

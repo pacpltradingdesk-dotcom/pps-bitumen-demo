@@ -251,8 +251,13 @@ padding:8px 16px;border-radius:6px;cursor:pointer;width:100%;font-weight:600;box
             with st.popover("📊", use_container_width=True, help="Export Excel"):
                 st.markdown(f"**Export: {page_name}**")
                 st.caption("Download data as Excel/CSV")
-                if st.button("Export CSV", key="_qa_csv_go", type="primary", use_container_width=True):
-                    st.info("Navigate to any data table on the page, hover over it and click the download icon (↓) to export.")
+                # Real action: jump to Reports / Export page where bulk
+                # exports actually happen, instead of just showing a tip.
+                if st.button("Open Export Reports", key="_qa_csv_go",
+                             type="primary", use_container_width=True):
+                    st.session_state["_nav_goto"] = "📤 Reports"
+                    st.rerun()
+                st.caption("Or hover any data table on the page and click ↓ to export inline.")
 
         # Row 2: Share, WA, TG
         r2 = st.columns(3)
