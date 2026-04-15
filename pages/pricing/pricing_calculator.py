@@ -47,6 +47,12 @@ def _get_optimizer():
 
 
 def render():
+    # Phase 2: standardized refresh bar (clears caches + reruns)
+    try:
+        from components.refresh_bar import render_refresh_bar
+        render_refresh_bar('pricing_calculator')
+    except Exception:
+        pass
     st.markdown('<div class="pps-page-header"><div class="pps-page-title">\U0001f9ee Pricing Calculator</div></div>', unsafe_allow_html=True)
     display_badge("calculated")
 

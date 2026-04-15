@@ -782,6 +782,12 @@ def _render_past_performance(df_past: pd.DataFrame):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def render():
+    # Phase 2: standardized refresh bar (clears caches + reruns)
+    try:
+        from components.refresh_bar import render_refresh_bar
+        render_refresh_bar('price_prediction')
+    except Exception:
+        pass
     display_badge("calculated")
 
     # ── Page header ───────────────────────────────────────────────────────────

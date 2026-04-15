@@ -47,6 +47,12 @@ _SIGNAL_DEFS = [
 
 def render():
     """Render the Market Intelligence Signals page."""
+    # Phase 2: standardized refresh bar (clears caches + reruns)
+    try:
+        from components.refresh_bar import render_refresh_bar
+        render_refresh_bar('market_signals')
+    except Exception:
+        pass
     from market_intelligence_engine import MarketIntelligenceEngine
 
     engine = MarketIntelligenceEngine()

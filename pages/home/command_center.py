@@ -65,6 +65,12 @@ def _ticker_html(label, items_text, bg="#0F172A", label_bg="#4F46E5", label_text
 
 
 def render():
+    # Phase 2: standardized refresh bar (clears caches + reruns)
+    try:
+        from components.refresh_bar import render_refresh_bar
+        render_refresh_bar('command_center')
+    except Exception:
+        pass
     from theme import inject_theme
     inject_theme()
 

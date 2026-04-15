@@ -40,6 +40,12 @@ def _save_config(cfg):
 
 
 def render():
+    # Phase 2: standardized refresh bar (clears caches + reruns)
+    try:
+        from components.refresh_bar import render_refresh_bar
+        render_refresh_bar('telegram_analyzer')
+    except Exception:
+        pass
     st.markdown("""
 <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:12px;
             padding:16px 20px;margin-bottom:16px;">

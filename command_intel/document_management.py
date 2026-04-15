@@ -94,6 +94,12 @@ def _status_color(status: str) -> str:
 
 def render_purchase_order():
     """Render the Purchase Order generator + list page."""
+    # Phase 2: standardized refresh bar (clears caches + reruns)
+    try:
+        from components.refresh_bar import render_refresh_bar
+        render_refresh_bar('documents')
+    except Exception:
+        pass
     st.markdown(_HERO_CSS, unsafe_allow_html=True)
     st.markdown(
         '<div class="doc-hero">'

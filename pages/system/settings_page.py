@@ -4,6 +4,12 @@ from pathlib import Path
 
 
 def render():
+    # Phase 2: standardized refresh bar (clears caches + reruns)
+    try:
+        from components.refresh_bar import render_refresh_bar
+        render_refresh_bar('settings')
+    except Exception:
+        pass
     _today_str = datetime.date.today().strftime("%d %b %Y")
     st.markdown(f"""
 <div style="display:flex;align-items:center;justify-content:space-between;

@@ -760,6 +760,12 @@ def _render_settings():
 # ══════════════════════════════════════════════════════════════════════════════
 
 def render():
+    # Phase 2: standardized refresh bar (clears caches + reruns)
+    try:
+        from components.refresh_bar import render_refresh_bar
+        render_refresh_bar('news')
+    except Exception:
+        pass
     # Inject CSS
     st.markdown(_CSS, unsafe_allow_html=True)
 

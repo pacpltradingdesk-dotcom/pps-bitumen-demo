@@ -22,6 +22,12 @@ IST = pytz.timezone("Asia/Kolkata")
 
 def render():
     """Render the Daily Log Entry panel."""
+    # Phase 2: standardized refresh bar (clears caches + reruns)
+    try:
+        from components.refresh_bar import render_refresh_bar
+        render_refresh_bar('daily_log')
+    except Exception:
+        pass
     display_badge("manual")
 
     st.markdown("""

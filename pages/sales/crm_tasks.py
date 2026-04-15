@@ -7,6 +7,12 @@ import streamlit as st
 
 
 def render():
+    # Phase 2: standardized refresh bar (clears caches + reruns)
+    try:
+        from components.refresh_bar import render_refresh_bar
+        render_refresh_bar('crm_tasks')
+    except Exception:
+        pass
     st.markdown('<div class="pps-page-header"><div class="pps-page-title">🎯 Sales CRM & Daily Worklist</div></div>', unsafe_allow_html=True)
     st.caption("Never miss a follow-up. Manage calls, tasks, and client engagement.")
 

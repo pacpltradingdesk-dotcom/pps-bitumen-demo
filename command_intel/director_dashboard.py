@@ -48,6 +48,12 @@ def _fmt_inr(amount) -> str:
 
 def render():
     """Render the Director Daily Intelligence Center page."""
+    # Phase 2: standardized refresh bar (clears caches + reruns)
+    try:
+        from components.refresh_bar import render_refresh_bar
+        render_refresh_bar('director_brief')
+    except Exception:
+        pass
     display_badge("real-time")
 
     from director_briefing_engine import DirectorBriefingEngine
