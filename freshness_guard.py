@@ -127,3 +127,87 @@ def get_cache_freshness() -> dict:
         "market_age_min": _age_minutes(MARKET_CACHE),
         "news_age_min":   _age_minutes(NEWS_CACHE),
     }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Phase 2 — Per-page cache registry + manual refresh
+# ═══════════════════════════════════════════════════════════════════════════════
+
+# Paths are lazy — resolved against ROOT at read time.
+PAGE_CACHES: dict[str, list[Path]] = {
+    "command_center":    [MARKET_CACHE, NEWS_CACHE],
+    "live_market":       [MARKET_CACHE],
+    "opportunities":     [ROOT / "opportunities.json"],
+    "pricing_calculator":[MARKET_CACHE],
+    "price_prediction":  [MARKET_CACHE, ROOT / "ai_learned_weights.json"],
+    "crm_tasks":         [ROOT / "crm_tasks.json", ROOT / "crm_activity.json"],
+    "negotiation":       [],                               # DB-backed only
+    "daily_log":         [ROOT / "daily_log.json"],
+    "news":              [NEWS_CACHE],
+    "market_signals":    [ROOT / "tbl_market_signals.json"],
+    "telegram_analyzer": [ROOT / "tbl_telegram_intel.json"],
+    "documents":         [],                               # DB-backed only
+    "director_brief":    [MARKET_CACHE, NEWS_CACHE],
+    "settings":          [],                               # config, no bar
+}
+
+
+def get_page_age_minutes(page_key: str) -> dict:
+    """Return age summary for the caches attached to `page_key`.
+
+    Returns:
+        {
+          "max_age_min": float,              # oldest cache, minutes
+          "per_cache": {path_name: age_min}, # individual ages
+          "is_db_only": bool,                # True if page has no file caches
+          "missing": bool,                   # True if any cache is missing
+        }
+    """
+    paths = PAGE_CACHES.get(page_key, [])
+    if not paths:
+        return {"max_age_min": 0.0, "per_cache": {},
+                "is_db_only": True, "missing": False}
+
+    per = {}
+    for p in paths:
+        age = _age_minutes(p)
+        per[p.name] = round(age, 1) if age != float("inf") else None
+
+    # Treat missing as "very stale" for max calculation, but flag it separately
+    finite = [_age_minutes(p) for p in paths if _age_minutes(p) != float("inf")]
+    missing = any(_age_minutes(p) == float("inf") for p in paths)
+    max_age = max(finite) if finite else float("inf")
+
+    return {
+        "max_age_min": round(max_age, 1) if max_age != float("inf") else None,
+        "per_cache": per,
+        "is_db_only": False,
+        "missing": missing,
+    }
+
+
+def refresh_page(page_key: str) -> dict:
+    """Force-refresh the caches tied to `page_key`. Returns _do_refresh() result
+    (or a no-op dict for DB-only pages).
+
+    Also clears any Streamlit cache_data so UI state rebuilds from fresh files.
+    """
+    result = {"page_key": page_key}
+    paths = PAGE_CACHES.get(page_key, [])
+
+    if paths:
+        # Trigger the global refresh — individual-cache surgical refresh is
+        # out of scope here; the api_hub writes ALL caches anyway, so reusing
+        # _do_refresh() is cheapest.
+        result["refresh"] = _do_refresh(reason=f"manual:{page_key}")
+    else:
+        result["refresh"] = {"skipped": True, "reason": "db-only page"}
+
+    # Clear Streamlit's in-memory caches so downstream helpers re-read files.
+    try:
+        import streamlit as st
+        st.cache_data.clear()
+    except Exception:
+        pass
+
+    return result
