@@ -239,6 +239,24 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
     if not isinstance(news_data, list):
         news_data = []
 
+    # Sort newest-first so today's headlines always land at the top of the
+    # feed. Handles both ISO (YYYY-MM-DD...) and legacy DD-MM-YYYY formats —
+    # DD-MM-YYYY gets converted to ISO for a fair compare; anything unparseable
+    # falls to the bottom.
+    import re as _re_sort
+    _dd_mm = _re_sort.compile(r"^(\d{2})-(\d{2})-(\d{4})(.*)$")
+    def _sortable_date(a):
+        if not isinstance(a, dict):
+            return ""
+        dt = str(a.get("published_at_ist") or a.get("date_time") or
+                 a.get("published") or a.get("date") or
+                 a.get("timestamp") or "")
+        m = _dd_mm.match(dt)
+        if m:
+            return f"{m.group(3)}-{m.group(2)}-{m.group(1)}{m.group(4)}"
+        return dt
+    news_data = sorted(news_data, key=_sortable_date, reverse=True)
+
     # Market signals
     signals_data = _load_json("tbl_market_signals.json", {})
 
