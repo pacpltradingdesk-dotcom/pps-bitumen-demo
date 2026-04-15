@@ -177,6 +177,18 @@ if "_active_module" not in st.session_state:
 # COMMAND CENTER FAST PATH — render clean, skip all nav chrome
 # ═══════════════════════════════════════════════════════════════════════════════
 
+# Global _nav_goto consumer — runs on EVERY page so any "Open X" button
+# anywhere in the app can navigate by setting st.session_state["_nav_goto"]
+# + calling st.rerun(). Previously this only worked on the Command Center
+# fast path, leaving Quick Access cards / Live Market AI buttons broken.
+if st.session_state.get("_nav_goto"):
+    _goto = st.session_state.pop("_nav_goto")
+    st.session_state["selected_page"] = resolve_page(_goto)
+    _owner = get_module_for_page(_goto)
+    if _owner:
+        st.session_state["_active_module"] = _owner
+    st.rerun()
+
 if st.session_state.get("selected_page") == "🎯 Command Center":
     # Render sidebar even on CC (render_sidebar_features already imported at top)
     render_sidebar_features("📊 Price & Info")
@@ -187,7 +199,7 @@ if st.session_state.get("selected_page") == "🎯 Command Center":
     except Exception:
         from command_intel import command_center_home as cmd_command_center
         cmd_command_center.render()
-    # Handle deferred navigation from CC buttons
+    # Belt + braces: in case render set _nav_goto AFTER the global check above
     if st.session_state.get("_nav_goto"):
         _goto = st.session_state.pop("_nav_goto")
         st.session_state["selected_page"] = resolve_page(_goto)
