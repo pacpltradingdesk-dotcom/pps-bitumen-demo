@@ -189,3 +189,10 @@ def render_top_bar() -> None:
                               "_auth_display", "_auth_last_activity"]:
                         st.session_state.pop(k, None)
                 st.rerun()
+
+    # Phase 5 — Power Stats ribbon (global, under top bar)
+    try:
+        from components.power_stats_ribbon import render_power_stats_ribbon
+        render_power_stats_ribbon()
+    except Exception:
+        pass
