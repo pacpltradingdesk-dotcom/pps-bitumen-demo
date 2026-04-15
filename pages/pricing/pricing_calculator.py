@@ -53,6 +53,12 @@ def render():
         render_refresh_bar('pricing_calculator')
     except Exception:
         pass
+    # Phase 4: active customer banner — shows persistent customer context
+    try:
+        from navigation_engine import render_active_context_strip
+        render_active_context_strip()
+    except Exception:
+        pass
     st.markdown('<div class="pps-page-header"><div class="pps-page-title">\U0001f9ee Pricing Calculator</div></div>', unsafe_allow_html=True)
     display_badge("calculated")
 

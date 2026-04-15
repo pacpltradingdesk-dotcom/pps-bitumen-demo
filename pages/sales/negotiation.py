@@ -30,6 +30,12 @@ def render():
         render_refresh_bar('negotiation')
     except Exception:
         pass
+    # Phase 4: active customer banner — shows persistent customer context
+    try:
+        from navigation_engine import render_active_context_strip
+        render_active_context_strip()
+    except Exception:
+        pass
     _today_str = datetime.date.today().strftime("%d %b %Y")
     st.markdown(f"""
 <div style="display:flex;align-items:center;justify-content:space-between;

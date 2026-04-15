@@ -71,6 +71,12 @@ def render():
         render_refresh_bar('command_center')
     except Exception:
         pass
+    # Phase 4: active customer banner — shows persistent customer context
+    try:
+        from navigation_engine import render_active_context_strip
+        render_active_context_strip()
+    except Exception:
+        pass
     from theme import inject_theme
     inject_theme()
 

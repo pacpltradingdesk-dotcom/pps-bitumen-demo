@@ -46,6 +46,12 @@ def render():
         render_refresh_bar('telegram_analyzer')
     except Exception:
         pass
+    # Phase 4: active customer banner — shows persistent customer context
+    try:
+        from navigation_engine import render_active_context_strip
+        render_active_context_strip()
+    except Exception:
+        pass
     st.markdown("""
 <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:12px;
             padding:16px 20px;margin-bottom:16px;">

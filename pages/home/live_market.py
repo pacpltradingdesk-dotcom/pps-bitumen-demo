@@ -73,6 +73,12 @@ def render(mkt: dict, _CONFIDENCE_OK: bool = False, render_data_health_card=None
         render_refresh_bar('live_market')
     except Exception:
         pass
+    # Phase 4: active customer banner — shows persistent customer context
+    try:
+        from navigation_engine import render_active_context_strip
+        render_active_context_strip()
+    except Exception:
+        pass
 
     # Auto-refresh stale caches on page load (safety net for dead schedulers)
     try:

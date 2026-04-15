@@ -13,6 +13,12 @@ def render():
         render_refresh_bar('crm_tasks')
     except Exception:
         pass
+    # Phase 4: active customer banner — shows persistent customer context
+    try:
+        from navigation_engine import render_active_context_strip
+        render_active_context_strip()
+    except Exception:
+        pass
     st.markdown('<div class="pps-page-header"><div class="pps-page-title">🎯 Sales CRM & Daily Worklist</div></div>', unsafe_allow_html=True)
     st.caption("Never miss a follow-up. Manage calls, tasks, and client engagement.")
 

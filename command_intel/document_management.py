@@ -100,6 +100,12 @@ def render_purchase_order():
         render_refresh_bar('documents')
     except Exception:
         pass
+    # Phase 4: active customer banner — shows persistent customer context
+    try:
+        from navigation_engine import render_active_context_strip
+        render_active_context_strip()
+    except Exception:
+        pass
     st.markdown(_HERO_CSS, unsafe_allow_html=True)
     st.markdown(
         '<div class="doc-hero">'

@@ -766,6 +766,12 @@ def render():
         render_refresh_bar('news')
     except Exception:
         pass
+    # Phase 4: active customer banner — shows persistent customer context
+    try:
+        from navigation_engine import render_active_context_strip
+        render_active_context_strip()
+    except Exception:
+        pass
     # Inject CSS
     st.markdown(_CSS, unsafe_allow_html=True)
 

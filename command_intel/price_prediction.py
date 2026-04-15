@@ -788,6 +788,12 @@ def render():
         render_refresh_bar('price_prediction')
     except Exception:
         pass
+    # Phase 4: active customer banner — shows persistent customer context
+    try:
+        from navigation_engine import render_active_context_strip
+        render_active_context_strip()
+    except Exception:
+        pass
     display_badge("calculated")
 
     # ── Page header ───────────────────────────────────────────────────────────
