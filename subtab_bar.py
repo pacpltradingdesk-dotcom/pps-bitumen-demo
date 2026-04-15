@@ -124,6 +124,14 @@ def render_sidebar_features(module: str) -> str:
         # expander by default so the user can see their selection.
         _current_in_advanced = any(t["page"] == current_page for t in other_tabs)
 
+        # Phase 5 pill color palette
+        _PILL_COLORS = {
+            "red":     ("#EF4444", "#FEE2E2"),
+            "gold":    ("#B45309", "#FEF3C7"),
+            "indigo":  ("#4F46E5", "#E0E7FF"),
+            "emerald": ("#047857", "#D1FAE5"),
+        }
+
         def _render_tab_button(tab, i, key_prefix):
             star = " ✦" if tab.get("star") else ""
             is_active = (tab["page"] == current_page)
@@ -136,6 +144,23 @@ def render_sidebar_features(module: str) -> str:
             ):
                 st.session_state["selected_page"] = tab["page"]
                 st.rerun()
+            # Phase 5: feature pill (small right-aligned tag under button)
+            pill = tab.get("pill")
+            if pill:
+                try:
+                    label, color = pill
+                    fg, bg = _PILL_COLORS.get(color, _PILL_COLORS["indigo"])
+                    st.markdown(
+                        f"<div style='margin:-4px 0 4px 0;text-align:right;'>"
+                        f"<span style='background:{bg};color:{fg};"
+                        f"font-size:0.58rem;font-weight:800;letter-spacing:0.04em;"
+                        f"padding:1px 7px;border-radius:10px;"
+                        f"border:1px solid {fg}33;'>"
+                        f"{label}</span></div>",
+                        unsafe_allow_html=True,
+                    )
+                except Exception:
+                    pass
 
         # Render Daily Core first (preserves sub_group dividers among starred)
         last_group = None
