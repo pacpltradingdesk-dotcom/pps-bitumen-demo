@@ -971,7 +971,7 @@ def render_breadcrumb(current_page: str):
 def render_active_context_strip():
     """
     If a customer is set in context, show a compact strip under the
-    breadcrumb: "👤 Rohan Kumar · Pune · VG30 · [Clear]"
+    breadcrumb: "👤 <Customer Name> · <City> · <Grade> · [Clear]"
     Nothing rendered when context is empty.
     """
     name = get_context("customer_name")

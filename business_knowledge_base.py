@@ -152,7 +152,7 @@ TAB_KNOWLEDGE = [
             "and WhatsApp message generators in one screen."
         ),
         "why": (
-            "A salesperson talking to L&T Construction needs to know: their credit limit, last 5 deals, "
+            "A salesperson talking to a major contractor needs to know: their credit limit, last 5 deals, "
             "site location, preferred grade, and what to say if they push back on price — all in one place. "
             "Without this, salespersons rely on memory or Excel sheets, causing inconsistencies and lost deals."
         ),

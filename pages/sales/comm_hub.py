@@ -44,7 +44,7 @@ def render():
             _cc1, _cc2 = st.columns(2)
             with _cc1:
                 _comm_cust = st.text_input("Customer Name", value=_ctx_cust,
-                                           placeholder="e.g. L&T Construction", key="comm_cust")
+                                           placeholder="e.g. customer name", key="comm_cust")
                 _comm_city = st.text_input("City", value=_ctx_city_v,
                                            placeholder="e.g. Mumbai", key="comm_city")
             with _cc2:

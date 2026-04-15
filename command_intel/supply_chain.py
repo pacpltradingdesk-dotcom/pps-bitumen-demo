@@ -49,7 +49,7 @@ def _get_shipment_data():
             "invoice_generated": True,
             "payment_received": False,
             "status": "delivered",
-            "buyer": "L&T Construction",
+            "buyer": "",  # populated from deals.customer_id at render time
             "value_cr": 9.8
         },
         {

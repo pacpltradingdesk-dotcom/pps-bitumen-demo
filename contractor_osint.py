@@ -1369,7 +1369,7 @@ def _tab_add_contractor():
 
     with st.form("add_contractor_form"):
         f1, f2 = st.columns(2)
-        name    = f1.text_input("Contractor Name *", placeholder="e.g. L&T Construction")
+        name    = f1.text_input("Contractor Name *", placeholder="e.g. customer name")
         bse     = f2.text_input("BSE Code (optional)", placeholder="e.g. 500510")
         f3, f4  = st.columns(2)
         cin     = f3.text_input("CIN (optional)", placeholder="e.g. L17110GJ1912PLC000007")
@@ -1739,7 +1739,7 @@ def _tab_add_edit_data():
         with st.form("add_contractor_full_form"):
             st.markdown("##### Identity")
             f1, f2 = st.columns(2)
-            name     = f1.text_input("Contractor Name *", placeholder="e.g. L&T Construction")
+            name     = f1.text_input("Contractor Name *", placeholder="e.g. customer name")
             bse      = f2.text_input("BSE Code", placeholder="e.g. 500510")
             f3, f4   = st.columns(2)
             cin      = f3.text_input("CIN",  placeholder="L17110GJ1912PLC000007")

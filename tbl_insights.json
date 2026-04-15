@@ -1,8 +1,8 @@
 [
   {
-    "date_ist": "2026-03-28 13:18:01 IST",
-    "insight_text": "Insufficient monthly data for analysis. Run 'comtrade_hs271320' and 'data_gov_in_highways' connectors first.",
-    "trigger_metric": "data_missing",
-    "severity": "WARNING"
+    "date_ist": "2026-04-15 10:31:39 IST",
+    "insight_text": "Strongest correlation: Highway KM at lag 0 months → r = 0.00 (negative, not significant)",
+    "trigger_metric": "cross_correlation",
+    "severity": "INFO"
   }
 ]

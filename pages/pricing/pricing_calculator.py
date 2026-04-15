@@ -20,7 +20,7 @@ from sales_calendar import (
 
 # --- MOCK CUSTOMER DATABASE (For "Search by Name" feature) ---
 customer_city_map = {
-    "L&T Construction": "Mumbai",
+    # placeholder removed — load live from DB,
     "Tata Projects Ltd": "Pune",
     "Dilip Buildcon": "Bhopal",
     "IRB Infrastructure": "Ahmedabad",

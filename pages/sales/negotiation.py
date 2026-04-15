@@ -52,7 +52,7 @@ def render():
             st.subheader("Customer Negotiation Brief")
             _nc1, _nc2 = st.columns(2)
             with _nc1:
-                _neg_cust = st.text_input("Customer Name", placeholder="e.g. L&T Construction")
+                _neg_cust = st.text_input("Customer Name", placeholder="e.g. customer name")
                 _neg_city = st.text_input("City", placeholder="e.g. Ahmedabad")
             with _nc2:
                 _neg_grade = st.selectbox("Grade", ["VG30", "VG10", "VG40", "CRMB-55", "CRMB-60", "PMB", "Emulsion"])

@@ -520,5 +520,14 @@
     "_source_type": "live_api",
     "_source_confidence": 0.96,
     "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-04-15 10:31:36 IST",
+    "pair": "USD/EUR",
+    "rate": 0.84796,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
   }
 ]

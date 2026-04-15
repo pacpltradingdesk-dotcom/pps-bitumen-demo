@@ -4433,5 +4433,16 @@
     "_source_type": "live_api",
     "_source_confidence": 0.88,
     "_source_provider": "Open-Meteo.com"
+  },
+  {
+    "date_time": "2026-04-15 10:31:36 IST",
+    "location": "Mumbai",
+    "temp": 29.0,
+    "rain_mm": 0.0,
+    "humidity": 83,
+    "source": "Open-Meteo (OpenWeather fallback)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.88,
+    "_source_provider": "Open-Meteo.com"
   }
 ]
