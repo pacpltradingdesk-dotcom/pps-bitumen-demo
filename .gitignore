@@ -13,7 +13,11 @@ build/
 venv/
 env/
 
-# Database
+# Database — runtime data, must NOT be tracked. Each deployment maintains
+# its own DB; init_db() creates it from migrations on first start, then
+# scripts/phase1_sync_contacts.py + scripts/phase1_promote_customers.py
+# populate it from tbl_contacts.json.
+bitumen_dashboard.db
 *.db-shm
 *.db-wal
 
