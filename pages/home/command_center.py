@@ -802,11 +802,18 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
         st.markdown('<div style="font-size:0.9rem;font-weight:800;color:#0F172A;margin-bottom:8px;">📊 Quick Stats</div>', unsafe_allow_html=True)
 
         stats = [
-            ("🏭", "Suppliers", db_stats.get('total_suppliers', 63), "#6366F1"),
-            ("👥", "Customers", db_stats.get('total_customers', 3), "#8B5CF6"),
+            # Empty-state aware: "—" for data we don't yet have (not a misleading zero)
+            ("🏭", "Suppliers",
+                db_stats.get('total_suppliers') or "—",
+                "#6366F1"),
+            ("👥", "Customers",
+                db_stats.get('total_customers') or "—",
+                "#8B5CF6"),
             ("📋", "Tasks Today", tasks_today, "#F59E0B" if tasks_overdue > 0 else "#10B981"),
             ("⚠️", "Overdue", tasks_overdue, "#EF4444" if tasks_overdue > 0 else "#10B981"),
-            ("💼", "Active Deals", db_stats.get('total_deals', 0), "#0EA5E9"),
+            ("💼", "Active Deals",
+                db_stats.get('total_deals') or "—",
+                "#0EA5E9"),
             ("🔔", "Open Alerts", len(active_alerts), "#EF4444" if len(active_alerts) > 5 else "#10B981"),
         ]
 

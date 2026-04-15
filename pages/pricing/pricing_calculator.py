@@ -18,33 +18,22 @@ from sales_calendar import (
     MONTH_NAMES
 )
 
-# --- MOCK CUSTOMER DATABASE (For "Search by Name" feature) ---
-customer_city_map = {
-    # placeholder removed — load live from DB,
-    "Tata Projects Ltd": "Pune",
-    "Dilip Buildcon": "Bhopal",
-    "IRB Infrastructure": "Ahmedabad",
-    "PNC Infratech": "Agra",
-    "Ashoka Buildcon": "Nashik",
-    "KNR Constructions": "Hyderabad",
-    "NCC Limited": "Bangalore",
-    "G R Infraprojects": "Udaipur",
-    "Sadbhav Engineering": "Vadodara",
-    "HG Infra": "Jaipur",
-    "Apco Infratech": "Lucknow",
-    "Montecarlo Ltd": "Patna",
-    "Welspun Enterprises": "Delhi",
-    "Afcons Infrastructure": "Chennai",
-    "J Kumar Infra": "Mumbai",
-    "Patel Engineering": "Kolkata",
-    "Gayatri Projects": "Visakhapatnam",
-    "Oriental Structural": "Nagpur",
-    "Megha Engineering": "Hyderabad",
-    "Shapoorji Pallonji": "Pune",
-    "Rodic Consultants": "Ranchi",
-    "VRC Constructions": "Delhi",
-    "Ceigall India": "Ludhiana"
-}
+# --- CUSTOMER DATABASE (live — Phase 1: sourced from customers table) ---
+@st.cache_data(ttl=300)
+def _load_customer_city_map() -> dict[str, str]:
+    """Return {name: city} for customers — cached 5 minutes.
+    Empty dict if the DB has no customers yet."""
+    try:
+        from customer_source import load_customers
+        return {c["name"]: (c.get("city") or "")
+                for c in load_customers() if c.get("name")}
+    except Exception:
+        return {}
+
+
+# Backwards-compat module-level alias. Callers that read this dict at
+# import time will see the live map (evaluated lazily on first access).
+customer_city_map = _load_customer_city_map()
 
 
 @st.cache_resource
