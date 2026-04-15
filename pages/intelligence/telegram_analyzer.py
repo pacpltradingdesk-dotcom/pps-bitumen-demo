@@ -25,18 +25,65 @@ _ALERTS_FILE = ROOT / "sre_alerts.json"
 
 
 def _load_config():
+    """Load Telegram config — survives cloud restarts via this priority chain:
+       1. st.secrets["telegram"] (Streamlit Cloud — set in app dashboard)
+       2. st.session_state["_tg_config"] (in-session memory — current run only)
+       3. Local JSON file (dev / persistent disk)
+       4. Default empty config
+    """
+    default = {"api_id": "", "api_hash": "", "phone": "", "channels": [],
+               "enabled": False, "_source": "default"}
+
+    # 1. Streamlit secrets — the only thing that survives cloud cold-starts
+    try:
+        sec = st.secrets.get("telegram") if hasattr(st, "secrets") else None
+        if sec and (sec.get("api_id") or sec.get("api_hash")):
+            cfg = dict(sec)
+            cfg.setdefault("channels", [])
+            cfg.setdefault("enabled", True)
+            cfg["_source"] = "st.secrets"
+            return cfg
+    except Exception:
+        pass
+
+    # 2. Session memory — protects within a single user session even if file gone
+    try:
+        sess = st.session_state.get("_tg_config")
+        if sess and sess.get("api_id"):
+            sess["_source"] = "session"
+            return sess
+    except Exception:
+        pass
+
+    # 3. Local file (works fine on persistent dev disk; ephemeral on cloud)
     try:
         if _CONFIG_FILE.exists():
             with open(_CONFIG_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+                cfg = json.load(f)
+                cfg["_source"] = "file"
+                return cfg
     except Exception:
         pass
-    return {"api_id": "", "api_hash": "", "phone": "", "channels": [], "enabled": False}
+
+    return default
 
 
 def _save_config(cfg):
-    with open(_CONFIG_FILE, "w", encoding="utf-8") as f:
-        json.dump(cfg, f, indent=2)
+    """Persist to BOTH the local file AND st.session_state. The session
+    layer is the safety net while running on Streamlit Cloud where the
+    file disappears on the next restart — at least the credentials
+    remain usable for the rest of the session."""
+    # Strip transient fields before writing
+    to_write = {k: v for k, v in cfg.items() if not k.startswith("_")}
+    try:
+        with open(_CONFIG_FILE, "w", encoding="utf-8") as f:
+            json.dump(to_write, f, indent=2)
+    except Exception:
+        pass
+    try:
+        st.session_state["_tg_config"] = dict(to_write)
+    except Exception:
+        pass
 
 
 def render():
@@ -492,6 +539,42 @@ def render():
     # ══════════════════════════════════════════════════════════════════
     with tabs[1]:
         st.subheader("🔗 Connect Your Telegram Account")
+
+        # Show source so user knows where creds came from
+        _src = config.get("_source", "default")
+        if _src == "st.secrets":
+            st.success("✅ Credentials loaded from Streamlit Cloud secrets — survives every restart.")
+        elif _src == "session" and config.get("api_id"):
+            st.info("ℹ️ Credentials in session memory only. Will reset on next cold start.")
+        elif _src == "file" and config.get("api_id"):
+            st.info("ℹ️ Credentials loaded from local file. **On Streamlit Cloud, file resets on every push** — paste them into Cloud secrets too (see below).")
+
+        # Cloud persistence note
+        with st.expander("⚠️ Why credentials sometimes disappear on Cloud (and how to fix permanently)"):
+            st.markdown("""
+**Problem:** Streamlit Cloud's filesystem resets on every code push or container
+restart. So `telegram_account_config.json` on the cloud disappears, and you
+have to re-enter the API ID / Hash / Phone again.
+
+**Permanent fix — paste into Cloud Secrets (one-time, survives forever):**
+
+1. Open your Streamlit Cloud app dashboard
+2. Click **Settings → Secrets**
+3. Paste this TOML block (replace with your actual values):
+
+```toml
+[telegram]
+api_id = "YOUR_API_ID"
+api_hash = "YOUR_API_HASH"
+phone = "+91XXXXXXXXXX"
+```
+
+4. Save. Reload the app. Credentials will now load automatically on every
+   start, and the form below will say "loaded from Streamlit Cloud secrets".
+
+You can also keep filling the form below — it'll work for the current session
+either way.
+""")
 
         st.markdown("""
 ### Step 1: Get API Credentials
