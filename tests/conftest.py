@@ -15,7 +15,7 @@ def tmp_db(tmp_path: Path) -> Path:
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT, company_name TEXT, contact_type TEXT,
             category TEXT, buyer_seller_tag TEXT, city TEXT, state TEXT,
-            phone TEXT, email TEXT, gstin TEXT,
+            mobile1 TEXT, email TEXT, gstin TEXT,
             imported_from TEXT
         );
         CREATE TABLE customers (

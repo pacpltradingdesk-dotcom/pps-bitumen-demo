@@ -837,7 +837,7 @@ def validate_rows(df, target_table: str):
 _PHONE_COL = {
     "customers": "contact",
     "suppliers": "contact",
-    "contacts":  "phone",
+    "contacts":  "mobile1",
     "customer_profiles": "whatsapp",
 }
 
@@ -892,7 +892,7 @@ _INSERT_MAP: dict[str, dict[str, str]] = {
     "suppliers":         {"name": "name", "phone": "contact",
                           "city": "city", "state": "state",
                           "gstin": "gstin", "category": "category"},
-    "contacts":          {"name": "name", "phone": "phone",
+    "contacts":          {"name": "name", "phone": "mobile1",
                           "city": "city", "state": "state",
                           "email": "email", "category": "category"},
     "customer_profiles": {"name": "name", "company": "company",
