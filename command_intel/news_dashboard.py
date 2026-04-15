@@ -690,6 +690,15 @@ def _render_settings():
         "RSS feeds work without any key. NewsAPI and GNews keys unlock additional sources "
         "(free tier: 100 requests/day each)."
     )
+    # Cloud-persistence hint
+    try:
+        from cloud_secrets import secret_source_label, render_cloud_secrets_hint
+        st.caption(secret_source_label("news",
+            env_keys={"newsapi_key": "NEWSAPI_KEY", "gnews_key": "GNEWS_KEY"},
+            file_present=bool(ne.get_news_api_key("newsapi_key") or ne.get_news_api_key("gnews_key"))))
+        render_cloud_secrets_hint("news", ["newsapi_key", "gnews_key"])
+    except Exception:
+        pass
 
     with st.form("news_api_keys"):
         c1, c2 = st.columns(2)

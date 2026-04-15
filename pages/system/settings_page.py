@@ -38,6 +38,13 @@ def render():
     st.caption("Manage connections to third-party services for automation.")
 
     with st.expander("🔑 API Configuration", expanded=True):
+        # Cloud persistence reminder
+        try:
+            from cloud_secrets import render_cloud_secrets_hint
+            render_cloud_secrets_hint("ai", ["openai_api_key", "google_maps_api_key"],
+                title="⚠️ Why API keys disappear on Cloud (and how to fix permanently — ai)")
+        except Exception:
+            pass
         api_c1, api_c2 = st.columns(2)
         with api_c1:
             try:
@@ -65,6 +72,15 @@ def render():
 
     with st.expander("🌐 Market Data API Keys", expanded=False):
         st.caption("Configure API keys for live market data feeds. All keys are stored locally in settings.json.")
+        # Cloud persistence — settings.json is ephemeral on Cloud
+        try:
+            from cloud_secrets import secret_source_label, render_cloud_secrets_hint
+            st.caption(secret_source_label("api_keys", file_present=True))
+            render_cloud_secrets_hint("api_keys",
+                ["api_key_eia", "api_key_fred", "api_key_data_gov_in",
+                 "api_key_openweather", "api_key_newsapi"])
+        except Exception:
+            pass
         try:
             from settings_engine import load_settings as _ld_s, save_settings as _sv_s
             _api_sett = _ld_s()

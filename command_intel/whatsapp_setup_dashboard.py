@@ -60,6 +60,19 @@ def _render_api_config():
         wcm = WhatsAppCredentialManager()
         creds = wcm.load_credentials()
 
+        # Cloud persistence indicator + setup hint
+        try:
+            from cloud_secrets import secret_source_label, render_cloud_secrets_hint
+            label = secret_source_label("whatsapp",
+                env_keys={"api_key": "WHATSAPP_API_KEY",
+                          "phone_number_id": "WHATSAPP_PHONE_NUMBER_ID"},
+                file_present=bool(creds.get("api_key")))
+            st.caption(label)
+            render_cloud_secrets_hint("whatsapp",
+                ["api_key", "phone_number_id", "webhook_url", "business_name"])
+        except Exception:
+            pass
+
         c1, c2 = st.columns(2)
         with c1:
             api_key = st.text_input(

@@ -477,14 +477,39 @@ def save_news_cfg(key: str, value: str):
     data = _load_news_cfg()
     data[key] = value
     NEWS_CFG_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    # Cloud safety net — also stash in session so the key survives even
+    # if the file gets wiped before the next request.
+    try:
+        from cloud_secrets import remember_in_session
+        merged = dict(data); merged[key] = value
+        remember_in_session("news", merged)
+    except Exception:
+        pass
 
 def get_news_api_key(cfg_key: str) -> str:
+    """Cloud-resilient API key resolver.
+
+    Priority:
+      1. st.secrets["news"][cfg_key]  (Cloud-persistent)
+      2. Environment variable from NEWS_SOURCES env_key
+      3. Local news config file
+    """
     import os
+    # 1. Streamlit secrets
+    try:
+        from cloud_secrets import get_secret_block
+        block = get_secret_block("news")
+        if block.get(cfg_key):
+            return str(block[cfg_key]).strip()
+    except Exception:
+        pass
+    # 2. Env var
     src = next((s for s in NEWS_SOURCES if s.get("cfg_key") == cfg_key), None)
     if src and src.get("env_key"):
         val = os.environ.get(src["env_key"], "").strip()
         if val:
             return val
+    # 3. Local file
     return _load_news_cfg().get(cfg_key, "").strip()
 
 # ══════════════════════════════════════════════════════════════════════════════

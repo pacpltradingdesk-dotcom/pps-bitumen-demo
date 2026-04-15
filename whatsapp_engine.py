@@ -107,9 +107,31 @@ class WhatsAppCredentialManager:
         }
         with open(cls.CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
+        # Cache decrypted creds in session so they survive within current run
+        try:
+            from cloud_secrets import remember_in_session
+            sess_block = {**config, "api_key": api_key}  # decrypted in session
+            remember_in_session("whatsapp", sess_block)
+        except Exception:
+            pass
 
     @classmethod
     def load_credentials(cls) -> dict:
+        # Cloud-resilient: prefer st.secrets["whatsapp"] / env vars
+        try:
+            from cloud_secrets import get_secret_block, remember_in_session
+            block = get_secret_block("whatsapp", env_keys={
+                "api_key":          "WHATSAPP_API_KEY",
+                "phone_number_id":  "WHATSAPP_PHONE_NUMBER_ID",
+                "webhook_url":      "WHATSAPP_WEBHOOK_URL",
+                "business_name":    "WHATSAPP_BUSINESS_NAME",
+            })
+            if block.get("api_key"):
+                remember_in_session("whatsapp", block)
+                return block
+        except Exception:
+            pass
+
         if not cls.CONFIG_FILE.exists():
             return {}
         try:

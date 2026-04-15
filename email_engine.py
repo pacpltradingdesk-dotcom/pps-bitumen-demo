@@ -77,9 +77,37 @@ class EmailCredentialManager:
         }
         with open(cls.CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2, ensure_ascii=False)
+        # Also cache to session so creds survive within the current run
+        # even if the file gets wiped (e.g. cloud restart mid-session).
+        try:
+            from cloud_secrets import remember_in_session
+            sess_block = {**config, "password": password}  # store decrypted in session
+            remember_in_session("email", sess_block)
+        except Exception:
+            pass
 
     @classmethod
     def load_credentials(cls) -> dict:
+        # Cloud-resilient: prefer st.secrets["email"] / env vars over the
+        # local file (which gets wiped on every Streamlit Cloud restart).
+        try:
+            from cloud_secrets import get_secret_block, remember_in_session
+            block = get_secret_block("email", env_keys={
+                "smtp_host": "SMTP_HOST", "smtp_port": "SMTP_PORT",
+                "username":  "SMTP_USER", "password": "SMTP_PASS",
+                "from_name": "SMTP_FROM_NAME", "from_email": "SMTP_FROM_EMAIL",
+            })
+            if block.get("smtp_host") and block.get("password"):
+                # Normalise port to int if it came as string
+                try:
+                    block["smtp_port"] = int(block.get("smtp_port", 587))
+                except Exception:
+                    block["smtp_port"] = 587
+                remember_in_session("email", block)
+                return block
+        except Exception:
+            pass
+
         if not cls.CONFIG_FILE.exists():
             return {}
         try:

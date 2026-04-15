@@ -231,6 +231,18 @@ def get_api_key(provider_id: str) -> str:
     p = next((x for x in PROVIDER_CHAIN if x["id"] == provider_id), None)
     if not p:
         return ""
+    # Cloud-resilient: try st.secrets["ai"][provider_id] first
+    try:
+        from cloud_secrets import get_secret_block
+        ai_block = get_secret_block("ai")
+        if ai_block.get(provider_id):
+            return str(ai_block[provider_id]).strip()
+        # also accept openai_api_key style aliases
+        alias_key = f"{provider_id}_api_key"
+        if ai_block.get(alias_key):
+            return str(ai_block[alias_key]).strip()
+    except Exception:
+        pass
     env_key = p.get("env_key", "")
     if env_key:
         val = os.environ.get(env_key, "").strip()
@@ -250,6 +262,12 @@ def save_api_key(provider_id: str, key: str):
         data = _load_cfg()
         data[cfg_key] = key.strip()
         _save_cfg(data)
+        # Cache in session so the key survives within current run if file wiped
+        try:
+            from cloud_secrets import remember_in_session
+            remember_in_session("ai", {provider_id: key.strip()})
+        except Exception:
+            pass
 
 # ══════════════════════════════════════════════════════════════════════════════
 # PACKAGE DETECTION

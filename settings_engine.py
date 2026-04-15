@@ -366,7 +366,11 @@ DEFAULT_SETTINGS = {
 
 
 def load_settings() -> dict:
-    """Load settings from file, merge with defaults for any missing keys."""
+    """Load settings from file, merge with defaults for any missing keys.
+
+    Cloud-resilient: st.secrets["api_keys"] / ["settings"] override file
+    values so API keys + business rules survive Streamlit Cloud restarts.
+    """
     settings = dict(DEFAULT_SETTINGS)
     if SETTINGS_FILE.exists():
         try:
@@ -376,13 +380,34 @@ def load_settings() -> dict:
                 settings.update(stored)
         except (json.JSONDecodeError, IOError):
             pass
+    # Cloud overlay — st.secrets entries win (file is ephemeral on Cloud)
+    try:
+        from cloud_secrets import get_secret_block
+        keys_block = get_secret_block("api_keys")
+        if keys_block:
+            settings.update(keys_block)
+        gen_block = get_secret_block("settings")
+        if gen_block:
+            settings.update(gen_block)
+    except Exception:
+        pass
     return settings
 
 
 def save_settings(settings: dict) -> None:
-    """Save settings to file."""
+    """Save settings to file + session memory (file is ephemeral on Cloud)."""
     with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
         json.dump(settings, f, indent=2, ensure_ascii=False)
+    # Cache in session so settings survive within the current run even
+    # after a Cloud restart wipes the file.
+    try:
+        from cloud_secrets import remember_in_session
+        # Store only the API-key portion in session — keep the rest light
+        api_subset = {k: v for k, v in settings.items() if k.startswith("api_key_")}
+        if api_subset:
+            remember_in_session("api_keys", api_subset)
+    except Exception:
+        pass
 
 
 def get(key: str, default=None):

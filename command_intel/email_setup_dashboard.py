@@ -61,6 +61,20 @@ def _render_smtp_config():
         ecm = EmailCredentialManager()
         creds = ecm.load_credentials()
 
+        # Cloud persistence — show source + how to make it permanent
+        try:
+            from cloud_secrets import secret_source_label, render_cloud_secrets_hint
+            label = secret_source_label("email",
+                env_keys={"smtp_host": "SMTP_HOST", "username": "SMTP_USER",
+                          "password": "SMTP_PASS"},
+                file_present=bool(creds.get("smtp_host")))
+            st.caption(label)
+            render_cloud_secrets_hint("email",
+                ["smtp_host", "smtp_port", "username", "password",
+                 "from_name", "from_email"])
+        except Exception:
+            pass
+
         c1, c2 = st.columns(2)
         with c1:
             smtp_host = st.text_input("SMTP Host", value=creds.get("smtp_host", "smtp.gmail.com"), key="es_smtp_host")
