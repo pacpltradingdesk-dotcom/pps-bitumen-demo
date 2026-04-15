@@ -698,3 +698,84 @@ def _short_uuid() -> str:
 
 def _batch_id() -> str:
     return datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# PHASE 1 — Wizard-based import API (v6.0)
+# ═══════════════════════════════════════════════════════════════════════════════
+# New pure-function API for the Import Wizard. Operates on DataFrames and the
+# live SQLite DB directly. Independent of the legacy `parse_file` /
+# `save_contacts` flow above — kept side-by-side during migration.
+
+import re as _re
+from pathlib import Path as _Path
+from typing import Iterable as _Iterable
+import pandas as _pd
+
+
+_ALIASES: dict[str, tuple[str, ...]] = {
+    "name":    ("name", "party name", "customer name", "supplier name",
+                "client name", "contact name", "full name"),
+    "company": ("company", "company name", "organisation", "organization",
+                "firm"),
+    "phone":   ("phone", "mobile", "mobile no", "mobile number",
+                "contact", "contact no", "contact number", "whatsapp"),
+    "email":   ("email", "email id", "e-mail", "mail id"),
+    "gstin":   ("gstin", "gst", "gst no", "gst no.", "gst number",
+                "gst_number", "gstin no"),
+    "city":    ("city", "town", "location"),
+    "state":   ("state", "region"),
+    "address": ("address", "addr", "full address"),
+    "category": ("category", "type", "party type", "segment"),
+    "notes":   ("notes", "remark", "remarks", "comments"),
+}
+
+
+def _norm(s: str) -> str:
+    """Lowercase, strip, collapse whitespace and punctuation."""
+    return _re.sub(r"[^a-z0-9]+", "", (s or "").strip().lower())
+
+
+def parse_spreadsheet(path) -> "_pd.DataFrame":
+    """Read .xlsx or .csv into a DataFrame. Raises ValueError on anything else."""
+    p = _Path(path)
+    suffix = p.suffix.lower()
+    if suffix == ".csv":
+        return _pd.read_csv(p, dtype=str).fillna("")
+    if suffix in (".xlsx", ".xls"):
+        return _pd.read_excel(p, dtype=str).fillna("")
+    raise ValueError(f"Unsupported file type: {suffix} (expected .csv or .xlsx)")
+
+
+def suggest_column_mapping(source_cols: _Iterable[str],
+                           target_schema: _Iterable[str]) -> dict[str, str]:
+    """Map target field names to the best source column name.
+
+    Matching order:
+      1. Exact match (case-insensitive, punctuation-normalised).
+      2. Alias match from _ALIASES.
+      3. Substring match (target name appears in source name).
+
+    Returns a dict {target_field: source_col} for fields that matched.
+    Target fields with no match are omitted.
+    """
+    source_list = list(source_cols)
+    source_norm = {_norm(c): c for c in source_list}
+    result: dict[str, str] = {}
+
+    for target in target_schema:
+        target_key = _norm(target)
+        if target_key in source_norm:
+            result[target] = source_norm[target_key]
+            continue
+        for alias in _ALIASES.get(target, ()):
+            if _norm(alias) in source_norm:
+                result[target] = source_norm[_norm(alias)]
+                break
+        if target in result:
+            continue
+        for norm_src, orig_src in source_norm.items():
+            if target_key and target_key in norm_src:
+                result[target] = orig_src
+                break
+    return result
