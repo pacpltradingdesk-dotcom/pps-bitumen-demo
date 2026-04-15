@@ -113,32 +113,55 @@ def render_sidebar_features(module: str) -> str:
             unsafe_allow_html=True,
         )
 
-        # Track sub-group for System & AI dividers
-        last_group = None
+        # Phase 3: split into Daily Core (starred) + Advanced (rest).
+        # Starred tabs render inline as before. The remaining tabs collapse
+        # into a "Show all (N more) · Advanced" expander so the Daily Core
+        # 14 are always the primary view, but nothing is hidden away.
+        starred_tabs = [t for t in tabs if t.get("star")]
+        other_tabs   = [t for t in tabs if not t.get("star")]
 
-        for i, tab in enumerate(tabs):
-            sub_group = tab.get("sub_group")
+        # If current page lives inside the Advanced section, open the
+        # expander by default so the user can see their selection.
+        _current_in_advanced = any(t["page"] == current_page for t in other_tabs)
 
-            # Add sub-group divider if group changes
-            if sub_group and sub_group != last_group:
-                if last_group is not None:
-                    st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
-                st.markdown(f'<div style="font-size:0.65rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">{sub_group}</div>', unsafe_allow_html=True)
-                last_group = sub_group
-
-            # Star indicator
+        def _render_tab_button(tab, i, key_prefix):
             star = " ✦" if tab.get("star") else ""
             is_active = (tab["page"] == current_page)
-
             btn_type = "primary" if is_active else "secondary"
             if st.button(
                 f"{tab['label']}{star}",
-                key=f"_sidebar_feat_{module}_{i}",
+                key=f"_sidebar_feat_{module}_{key_prefix}_{i}",
                 use_container_width=True,
                 type=btn_type,
             ):
                 st.session_state["selected_page"] = tab["page"]
                 st.rerun()
+
+        # Render Daily Core first (preserves sub_group dividers among starred)
+        last_group = None
+        for i, tab in enumerate(starred_tabs):
+            sub_group = tab.get("sub_group")
+            if sub_group and sub_group != last_group:
+                if last_group is not None:
+                    st.markdown('<div style="height:12px;"></div>', unsafe_allow_html=True)
+                st.markdown(f'<div style="font-size:0.65rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:8px;">{sub_group}</div>', unsafe_allow_html=True)
+                last_group = sub_group
+            _render_tab_button(tab, i, "core")
+
+        # Render Advanced (non-starred) behind an expander
+        if other_tabs:
+            st.markdown('<div style="height:6px;"></div>', unsafe_allow_html=True)
+            with st.expander(f"➕ Show all ({len(other_tabs)} more) · Advanced",
+                             expanded=_current_in_advanced):
+                last_group = None
+                for i, tab in enumerate(other_tabs):
+                    sub_group = tab.get("sub_group")
+                    if sub_group and sub_group != last_group:
+                        if last_group is not None:
+                            st.markdown('<div style="height:8px;"></div>', unsafe_allow_html=True)
+                        st.markdown(f'<div style="font-size:0.62rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px;">{sub_group}</div>', unsafe_allow_html=True)
+                        last_group = sub_group
+                    _render_tab_button(tab, i, "adv")
 
         # ── Active Customer Picker ─────────────────────────────────────
         st.markdown('<div style="margin-top:20px;"></div>', unsafe_allow_html=True)
