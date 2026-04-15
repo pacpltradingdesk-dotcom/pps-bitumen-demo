@@ -42,6 +42,15 @@ def render():
 """, unsafe_allow_html=True)
 
     st.info("Prepares complete briefing packs for sales team before customer calls.")
+
+    try:
+        from navigation_engine import get_context
+        _ctx_cust  = get_context("customer_name", "") or ""
+        _ctx_city  = get_context("customer_city", "") or ""
+        _ctx_grade = get_context("customer_grade", "VG30") or "VG30"
+    except Exception:
+        _ctx_cust, _ctx_city, _ctx_grade = "", "", "VG30"
+
     try:
         from negotiation_engine import NegotiationAssistant, get_full_objection_library
 
@@ -51,11 +60,15 @@ def render():
         with _neg_tabs[0]:
             st.subheader("Customer Negotiation Brief")
             _nc1, _nc2 = st.columns(2)
+            _grade_opts = ["VG30", "VG10", "VG40", "CRMB-55", "CRMB-60", "PMB", "Emulsion"]
+            _grade_idx = _grade_opts.index(_ctx_grade) if _ctx_grade in _grade_opts else 0
             with _nc1:
-                _neg_cust = st.text_input("Customer Name", placeholder="e.g. customer name")
-                _neg_city = st.text_input("City", placeholder="e.g. Ahmedabad")
+                _neg_cust = st.text_input("Customer Name", value=_ctx_cust,
+                                          placeholder="e.g. customer name")
+                _neg_city = st.text_input("City", value=_ctx_city,
+                                          placeholder="e.g. Ahmedabad")
             with _nc2:
-                _neg_grade = st.selectbox("Grade", ["VG30", "VG10", "VG40", "CRMB-55", "CRMB-60", "PMB", "Emulsion"])
+                _neg_grade = st.selectbox("Grade", _grade_opts, index=_grade_idx)
                 _neg_qty = st.number_input("Quantity (MT)", min_value=10, max_value=10000, value=100, step=10)
             _neg_last_price = st.number_input("Customer's Last Purchase Price (INR/MT, optional)", min_value=0, value=0, step=500)
 

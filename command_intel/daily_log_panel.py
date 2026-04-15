@@ -44,9 +44,17 @@ def render():
 
             # Customer dropdown from database
             customers = _get_customer_list()
+            try:
+                from navigation_engine import get_context
+                _ctx_cust = get_context("customer_name", "") or ""
+            except Exception:
+                _ctx_cust = ""
+            _ci_idx = (customers.index(_ctx_cust)
+                       if _ctx_cust and _ctx_cust in customers
+                       else (0 if customers else None))
             customer_name = st.selectbox(
                 "Customer", options=customers,
-                index=0 if customers else None,
+                index=_ci_idx,
                 key="ci_customer")
 
             channel = st.radio("Channel",

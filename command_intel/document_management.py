@@ -500,6 +500,14 @@ def _so_create_form():
                 if c["id"] == deal_data["customer_id"]:
                     default_idx = i
                     break
+        else:
+            try:
+                from navigation_engine import get_context
+                _ctx_cust = get_context("customer_name", "") or ""
+                if _ctx_cust and _ctx_cust in customer_names:
+                    default_idx = customer_names.index(_ctx_cust)
+            except Exception:
+                pass
         selected_customer = st.selectbox("Select Customer", customer_names,
                                           index=default_idx, key="so_customer")
         customer = next((c for c in customers if c["name"] == selected_customer), {})
@@ -898,8 +906,15 @@ def _payment_create_form():
                 so_defaults = items[0]
             so_defaults["customer_name"] = so_rec.get("customer_name", "")
 
+        _pay_cust_default = so_defaults.get("customer_name", "")
+        if not _pay_cust_default:
+            try:
+                from navigation_engine import get_context
+                _pay_cust_default = get_context("customer_name", "") or ""
+            except Exception:
+                pass
         customer_name = st.text_input("Customer Name",
-                                      value=so_defaults.get("customer_name", ""),
+                                      value=_pay_cust_default,
                                       key="pay_customer")
         sell_product = st.selectbox("Product", ["BITUMEN VG30", "BITUMEN VG40", "CRMB 55"],
                                     key="pay_sell_product")

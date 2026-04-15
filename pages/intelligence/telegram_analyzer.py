@@ -496,12 +496,15 @@ def render():
 
             if st.form_submit_button("💾 Save & Connect", type="primary"):
                 if api_id and api_hash and phone:
-                    config["api_id"] = api_id
-                    config["api_hash"] = api_hash
-                    config["phone"] = phone
+                    # Normalize phone: strip spaces/dashes, keep leading +
+                    _phone_norm = "".join(ch for ch in phone if ch.isdigit() or ch == "+")
+                    config["api_id"] = api_id.strip()
+                    config["api_hash"] = api_hash.strip()
+                    config["phone"] = _phone_norm
                     config["enabled"] = True
                     _save_config(config)
-                    st.success("✅ Credentials saved! First fetch will ask for OTP verification.")
+                    st.success("✅ Credentials saved! Reloading...")
+                    st.rerun()
                 else:
                     st.warning("Fill all fields")
 
@@ -876,6 +879,7 @@ def render():
             config["msg_limit"] = msg_limit
             _save_config(config)
             st.success("Settings saved!")
+            st.rerun()
 
         st.markdown("---")
         st.markdown("**Data Files:**")
