@@ -143,3 +143,78 @@ def test_dedupe_whitespace_insensitive(tmp_db):
     df = pd.DataFrame([{"name": "asha gupta", "phone": "+919876543210"}])
     fresh = dedupe_against_db(df, "customers", strategy="skip", db_path=tmp_db)
     assert len(fresh) == 0
+
+
+# ── commit_import ──────────────────────────────────────────────────
+
+from contact_import_engine import commit_import, revert_import
+
+
+def test_commit_inserts_rows_and_history(tmp_db):
+    import sqlite3
+    df = pd.DataFrame([
+        {"name": "Asha", "phone": "+919876543210", "city": "Pune"},
+        {"name": "Bhavesh", "phone": "+919876543211", "city": "Nagpur"},
+    ])
+    result = commit_import(df, "customers", source_file="test.csv",
+                           db_path=tmp_db)
+    assert result["inserted"] == 2
+    assert result["skipped"] == 0
+
+    conn = sqlite3.connect(tmp_db)
+    n = conn.execute("SELECT COUNT(*) FROM customers").fetchone()[0]
+    assert n == 2
+    n_hist = conn.execute("SELECT COUNT(*) FROM import_history").fetchone()[0]
+    assert n_hist == 1
+    conn.close()
+
+
+def test_commit_rollback_on_failure(tmp_db):
+    """A row with a NULL name should NOT corrupt the DB — whole batch rolls back."""
+    import sqlite3
+    conn = sqlite3.connect(tmp_db)
+    conn.execute("CREATE UNIQUE INDEX ux_customers_name ON customers(name)")
+    conn.execute("INSERT INTO customers(name) VALUES('Asha')")
+    conn.commit()
+    conn.close()
+
+    df = pd.DataFrame([
+        {"name": "Bhavesh", "phone": "+919876543211"},
+        {"name": "Asha", "phone": "+919876543210"},  # UNIQUE violation
+    ])
+    with pytest.raises(sqlite3.IntegrityError):
+        commit_import(df, "customers", source_file="test.csv",
+                      db_path=tmp_db)
+
+    conn = sqlite3.connect(tmp_db)
+    n = conn.execute("SELECT COUNT(*) FROM customers").fetchone()[0]
+    assert n == 1  # only the pre-existing Asha — Bhavesh was rolled back
+    n_hist = conn.execute("SELECT COUNT(*) FROM import_history").fetchone()[0]
+    assert n_hist == 0  # no history row for a rolled-back commit
+    conn.close()
+
+
+# ── revert_import ──────────────────────────────────────────────────
+
+def test_revert_removes_inserted_rows(tmp_db):
+    import sqlite3
+    df = pd.DataFrame([
+        {"name": "Asha", "phone": "+919876543210"},
+        {"name": "Bhavesh", "phone": "+919876543211"},
+    ])
+    result = commit_import(df, "customers", source_file="test.csv",
+                           db_path=tmp_db)
+    import_id = result["import_history_id"]
+
+    removed = revert_import(import_id, db_path=tmp_db)
+    assert removed == 2
+
+    conn = sqlite3.connect(tmp_db)
+    n = conn.execute("SELECT COUNT(*) FROM customers").fetchone()[0]
+    assert n == 0
+    reverted = conn.execute(
+        "SELECT reverted FROM import_history WHERE id = ?",
+        (import_id,)
+    ).fetchone()[0]
+    assert reverted == 1
+    conn.close()

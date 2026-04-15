@@ -878,3 +878,135 @@ def dedupe_against_db(df, target_table: str,
         key = _dedupe_key(r.get("name", ""), r.get("phone", ""))
         mask.append(key not in existing)
     return df[_pd.Series(mask, index=df.index)].copy()
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Commit + Revert
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_INSERT_MAP: dict[str, dict[str, str]] = {
+    "customers":         {"name": "name", "phone": "contact",
+                          "city": "city", "state": "state",
+                          "gstin": "gstin", "address": "address",
+                          "category": "category"},
+    "suppliers":         {"name": "name", "phone": "contact",
+                          "city": "city", "state": "state",
+                          "gstin": "gstin", "category": "category"},
+    "contacts":          {"name": "name", "phone": "phone",
+                          "city": "city", "state": "state",
+                          "email": "email", "category": "category"},
+    "customer_profiles": {"name": "name", "company": "company",
+                          "phone": "whatsapp", "email": "email",
+                          "city": "city", "state": "state",
+                          "category": "category", "notes": "notes"},
+}
+
+
+def _now_iso() -> str:
+    import datetime as _dt2
+    return _dt2.datetime.now(_dt2.timezone(_dt2.timedelta(hours=5, minutes=30)))\
+        .strftime("%Y-%m-%dT%H:%M:%S%z")
+
+
+def commit_import(df, target_table: str,
+                  source_file: str,
+                  db_path="bitumen_dashboard.db") -> dict:
+    """Insert rows and write an import_history row. Single transaction.
+
+    Raises sqlite3.IntegrityError (or other sqlite3 errors) on failure —
+    the DB is rolled back and no history row is written.
+
+    Returns {inserted, skipped, errors, import_history_id}.
+    """
+    import sqlite3 as _sql
+    if target_table not in _INSERT_MAP:
+        raise ValueError(f"Unknown target table: {target_table}")
+
+    mapping = _INSERT_MAP[target_table]
+    # Special case: customer_profiles requires imported_at (NOT NULL), not imported_from
+    needs_imported_at = (target_table == "customer_profiles")
+
+    conn = _sql.connect(db_path)
+    try:
+        conn.execute("BEGIN")
+        inserted = 0
+        now_iso = _now_iso()
+        for _, row in df.iterrows():
+            if needs_imported_at:
+                cols = ["source_file", "imported_at"]
+                vals = [source_file, now_iso]
+            else:
+                cols = ["imported_from"]
+                vals = [source_file]
+            for src_key, db_col in mapping.items():
+                if src_key in row and row[src_key] not in ("", None):
+                    cols.append(db_col)
+                    vals.append(row[src_key])
+            placeholders = ", ".join(["?"] * len(vals))
+            conn.execute(
+                f"INSERT INTO {target_table} ({', '.join(cols)}) "
+                f"VALUES ({placeholders})",
+                vals,
+            )
+            inserted += 1
+
+        cur = conn.execute(
+            "INSERT INTO import_history "
+            "(file_name, target_table, rows_inserted, rows_skipped, "
+            " rows_errored, imported_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (source_file, target_table, inserted, 0, 0, now_iso),
+        )
+        import_id = cur.lastrowid
+        conn.commit()
+        return {
+            "inserted": inserted,
+            "skipped": 0,
+            "errors": 0,
+            "import_history_id": import_id,
+        }
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def revert_import(import_history_id: int,
+                  db_path="bitumen_dashboard.db") -> int:
+    """Delete rows inserted by the given import; mark history reverted.
+
+    Returns the number of rows removed.
+    """
+    import sqlite3 as _sql
+    conn = _sql.connect(db_path)
+    try:
+        conn.execute("BEGIN")
+        row = conn.execute(
+            "SELECT file_name, target_table, reverted "
+            "FROM import_history WHERE id = ?",
+            (import_history_id,),
+        ).fetchone()
+        if not row:
+            raise ValueError(f"import_history id {import_history_id} not found")
+        file_name, target_table, already = row
+        if already:
+            conn.rollback()
+            return 0
+        # customer_profiles uses source_file instead of imported_from
+        col = "source_file" if target_table == "customer_profiles" else "imported_from"
+        cur = conn.execute(
+            f"DELETE FROM {target_table} WHERE {col} = ?",
+            (file_name,),
+        )
+        removed = cur.rowcount
+        conn.execute(
+            "UPDATE import_history SET reverted = 1 WHERE id = ?",
+            (import_history_id,),
+        )
+        conn.commit()
+        return removed
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
