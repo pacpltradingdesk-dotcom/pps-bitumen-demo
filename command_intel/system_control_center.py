@@ -146,7 +146,7 @@ def _render_ai_models():
                     st.error(f"Health tests failed: {e}")
     with c2:
         if st.button("🤖 AI Setup Page →", key="scc_goto_ai_setup", use_container_width=True):
-            st.session_state['selected_page'] = "🤖 AI Setup & Workers"
+            st.session_state["_nav_goto"] = "🤖 AI Setup & Workers"
             st.rerun()
 
     running = sum(1 for m in models if m["status"] == "running")

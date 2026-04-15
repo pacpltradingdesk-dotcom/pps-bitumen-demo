@@ -5,8 +5,9 @@ Sits below the hero call card on Command Center.
 
   [ 📝 Quote ]  [ 📋 Brief ]  [ 📢 Broadcast ]  [ 🔮 Predict ]  [ 🤝 Negotiate ]
 
-Each button sets st.session_state["selected_page"] and reruns — same
-mechanism the sidebar uses, so navigation is consistent.
+Uses the global _nav_goto handler in dashboard.py — same contract as
+every other "Open X" button. This guarantees consistent module/page
+resolution (otherwise the sidebar stays on the wrong module).
 """
 from __future__ import annotations
 import streamlit as st
@@ -38,5 +39,7 @@ def render_daily_flow_row() -> None:
                 use_container_width=True,
                 type="secondary",
             ):
-                st.session_state["selected_page"] = page
+                # Route via the global _nav_goto consumer so the sidebar's
+                # active module updates along with the page.
+                st.session_state["_nav_goto"] = page
                 st.rerun()
