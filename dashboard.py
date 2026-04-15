@@ -119,6 +119,25 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Auto-apply DB schema migrations on startup. Cached so it runs at most
+# once per Streamlit process, not per rerun. Without this, fresh VPS
+# deployments stayed on schema v7 (no Phase 1 tables) until something
+# else touched the DB.
+@st.cache_resource(show_spinner=False)
+def _ensure_db_schema():
+    try:
+        from database import init_db
+        init_db()
+        return True
+    except Exception as _e:
+        # Don't crash the UI — pages with optional DB usage already
+        # try/except their own queries.
+        import sys
+        print(f"[startup] init_db skipped: {_e}", file=sys.stderr)
+        return False
+
+_ensure_db_schema()
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # THEME + ENGINES — theme first (instant), engines lazy (background)
