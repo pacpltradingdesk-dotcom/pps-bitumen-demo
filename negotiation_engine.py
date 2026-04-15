@@ -228,9 +228,10 @@ class NegotiationAssistant:
         except Exception:
             pass
 
-        # Fallback: check JSON
+        # Fallback: check customers DB (Phase 1 — was sales_parties.json)
         try:
-            parties = json.loads((BASE / "sales_parties.json").read_text(encoding="utf-8"))
+            from customer_source import load_customers
+            parties = load_customers()
             for p in parties:
                 if p.get("name", "").lower() == customer_name.lower():
                     return {

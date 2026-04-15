@@ -47,44 +47,10 @@ def _save(path, data):
 
 
 def seed_contacts():
-    """Merge sales_parties + purchase_parties into tbl_contacts."""
-    contacts = []
-    seen = set()
-
-    sales = _load(BASE / "sales_parties.json", [])
-    for s in sales:
-        name = s.get("name", "")
-        if name and name not in seen:
-            contacts.append({
-                "name": name,
-                "type": "customer",
-                "category": s.get("category", ""),
-                "city": s.get("city", ""),
-                "state": s.get("state", ""),
-                "contact": s.get("contact", ""),
-                "gstin": s.get("gstin", ""),
-                "source": "sales_parties.json",
-                "imported_at": _now(),
-            })
-            seen.add(name)
-
-    purchase = _load(BASE / "purchase_parties.json", [])
-    for p in purchase:
-        name = p.get("name", "")
-        if name and name not in seen:
-            contacts.append({
-                "name": name,
-                "type": "supplier",
-                "category": p.get("type", ""),
-                "city": p.get("city", ""),
-                "contact": p.get("contact", ""),
-                "gstin": p.get("gstin", ""),
-                "source": "purchase_parties.json",
-                "imported_at": _now(),
-            })
-            seen.add(name)
-
-    _save(BASE / "tbl_contacts.json", contacts)
+    """Deprecated — contacts are now loaded from tbl_contacts.json via
+    scripts/phase1_sync_contacts.py. This stub is kept for compatibility
+    with callers in __main__ and should be removed in Phase 2."""
+    print("seed_contacts: no-op (Phase 1 — see scripts/phase1_sync_contacts.py)")
 
 
 def seed_demand_proxy():

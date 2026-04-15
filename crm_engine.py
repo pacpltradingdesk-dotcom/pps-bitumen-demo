@@ -403,11 +403,11 @@ class IntelligentCRM:
         except Exception:
             pass
 
-        # Fallback to sales_parties.json
+        # Fallback to customers DB (Phase 1 — was sales_parties.json)
         if not profile["basic"].get("city"):
             try:
-                parties = json.loads((BASE / "sales_parties.json").read_text(encoding="utf-8"))
-                for p in parties:
+                from customer_source import load_customers
+                for p in load_customers():
                     if p.get("name", "").lower() == customer_name.lower():
                         profile["basic"].update({
                             "city": p.get("city"),

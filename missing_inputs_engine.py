@@ -213,7 +213,8 @@ class MissingInputsEngine:
                 from database import get_all_customers
                 customers = get_all_customers()
             except Exception:
-                customers = _load_json(BASE / "sales_parties.json", [])
+                from customer_source import load_customers
+                customers = load_customers()
             if len(customers) < 5:
                 gaps.append({
                     "field": "customer_count",

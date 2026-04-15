@@ -319,8 +319,9 @@ class OpportunityEngine:
             return get_all_customers()
         except Exception:
             pass
-        # Fallback to JSON
-        return _load_json(BASE / "sales_parties.json", [])
+        # Fallback to customers DB (Phase 1 — was sales_parties.json)
+        from customer_source import load_customers
+        return load_customers()
 
     def generate_communication(self, opportunity: dict) -> dict:
         """Auto-generate WhatsApp, Email, Call script for an opportunity."""

@@ -61,7 +61,8 @@ def map_legacy_type(p_type):
 
 # ============ FILE PATHS ============
 PURCHASE_PARTY_FILE = "purchase_parties.json" # Suppliers
-SALES_PARTY_FILE = "sales_parties.json"       # Customers
+# SALES_PARTY_FILE removed in Phase 1 — customers now live in SQLite.
+# load_customers() below delegates to customer_source.load_customers().
 SERVICE_PARTY_FILE = "service_providers.json" # Logistics & Services
 
 # ============ GENERIC IO FUNCTIONS ============
@@ -96,10 +97,19 @@ def save_suppliers(parties):
     save_json_file(PURCHASE_PARTY_FILE, parties)
 
 def load_customers():
-    return load_json_file(SALES_PARTY_FILE)
+    # Phase 1: customers now live in SQLite. Delegate to customer_source.
+    from customer_source import load_customers as _db_load_customers
+    return _db_load_customers()
 
 def save_customers(parties):
-    save_json_file(SALES_PARTY_FILE, parties)
+    # Phase 1: sales_parties.json is gone. Writing customers in bulk is no
+    # longer supported; use the Import Wizard (or commit_import) instead.
+    import warnings
+    warnings.warn(
+        "save_customers() is a no-op in Phase 1 — use the Import Wizard "
+        "or contact_import_engine.commit_import() to persist customers.",
+        DeprecationWarning, stacklevel=2,
+    )
 
 def load_services():
     return load_json_file(SERVICE_PARTY_FILE)

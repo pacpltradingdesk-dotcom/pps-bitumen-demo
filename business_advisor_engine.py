@@ -161,7 +161,8 @@ def _get_customers_from_db() -> list:
         from database import get_all_customers
         return get_all_customers()
     except Exception:
-        return _load_json(BASE / "sales_parties.json", [])
+        from customer_source import load_customers
+        return load_customers()
 
 
 def _get_suppliers_from_db() -> list:
