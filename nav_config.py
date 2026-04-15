@@ -104,6 +104,8 @@ MODULE_NAV: dict[str, dict] = {
         "icon": "⚙️", "label": "Settings",
         "tabs": [
             {"label": "Settings", "page": "⚙️ Settings", "star": True},
+            {"label": "Import Wizard", "page": "📥 Import Wizard", "star": True},
+            {"label": "Import History", "page": "🗂️ Import History"},
             {"label": "AI Chatbot", "page": "💬 Trading Chatbot"},
             {"label": "AI Fallback", "page": "🔄 AI Fallback Engine"},
             {"label": "Knowledge Base", "page": "📚 Knowledge Base"},

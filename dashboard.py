@@ -685,6 +685,12 @@ PAGE_DISPATCH = {
         lambda: __import__("command_intel.health_monitor_dashboard", fromlist=["render"]).render(),
         "Health Monitor"),
     "⚙️ Settings": _page_settings,
+    "📥 Import Wizard": lambda: _safe_render(
+        lambda: __import__("pages.system.import_wizard", fromlist=["render"]).render(),
+        "Import Wizard"),
+    "🗂️ Import History": lambda: _safe_render(
+        lambda: __import__("pages.system.import_history", fromlist=["render"]).render(),
+        "Import History"),
     "🐞 Bug Tracker": lambda: _safe_render(
         lambda: __import__("command_intel.bug_tracker", fromlist=["render"]).render(), "Bug Tracker"),
     "🛠️ Developer Ops Map": lambda: _safe_render(
