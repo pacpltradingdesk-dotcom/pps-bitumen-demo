@@ -80,6 +80,20 @@ def render():
     from theme import inject_theme
     inject_theme()
 
+    # Phase 5: hero "Today's Call" card — dominant decision artifact
+    try:
+        from components.hero_call_card import render_hero_call_card
+        render_hero_call_card()
+    except Exception:
+        pass
+
+    # Phase 5: Daily Flow shortcut row — 5 most-used actions one-click away
+    try:
+        from components.daily_flow_row import render_daily_flow_row
+        render_daily_flow_row()
+    except Exception:
+        pass
+
     # ── Ensure live data is fresh (refreshes if caches are stale) ──
     try:
         from freshness_guard import ensure_fresh
@@ -813,31 +827,44 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
     with col_stats:
         st.markdown('<div style="font-size:0.9rem;font-weight:800;color:#0F172A;margin-bottom:8px;">📊 Quick Stats</div>', unsafe_allow_html=True)
 
+        # Phase 5: empty-state CTAs — "—" cards now suggest a next action.
+        # 5-tuple: (icon, label, value, color, cta_hint or None)
+        _sup, _cus, _deals = (db_stats.get('total_suppliers'),
+                              db_stats.get('total_customers'),
+                              db_stats.get('total_deals'))
         stats = [
-            # Empty-state aware: "—" for data we don't yet have (not a misleading zero)
             ("🏭", "Suppliers",
-                db_stats.get('total_suppliers') or "—",
-                "#6366F1"),
+                _sup if _sup else "—",
+                "#6366F1",
+                None if _sup else "Import via Wizard"),
             ("👥", "Customers",
-                db_stats.get('total_customers') or "—",
-                "#8B5CF6"),
-            ("📋", "Tasks Today", tasks_today, "#F59E0B" if tasks_overdue > 0 else "#10B981"),
-            ("⚠️", "Overdue", tasks_overdue, "#EF4444" if tasks_overdue > 0 else "#10B981"),
+                _cus if _cus else "—",
+                "#8B5CF6",
+                None if _cus else "Add via Import Wizard"),
+            ("📋", "Tasks Today", tasks_today, "#F59E0B" if tasks_overdue > 0 else "#10B981", None),
+            ("⚠️", "Overdue", tasks_overdue, "#EF4444" if tasks_overdue > 0 else "#10B981", None),
             ("💼", "Active Deals",
-                db_stats.get('total_deals') or "—",
-                "#0EA5E9"),
-            ("🔔", "Open Alerts", len(active_alerts), "#EF4444" if len(active_alerts) > 5 else "#10B981"),
+                _deals if _deals else "—",
+                "#0EA5E9",
+                None if _deals else "Open Pricing Calculator"),
+            ("🔔", "Open Alerts", len(active_alerts), "#EF4444" if len(active_alerts) > 5 else "#10B981", None),
         ]
 
         # 2x3 grid for stats
         stats_html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">'
-        for icon, label, value, color in stats:
+        for icon, label, value, color, cta in stats:
+            cta_html = (
+                f"<div style='font-size:0.55rem;color:{color};font-weight:700;"
+                f"margin-top:1px;letter-spacing:0.02em;'>→ {cta}</div>"
+                if cta else ""
+            )
             stats_html += f"""
 <div style="background:#fff;border:1px solid #E2E8F0;border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;">
 <span style="font-size:1.1rem;">{icon}</span>
 <div>
 <div style="font-size:1.1rem;font-weight:900;color:{color};">{value}</div>
 <div style="font-size:0.58rem;color:#94A3B8;font-weight:600;text-transform:uppercase;">{label}</div>
+{cta_html}
 </div>
 </div>"""
         stats_html += '</div>'
