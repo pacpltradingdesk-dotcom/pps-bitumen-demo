@@ -779,3 +779,102 @@ def suggest_column_mapping(source_cols: _Iterable[str],
                 result[target] = orig_src
                 break
     return result
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Validation
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_GSTIN_RE = _re.compile(r"^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[0-9A-Z]{1}Z[0-9A-Z]{1}$")
+
+
+def _normalise_phone(raw) -> str:
+    """Strip spaces/dashes, keep leading + and digits only."""
+    if not raw:
+        return ""
+    s = str(raw).strip()
+    out = "+" if s.startswith("+") else ""
+    out += _re.sub(r"\D", "", s)
+    return out
+
+
+def validate_rows(df, target_table: str):
+    """Split df into (valid, invalid). Invalid rows carry a `_reason` column."""
+    valid_rows: list[dict] = []
+    invalid_rows: list[dict] = []
+
+    for _, row in df.iterrows():
+        record = {k: ("" if _pd.isna(v) else str(v).strip())
+                  for k, v in row.items()}
+
+        reason = None
+        if not record.get("name"):
+            reason = "missing name"
+
+        if "phone" in record:
+            record["phone"] = _normalise_phone(record["phone"])
+
+        gst = record.get("gstin", "").upper()
+        if gst and not _GSTIN_RE.match(gst):
+            reason = reason or "invalid gstin format"
+        if gst:
+            record["gstin"] = gst
+
+        if reason:
+            record["_reason"] = reason
+            invalid_rows.append(record)
+        else:
+            valid_rows.append(record)
+
+    return (_pd.DataFrame(valid_rows) if valid_rows else _pd.DataFrame(),
+            _pd.DataFrame(invalid_rows) if invalid_rows else _pd.DataFrame())
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Dedupe
+# ═══════════════════════════════════════════════════════════════════════════════
+
+_PHONE_COL = {
+    "customers": "contact",
+    "suppliers": "contact",
+    "contacts":  "phone",
+    "customer_profiles": "whatsapp",
+}
+
+
+def _dedupe_key(name: str, phone: str) -> str:
+    return f"{_norm(name)}|{_normalise_phone(phone)}"
+
+
+def dedupe_against_db(df, target_table: str,
+                      strategy: str = "skip",
+                      db_path="bitumen_dashboard.db"):
+    """Return rows that should be inserted, according to strategy.
+
+    strategy:
+      - 'skip'      → drop rows whose (name, phone) already exists.
+      - 'overwrite' → keep all rows; caller must issue INSERT OR REPLACE.
+      - 'merge'     → same as overwrite for now; merge happens during commit.
+    """
+    import sqlite3 as _sql
+    if df.empty:
+        return df
+
+    phone_col = _PHONE_COL.get(target_table, "phone")
+    conn = _sql.connect(db_path)
+    try:
+        rows = conn.execute(
+            f"SELECT name, {phone_col} FROM {target_table}"
+        ).fetchall()
+    finally:
+        conn.close()
+    existing = {_dedupe_key(n or "", p or "") for n, p in rows}
+
+    if strategy in ("overwrite", "merge"):
+        return df.copy()
+
+    mask = []
+    for _, r in df.iterrows():
+        key = _dedupe_key(r.get("name", ""), r.get("phone", ""))
+        mask.append(key not in existing)
+    return df[_pd.Series(mask, index=df.index)].copy()

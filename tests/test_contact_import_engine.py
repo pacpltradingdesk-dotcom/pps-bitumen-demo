@@ -69,3 +69,77 @@ def test_mapping_case_insensitive():
 def test_mapping_missing_target_omitted():
     m = suggest_column_mapping(["name"], target_schema=["name", "phone"])
     assert "phone" not in m
+
+
+# ── validate_rows ──────────────────────────────────────────────────
+
+from contact_import_engine import validate_rows, dedupe_against_db
+
+
+def test_validate_keeps_good_rows():
+    df = pd.DataFrame([
+        {"name": "Asha", "phone": "9876543210", "gstin": ""},
+        {"name": "Bhavesh", "phone": "+919876543211", "gstin": "24AAHCV1611L2ZD"},
+    ])
+    valid, invalid = validate_rows(df, "customers")
+    assert len(valid) == 2
+    assert len(invalid) == 0
+
+
+def test_validate_drops_missing_name():
+    df = pd.DataFrame([
+        {"name": "", "phone": "9876543210"},
+        {"name": "Asha", "phone": "9876543210"},
+    ])
+    valid, invalid = validate_rows(df, "customers")
+    assert len(valid) == 1
+    assert len(invalid) == 1
+    assert invalid.iloc[0]["_reason"] == "missing name"
+
+
+def test_validate_flags_bad_gstin():
+    df = pd.DataFrame([
+        {"name": "Asha", "phone": "9876543210", "gstin": "NOT-A-GSTIN"},
+    ])
+    valid, invalid = validate_rows(df, "customers")
+    assert len(valid) == 0
+    assert "gstin" in invalid.iloc[0]["_reason"].lower()
+
+
+def test_validate_normalises_phone():
+    df = pd.DataFrame([{"name": "Asha", "phone": "+91 98765-43210"}])
+    valid, _ = validate_rows(df, "customers")
+    assert valid.iloc[0]["phone"] == "+919876543210"
+
+
+# ── dedupe_against_db ──────────────────────────────────────────────
+
+def test_dedupe_skip_exact_match(tmp_db):
+    import sqlite3
+    conn = sqlite3.connect(tmp_db)
+    conn.execute(
+        "INSERT INTO customers(name, contact) VALUES(?, ?)",
+        ("Asha", "+919876543210"))
+    conn.commit()
+    conn.close()
+
+    df = pd.DataFrame([
+        {"name": "Asha", "phone": "+919876543210"},
+        {"name": "Bhavesh", "phone": "+919876543211"},
+    ])
+    fresh = dedupe_against_db(df, "customers", strategy="skip", db_path=tmp_db)
+    assert len(fresh) == 1
+    assert fresh.iloc[0]["name"] == "Bhavesh"
+
+
+def test_dedupe_whitespace_insensitive(tmp_db):
+    import sqlite3
+    conn = sqlite3.connect(tmp_db)
+    conn.execute("INSERT INTO customers(name, contact) VALUES(?, ?)",
+                 ("Asha  Gupta", "+919876543210"))
+    conn.commit()
+    conn.close()
+
+    df = pd.DataFrame([{"name": "asha gupta", "phone": "+919876543210"}])
+    fresh = dedupe_against_db(df, "customers", strategy="skip", db_path=tmp_db)
+    assert len(fresh) == 0
