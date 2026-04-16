@@ -270,7 +270,19 @@ def _step2():
 
     leads = _get_hot_leads()
     if not leads:
-        st.info("No overdue or due-today tasks. All clear!")
+        try:
+            from components.empty_state import render_empty_state
+            render_empty_state(
+                key="dc_targets",
+                icon="🎉",
+                title="Aaj koi overdue/due-today task nahi — all clear!",
+                hint="Opportunities se naya target uthao ya Scan chalao.",
+                cta_label="→ Open Opportunities",
+                cta_target="🔍 Opportunities",
+                tone="success",
+            )
+        except Exception:
+            st.info("No overdue or due-today tasks. All clear!")
     else:
         for i, ld in enumerate(leads[:8]):
             cl = ld.get("client","?"); tt = ld.get("type","Call"); pr = ld.get("priority","Medium")

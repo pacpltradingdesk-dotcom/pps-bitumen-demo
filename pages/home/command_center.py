@@ -9,6 +9,8 @@ import datetime
 import json
 from pathlib import Path
 
+from components.empty_state import render_empty_state
+
 ROOT = Path(__file__).parent.parent.parent
 
 
@@ -736,7 +738,14 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
         feed_height = 50 + n_rows * 120
         components.html(news_html, height=feed_height, scrolling=True)
     else:
-        st.info("No news data available. News will appear here after data sync.")
+        render_empty_state(
+            key="cc_news",
+            icon="📰",
+            title="News feed abhi khaali hai",
+            hint="Sync chalate hi latest headlines yahan aajayenge.",
+            cta_label="🔄 Open Sync Status",
+            cta_target="🔄 Sync Status",
+        )
 
     # ═══ TICKER 5: INDIA (after news) ═══
     _render_ticker("INDIA", "  &bull;  ".join(dom_headlines),
@@ -816,7 +825,14 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
         else:
             st.caption("Signal data format not recognized.")
     else:
-        st.caption("Market signals data not available. Run sync to fetch.")
+        render_empty_state(
+            key="cc_signals",
+            icon="📡",
+            title="Market signals data available nahi",
+            hint="Composite signal generate karne ke liye sync chalao.",
+            cta_label="🔄 Open Sync Status",
+            cta_target="🔄 Sync Status",
+        )
 
     # ═══ TICKER 6: TENDERS (before alerts) ═══
     if tender_headlines:

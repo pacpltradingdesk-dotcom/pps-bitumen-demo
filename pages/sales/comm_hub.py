@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import datetime
 
+from components.empty_state import render_empty_state
+
 
 def render():
     _today_str = datetime.date.today().strftime("%d %b %Y")
@@ -165,7 +167,14 @@ def render():
                 _hist_df = pd.DataFrame(_hist)
                 st.dataframe(_hist_df, use_container_width=True, hide_index=True)
             else:
-                st.caption("No communications logged yet.")
+                render_empty_state(
+                    key="commhub_hist",
+                    icon="💬",
+                    title="Koi communication log nahi",
+                    hint="Generate tab se pehla message banao — Share Center se bhejo.",
+                    cta_label="→ Open Share Center",
+                    cta_target="📤 Share Center",
+                )
 
     except Exception as _e:
         st.error(f"Communication Hub failed to load: {_e}")
