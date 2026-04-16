@@ -71,35 +71,8 @@ def _ts_ist(fmt: str = "%Y-%m-%d %H:%M IST") -> str:
 def _ts_filename() -> str:
     return _now_ist().strftime("%Y-%m-%d_%H%MIST")
 
-def format_inr(amount, symbol: bool = True) -> str:
-    """Indian number formatting: 48,302 → ₹ 48,302 / 1,23,45,678"""
-    try:
-        amount = float(amount)
-    except (TypeError, ValueError):
-        return str(amount)
-    prefix = "₹ " if symbol else ""
-    if amount < 0:
-        return f"-{prefix}{_indian_comma(-amount)}"
-    return f"{prefix}{_indian_comma(amount)}"
-
-def _indian_comma(n: float) -> str:
-    s = f"{n:,.2f}"
-    # Convert standard comma grouping to Indian system
-    parts = s.split(".")
-    integer = parts[0].replace(",", "")
-    decimal = parts[1] if len(parts) > 1 else "00"
-    if len(integer) <= 3:
-        return f"{integer}.{decimal}"
-    last3 = integer[-3:]
-    rest   = integer[:-3]
-    groups = []
-    while len(rest) > 2:
-        groups.append(rest[-2:])
-        rest = rest[:-2]
-    if rest:
-        groups.append(rest)
-    groups.reverse()
-    return ",".join(groups) + "," + last3 + "." + decimal
+# format_inr() comes from india_localization (imported above) — single source
+# of truth for INR formatting across engines.
 
 # ── Colour Palette ─────────────────────────────────────────────────────────────
 

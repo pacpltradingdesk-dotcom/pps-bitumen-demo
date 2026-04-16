@@ -64,16 +64,7 @@ def _load_json(filepath, default=None):
     return default if default is not None else []
 
 
-def _save_json(filepath, data):
-    """Write data to a JSON file."""
-    try:
-        Path(filepath).write_text(
-            json.dumps(data, indent=2, ensure_ascii=False),
-            encoding="utf-8",
-        )
-        return True
-    except Exception:
-        return False
+from . import save_json as _save_json  # shared helper
 
 
 def _now_ist() -> str:

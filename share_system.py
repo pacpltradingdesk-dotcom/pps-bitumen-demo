@@ -9,6 +9,8 @@ import uuid
 from pathlib import Path
 from datetime import datetime, timezone, timedelta
 
+from database import _now_ist  # single source of truth for IST timestamps
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # Constants
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -31,11 +33,6 @@ _CONFIDENTIAL_FOOTER = (
 # ═══════════════════════════════════════════════════════════════════════════════
 # Helpers
 # ═══════════════════════════════════════════════════════════════════════════════
-
-def _now_ist() -> str:
-    """Return current IST timestamp as ISO-8601 string."""
-    return datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
-
 
 def _now_ist_dt() -> datetime:
     """Return current IST datetime object."""

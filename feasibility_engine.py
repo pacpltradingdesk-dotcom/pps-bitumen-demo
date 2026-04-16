@@ -12,7 +12,7 @@ except ImportError:
 # Includes: PSU Refineries, Import Bulk, Local Decanters, and Drum Pricing
 
 from source_master import INDIAN_REFINERIES, IMPORT_TERMINALS, PRIVATE_DECANTERS, ALL_SOURCES
-from distance_matrix import get_distance, DESTINATION_COORDS
+from distance_matrix import get_distance, DESTINATION_COORDS, haversine_distance
 import os
 import json
 from pathlib import Path
@@ -109,18 +109,7 @@ MUMBAI_DRUM_CITIES = [
 KANDLA_COORDS = (23.03, 70.22)
 MUMBAI_COORDS = (19.08, 72.88)
 
-import math
-
-def haversine_distance(lat1, lon1, lat2, lon2):
-    """Calculate distance between two points."""
-    R = 6371
-    lat1_rad = math.radians(lat1)
-    lat2_rad = math.radians(lat2)
-    delta_lat = math.radians(lat2 - lat1)
-    delta_lon = math.radians(lon2 - lon1)
-    a = math.sin(delta_lat/2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(delta_lon/2)**2
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
-    return round(R * c * 1.3, 0)  # 1.3x for road distance
+# haversine_distance imported from distance_matrix (single source of truth).
 
 def get_drum_source_for_city(city):
     """Determine which drum loading point serves this city."""
