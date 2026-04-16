@@ -5,6 +5,8 @@ Contact management, relationship scoring, task management.
 """
 import streamlit as st
 
+from components.empty_state import render_empty_state
+
 
 def render():
     # Phase 2: standardized refresh bar (clears caches + reruns)
@@ -51,7 +53,15 @@ def render():
             current_tasks = crm.get_due_tasks("Overdue")
 
         if not current_tasks:
-            st.success("🎉 No tasks in this view! You are all caught up.")
+            render_empty_state(
+                key=f"crm_worklist_{task_view.lower().replace(' ', '_')}",
+                icon="🎉",
+                title=f"{task_view}: sab clear!",
+                hint="Naya target uthao — opportunities ya live market se.",
+                cta_label="→ Open Opportunities",
+                cta_target="🔍 Opportunities",
+                tone="success",
+            )
         else:
             for t in current_tasks:
                 with st.container():
@@ -243,7 +253,12 @@ def _render_calendar_tab(crm):
                 f"Due: {t.get('due_date', '')} | Note: {t.get('note', '-')}"
             )
     else:
-        st.info(f"No tasks scheduled for {sel_date.strftime('%d %b %Y')}.")
+        render_empty_state(
+            key=f"crm_cal_{sel_date.isoformat()}",
+            icon="🗓️",
+            title=f"{sel_date.strftime('%d %b %Y')} par koi task nahi",
+            hint="Us din ke liye quick task add karo niche wale form se.",
+        )
 
     # Monthly summary metrics
     st.markdown("---")

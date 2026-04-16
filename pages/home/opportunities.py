@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import datetime
 
+from components.empty_state import render_empty_state
+
 
 def _fmt_inr(amount) -> str:
     """Format INR with Indian comma system."""
@@ -104,7 +106,14 @@ def render():
                                     break
                             st.rerun()
             else:
-                st.info("No new opportunities. Click 'Scan Now' to run a fresh scan.")
+                render_empty_state(
+                    key="opp_new",
+                    icon="🔍",
+                    title="Abhi koi nayi opportunity nahi",
+                    hint="Fresh scan chalao ya market signals check karo.",
+                    cta_label="🔄 Run Scan Now",
+                    on_click=_opp_eng.scan_all_opportunities,
+                )
 
         with _opp_tabs[1]:
             _recs = _opp_eng.get_todays_recommendations()
@@ -115,7 +124,14 @@ def render():
                     st.markdown(f"- **{_bc.get('customer_name', 'Unknown')}** ({_bc.get('customer_city', '')}) — "
                                 f"Save {_fmt_inr(_bc.get('savings_per_mt', 0))}/MT | {_bc.get('priority', 'P2')}")
             else:
-                st.caption("No buyers flagged. Run a scan first.")
+                render_empty_state(
+                    key="opp_buyers",
+                    icon="📞",
+                    title="Koi buyer flag nahi hua aaj",
+                    hint="Pricing calculator se quote bhejo — naya lead yahan aajayega.",
+                    cta_label="→ Open Pricing Calculator",
+                    cta_target="🧮 Pricing Calculator",
+                )
 
             st.subheader("Follow-ups Due")
             _fud = _recs.get("followups_due", [])
@@ -123,7 +139,15 @@ def render():
                 for _fu in _fud[:10]:
                     st.markdown(f"- {_fu.get('title', _fu.get('customer_name', 'Task'))} — {_fu.get('status', '')}")
             else:
-                st.caption("No follow-ups due.")
+                render_empty_state(
+                    key="opp_followups",
+                    icon="✅",
+                    title="Koi follow-up due nahi",
+                    hint="CRM mein jaake manual task add karo ya automation rules check karo.",
+                    cta_label="→ Open CRM & Tasks",
+                    cta_target="🎯 CRM & Tasks",
+                    tone="success",
+                )
 
             st.subheader("Reactivation Targets")
             _react = _recs.get("reactivation_targets", [])
@@ -131,7 +155,14 @@ def render():
                 for _rt in _react[:5]:
                     st.markdown(f"- **{_rt.get('customer_name', _rt.get('title', 'Target'))}** — {_rt.get('type', '')}")
             else:
-                st.caption("No reactivation targets found.")
+                render_empty_state(
+                    key="opp_react",
+                    icon="💤",
+                    title="Koi dormant customer abhi flag nahi hua",
+                    hint="Broadcast bhejke sleepy contacts ko jagao.",
+                    cta_label="→ Open Share Center",
+                    cta_target="📤 Share Center",
+                )
 
         with _opp_tabs[2]:
             st.markdown("Run a fresh opportunity scan across all data sources.")
@@ -149,7 +180,14 @@ def render():
                 _display_cols = [c for c in _cols_to_show if c in _opp_df.columns]
                 st.dataframe(_opp_df[_display_cols], use_container_width=True, hide_index=True)
             else:
-                st.info("No opportunity history yet.")
+                render_empty_state(
+                    key="opp_history",
+                    icon="📜",
+                    title="History abhi khaali hai",
+                    hint="Pehla scan chalate hi yahan record banta jayega.",
+                    cta_label="🔄 Run First Scan",
+                    on_click=_opp_eng.scan_all_opportunities,
+                )
 
     except Exception as _e:
         st.error(f"Opportunities failed to load: {_e}")
