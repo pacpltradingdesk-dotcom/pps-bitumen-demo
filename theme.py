@@ -13,36 +13,33 @@ def inject_theme() -> None:
     st.markdown(
         """
         <style>
-        /* Sidebar toggle — always-visible floating button so user can hide/show sidebar */
-        [data-testid="collapsedControl"],
-        [data-testid="stSidebarCollapsedControl"],
-        [data-testid="stSidebarCollapseButton"],
-        button[kind="header"],
-        button[kind="headerNoPadding"] {
-            display: flex !important;
+        /* Sidebar — visible by default at 240px, nav content renders as normal.
+           The floating toggle button (injected separately) hides/shows the
+           sidebar via the body.pps-sb-hidden class. */
+        [data-testid="stSidebar"] {
+            display: block !important;
             visibility: visible !important;
-            opacity: 1 !important;
-            position: fixed !important;
-            top: 12px !important;
-            left: 12px !important;
-            z-index: 999999 !important;
-            background: #FFFFFF !important;
-            border: 1px solid #E5E7EB !important;
-            border-radius: 8px !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08) !important;
-            width: 36px !important;
-            height: 36px !important;
-            align-items: center !important;
-            justify-content: center !important;
-            cursor: pointer !important;
+            min-width: 240px !important;
+            width: 240px !important;
+            transform: none !important;
+            transition: none !important;
         }
-        [data-testid="collapsedControl"]:hover,
-        [data-testid="stSidebarCollapsedControl"]:hover,
-        [data-testid="stSidebarCollapseButton"]:hover,
-        button[kind="header"]:hover,
-        button[kind="headerNoPadding"]:hover {
-            border-color: #4F46E5 !important;
-            box-shadow: 0 2px 8px rgba(79,70,229,0.2) !important;
+        [data-testid="stSidebar"][aria-expanded="false"] {
+            min-width: 240px !important;
+            width: 240px !important;
+            margin-left: 0 !important;
+            transform: none !important;
+        }
+        /* Hide the native Streamlit collapse chevron — we use our own toggle */
+        [data-testid="stSidebarCollapseButton"],
+        [data-testid="collapsedControl"],
+        button[kind="header"] {
+            display: none !important;
+        }
+        /* When user clicks our custom toggle, fully hide the sidebar */
+        body.pps-sb-hidden section[data-testid="stSidebar"],
+        body.pps-sb-hidden [data-testid="stSidebar"] {
+            display: none !important;
         }
 
         /* 1. Global CSS Variables - Clean Light Theme */
