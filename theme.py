@@ -74,11 +74,14 @@ def inject_theme() -> None:
             letter-spacing: -0.01em;
         }
 
-        /* Main Container Padding Constraint for that centered "Cloud App" look */
+        /* Main container — fill available width (no 1280px cap) so the
+           screen-card hugs the viewport with only a small breathing margin. */
         .block-container {
-            max-width: 1280px !important;
+            max-width: 100% !important;
             padding-top: 1rem !important;
             padding-bottom: 4rem !important;
+            padding-left: 1.5rem !important;
+            padding-right: 1.5rem !important;
         }
 
         /* 3. The Core Magic: Bento Grids (st.columns / st.container wrappers) */
