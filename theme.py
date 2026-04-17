@@ -13,26 +13,6 @@ def inject_theme() -> None:
     st.markdown(
         """
         <style>
-        /* Sidebar — NEVER fully hide, always keep visible */
-        [data-testid="stSidebar"] {
-            display: block !important;
-            visibility: visible !important;
-            min-width: 240px !important;
-            width: 240px !important;
-            transform: none !important;
-            transition: none !important;
-        }
-        [data-testid="stSidebar"][aria-expanded="false"] {
-            min-width: 240px !important;
-            width: 240px !important;
-            margin-left: 0 !important;
-            transform: none !important;
-        }
-        /* Hide the collapse button since sidebar is always visible */
-        [data-testid="collapsedControl"],
-        button[kind="header"] {
-            display: none !important;
-        }
         /* 1. Global CSS Variables - Clean Light Theme */
         :root {
             --bg-app: #FAFAFA;
