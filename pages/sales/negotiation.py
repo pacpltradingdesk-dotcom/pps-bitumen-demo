@@ -75,10 +75,15 @@ def render():
             _grade_opts = ["VG30", "VG10", "VG40", "CRMB-55", "CRMB-60", "PMB", "Emulsion"]
             _grade_idx = _grade_opts.index(_ctx_grade) if _ctx_grade in _grade_opts else 0
             with _nc1:
-                _neg_cust = st.text_input("Customer Name", value=_ctx_cust,
-                                          placeholder="e.g. customer name")
-                _neg_city = st.text_input("City", value=_ctx_city,
-                                          placeholder="e.g. Ahmedabad")
+                try:
+                    from components.autosuggest import customer_picker, city_picker
+                    _neg_cust = customer_picker(key="neg_cust", default=_ctx_cust, label="Customer Name")
+                    _neg_city = city_picker(key="neg_city", default=_ctx_city, label="City")
+                except Exception:
+                    _neg_cust = st.text_input("Customer Name", value=_ctx_cust,
+                                              placeholder="e.g. customer name")
+                    _neg_city = st.text_input("City", value=_ctx_city,
+                                              placeholder="e.g. Ahmedabad")
             with _nc2:
                 _neg_grade = st.selectbox("Grade", _grade_opts, index=_grade_idx)
                 _neg_qty = st.number_input("Quantity (MT)", min_value=10, max_value=10000, value=100, step=10)

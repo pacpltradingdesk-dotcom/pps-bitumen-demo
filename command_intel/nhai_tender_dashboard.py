@@ -130,7 +130,11 @@ def render():
         ac1, ac2 = st.columns(2)
         with ac1:
             title = st.text_input("Tender Title", key="td_title")
-            state = st.text_input("State", key="td_state")
+            try:
+                from components.autosuggest import state_picker
+                state = state_picker(key="td_state", label="State")
+            except Exception:
+                state = st.text_input("State", key="td_state")
             authority = st.selectbox("Authority", ["NHAI", "MoRTH", "State PWD", "NHIDCL"], key="td_auth")
         with ac2:
             length = st.number_input("Road Length (km)", min_value=0, value=50, key="td_km")

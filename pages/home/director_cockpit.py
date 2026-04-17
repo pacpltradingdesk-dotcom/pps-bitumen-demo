@@ -412,12 +412,23 @@ def _step4():
     st.markdown("")
 
     pf = st.session_state.get("_ck_c", "")
+    try:
+        from components.autosuggest import customer_picker, city_picker
+        _have_pickers = True
+    except Exception:
+        _have_pickers = False
     c1, c2 = st.columns(2)
     with c1:
-        cust = st.text_input("Customer", value=pf, key="cc")
+        if _have_pickers:
+            cust = customer_picker(key="cc", default=pf)
+        else:
+            cust = st.text_input("Customer", value=pf, key="cc")
         gr = st.selectbox("Grade", ["VG30","VG10","VG40","CRMB-55","CRMB-60","PMB"], key="cg")
     with c2:
-        city = st.text_input("City", key="ci", placeholder="Ahmedabad, Pune...")
+        if _have_pickers:
+            city = city_picker(key="ci")
+        else:
+            city = st.text_input("City", key="ci", placeholder="Ahmedabad, Pune...")
         q1, q2 = st.columns(2)
         with q1: qty = st.number_input("Qty (MT)", min_value=1, value=20, step=1, key="cq")
         with q2: lt = st.selectbox("Load", ["Bulk","Drum"], key="cl")

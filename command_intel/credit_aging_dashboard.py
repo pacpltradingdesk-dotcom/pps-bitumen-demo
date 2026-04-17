@@ -154,7 +154,11 @@ def render():
 
         mc1, mc2 = st.columns(2)
         with mc1:
-            cust_name = st.text_input("Customer Name", key="cl_cust")
+            try:
+                from components.autosuggest import customer_picker
+                cust_name = customer_picker(key="cl_cust", label="Customer Name")
+            except Exception:
+                cust_name = st.text_input("Customer Name", key="cl_cust")
         with mc2:
             limit = st.number_input("Credit Limit (₹)", min_value=0, value=500000, step=50000, key="cl_limit")
 
@@ -173,7 +177,11 @@ def render():
         st.subheader("Record Payment")
         pc1, pc2 = st.columns(2)
         with pc1:
-            pay_cust = st.text_input("Customer", key="cl_pay_cust")
+            try:
+                from components.autosuggest import customer_picker
+                pay_cust = customer_picker(key="cl_pay_cust", label="Customer")
+            except Exception:
+                pay_cust = st.text_input("Customer", key="cl_pay_cust")
         with pc2:
             pay_amt = st.number_input("Payment Amount (₹)", min_value=0, value=100000, step=10000, key="cl_pay_amt")
 

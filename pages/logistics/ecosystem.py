@@ -273,11 +273,20 @@ def render():
         st.markdown("#### ➕ Add New Client")
         with st.form("add_client_form"):
             ac1, ac2 = st.columns(2)
+            try:
+                from components.autosuggest import city_picker, state_picker
+                _auto = True
+            except Exception:
+                _auto = False
             with ac1:
                 c_name = st.text_input("Client/Company Name")
                 c_cat = st.selectbox("Category", CUSTOMER_CATEGORIES)
-                c_city = st.text_input("City")
-                c_state = st.selectbox("State", ["Gujarat", "Maharashtra", "Rajasthan", "MP", "Delhi", "Punjab", "Haryana", "UP", "South India", "Other"])
+                if _auto:
+                    c_city = city_picker(key="eco_cust_city", label="City")
+                    c_state = state_picker(key="eco_cust_state", label="State")
+                else:
+                    c_city = st.text_input("City")
+                    c_state = st.selectbox("State", ["Gujarat", "Maharashtra", "Rajasthan", "MP", "Delhi", "Punjab", "Haryana", "UP", "South India", "Other"])
             with ac2:
                 c_contact = st.text_input("Phone/Mobile")
                 c_gst = st.text_input("GSTIN")
@@ -465,12 +474,21 @@ def render():
         st.subheader("➕ Add New Sales Party / Customer")
 
         s_col1, s_col2, s_col3 = st.columns(3)
+        try:
+            from components.autosuggest import city_picker, state_picker
+            _auto_s = True
+        except Exception:
+            _auto_s = False
         with s_col1:
             s_name = st.text_input("Customer Name", key="new_sales_name")
             s_cat = st.selectbox("Category", CUSTOMER_CATEGORIES, key="new_sales_cat")
         with s_col2:
-            s_city = st.text_input("City", key="new_sales_city")
-            s_state = st.selectbox("State", ["Gujarat", "Maharashtra", "Rajasthan", "Madhya Pradesh", "Karnataka", "Tamil Nadu", "Andhra Pradesh", "Telangana", "Delhi", "Uttar Pradesh", "Bihar", "West Bengal", "Other"], key="new_sales_state")
+            if _auto_s:
+                s_city = city_picker(key="new_sales_city", label="City")
+                s_state = state_picker(key="new_sales_state", label="State")
+            else:
+                s_city = st.text_input("City", key="new_sales_city")
+                s_state = st.selectbox("State", ["Gujarat", "Maharashtra", "Rajasthan", "Madhya Pradesh", "Karnataka", "Tamil Nadu", "Andhra Pradesh", "Telangana", "Delhi", "Uttar Pradesh", "Bihar", "West Bengal", "Other"], key="new_sales_state")
             s_contact = st.text_input("Contact Number", key="new_sales_contact")
         with s_col3:
             s_gstin = st.text_input("GSTIN", key="new_sales_gstin")

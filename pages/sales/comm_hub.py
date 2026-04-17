@@ -44,11 +44,20 @@ def render():
         with _comm_tabs[0]:
             _msg_type = st.selectbox("Message Type", ["Offer", "Follow-up", "Reactivation", "Payment Reminder"])
             _cc1, _cc2 = st.columns(2)
+            try:
+                from components.autosuggest import customer_picker, city_picker
+                _autosuggest = True
+            except Exception:
+                _autosuggest = False
             with _cc1:
-                _comm_cust = st.text_input("Customer Name", value=_ctx_cust,
-                                           placeholder="e.g. customer name", key="comm_cust")
-                _comm_city = st.text_input("City", value=_ctx_city_v,
-                                           placeholder="e.g. Mumbai", key="comm_city")
+                if _autosuggest:
+                    _comm_cust = customer_picker(key="comm_cust", default=_ctx_cust, label="Customer Name")
+                    _comm_city = city_picker(key="comm_city", default=_ctx_city_v, label="City")
+                else:
+                    _comm_cust = st.text_input("Customer Name", value=_ctx_cust,
+                                               placeholder="e.g. customer name", key="comm_cust")
+                    _comm_city = st.text_input("City", value=_ctx_city_v,
+                                               placeholder="e.g. Mumbai", key="comm_city")
             with _cc2:
                 _grade_opts = ["VG30", "VG10", "VG40"]
                 _grade_idx = _grade_opts.index(_ctx_grade) if _ctx_grade in _grade_opts else 0
@@ -157,8 +166,13 @@ def render():
 
         with _comm_tabs[1]:
             st.subheader("5-Touch Follow-up Sequence")
-            _fu_cust = st.text_input("Customer", key="fu_cust")
-            _fu_city = st.text_input("City", key="fu_city")
+            try:
+                from components.autosuggest import customer_picker, city_picker
+                _fu_cust = customer_picker(key="fu_cust", label="Customer")
+                _fu_city = city_picker(key="fu_city", label="City")
+            except Exception:
+                _fu_cust = st.text_input("Customer", key="fu_cust")
+                _fu_city = st.text_input("City", key="fu_city")
             _fu_price = st.number_input("Offer Price", min_value=20000, value=42000, step=500, key="fu_price")
             if st.button("Generate Sequence", key="fu_gen"):
                 if _fu_cust:

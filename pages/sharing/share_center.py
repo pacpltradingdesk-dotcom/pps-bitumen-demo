@@ -532,7 +532,11 @@ def render():
             new_email = st.text_input("Email", placeholder="name@company.com", key="ac_email")
             new_tg_id = st.text_input("Telegram Chat ID", placeholder="-100123456", key="ac_tgid")
 
-        new_city = st.text_input("City", placeholder="e.g. Mumbai", key="ac_city")
+        try:
+            from components.autosuggest import city_picker
+            new_city = city_picker(key="ac_city", label="City")
+        except Exception:
+            new_city = st.text_input("City", placeholder="e.g. Mumbai", key="ac_city")
 
         if st.button("\u2795 Add Contact", type="primary", key="ac_add"):
             if not new_name.strip():

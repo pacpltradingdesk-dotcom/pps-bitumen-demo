@@ -173,9 +173,18 @@ def render():
     with tabs[1]:
         with st.form("sos_form"):
             c1, c2 = st.columns(2)
+            try:
+                from components.autosuggest import customer_picker, city_picker
+                _have_auto = True
+            except Exception:
+                _have_auto = False
             with c1:
-                customer = st.text_input("Customer Name")
-                city = st.text_input("City")
+                if _have_auto:
+                    customer = customer_picker(key="sos_cust", label="Customer Name")
+                    city = city_picker(key="sos_city", label="City")
+                else:
+                    customer = st.text_input("Customer Name")
+                    city = st.text_input("City")
                 grade = st.selectbox("Grade", ["VG30", "VG10"])
             with c2:
                 qty = st.number_input("Quantity (MT)", min_value=1, value=50)
