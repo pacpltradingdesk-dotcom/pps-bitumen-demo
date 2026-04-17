@@ -430,10 +430,12 @@ def _generate_past_accuracy_data(years: int = 3) -> pd.DataFrame:
 def _render_future_view(df: pd.DataFrame):
     st.markdown("### 📊 Contribution Waterfall — Driver Analysis")
 
+    # Single source of truth — see market_data.get_unified_prices
     try:
-        from api_manager import get_brent_price, get_usdinr
-        brent = get_brent_price() or 109.0
-        usdinr = get_usdinr() or 93.6
+        from market_data import get_unified_prices
+        _up = get_unified_prices()
+        brent = float(_up.get("brent") or 109.0)
+        usdinr = float(_up.get("usdinr") or 93.6)
     except Exception:
         brent, usdinr = 109.0, 93.6
 

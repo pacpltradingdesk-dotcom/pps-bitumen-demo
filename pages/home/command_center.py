@@ -134,34 +134,18 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
                 else "Good Afternoon" if now.hour < 17
                 else "Good Evening")
 
-    # ── Load ALL Data ──
-    hub_cache = _load_json("hub_cache.json", {})
-    brent, wti, usdinr = "—", "—", "—"
-    brent_val, wti_val = 0, 0
-    try:
-        crude_data = hub_cache.get("eia_crude", {}).get("data", [])
-        if isinstance(crude_data, list):
-            for rec in crude_data:
-                if isinstance(rec, dict):
-                    b = rec.get("benchmark", "").lower()
-                    if "brent" in b:
-                        brent = rec.get("price", "—")
-                        try: brent_val = float(str(brent).replace("$","").replace(",",""))
-                        except: pass
-                    elif "wti" in b:
-                        wti = rec.get("price", "—")
-                        try: wti_val = float(str(wti).replace("$","").replace(",",""))
-                        except: pass
-        fx_data = hub_cache.get("frankfurter_fx", hub_cache.get("fx", {})).get("data", [])
-        if isinstance(fx_data, list):
-            for rec in fx_data:
-                if isinstance(rec, dict) and "INR" in rec.get("pair", "").upper():
-                    usdinr = rec.get("rate", "—")
-    except Exception:
-        pass
+    # ── Load ALL Data (SINGLE SOURCE OF TRUTH — see market_data.get_unified_prices) ──
+    from market_data import get_unified_prices
+    _up = get_unified_prices()
+    brent_val = float(_up["brent"]) if _up["brent"] is not None else 0.0
+    wti_val   = float(_up["wti"])   if _up["wti"]   is not None else 0.0
+    usdinr_f  = float(_up["usdinr"]) if _up["usdinr"] is not None else 0.0
+    vg30_k    = float(_up["vg30"])  if _up["vg30"]  is not None else 35500.0
+    brent   = f"{brent_val:.2f}"  if brent_val else "—"
+    wti     = f"{wti_val:.2f}"    if wti_val   else "—"
+    usdinr  = f"{usdinr_f:.2f}"   if usdinr_f  else "—"
 
     live_prices = _load_json("live_prices.json", {})
-    vg30_k = live_prices.get("DRUM_KANDLA_VG30", 35500)
 
     pa_raw = _load_json("tbl_purchase_advisor.json", {})
     pa = pa_raw.get("latest", pa_raw) if isinstance(pa_raw, dict) else {}

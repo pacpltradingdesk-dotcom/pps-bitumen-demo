@@ -207,6 +207,15 @@ def _render_signal_details(signals: dict) -> None:
 | > 0.2 = UP | < -0.2 = DOWN | else = SIDEWAYS |
 """)
 
+    # Unified price override (single source of truth — see market_data.get_unified_prices)
+    # so Crude Market Details + Currency Impact always agree with the KPI ribbon
+    # rather than showing whatever snapshot was captured when signals last ran.
+    try:
+        from market_data import get_unified_prices
+        _up = get_unified_prices()
+    except Exception:
+        _up = {}
+
     # Individual signal expanders
     with st.expander("🛢️ Crude Market Details", expanded=False):
         sig = signals.get("crude_market", {})
@@ -214,7 +223,8 @@ def _render_signal_details(signals: dict) -> None:
         c1.metric("Direction", sig.get("direction", "—"))
         c2.metric("Momentum", f"{sig.get('momentum', 0)}%")
         c3.metric("Volatility", sig.get("volatility", "—"))
-        c1.metric("Brent", f"${sig.get('latest_brent', '—')}")
+        _brent = _up.get("brent") if _up.get("brent") is not None else sig.get("latest_brent", "—")
+        c1.metric("Brent", f"${_brent:.2f}" if isinstance(_brent, (int, float)) else f"${_brent}")
         c2.metric("Support", f"${sig.get('support', '—')}")
         c3.metric("Resistance", f"${sig.get('resistance', '—')}")
 
@@ -222,7 +232,8 @@ def _render_signal_details(signals: dict) -> None:
         sig = signals.get("currency", {})
         c1, c2, c3 = st.columns(3)
         c1.metric("Import Pressure", sig.get("pressure", "—"))
-        c2.metric("USD/INR", sig.get("latest_usdinr", "—"))
+        _inr = _up.get("usdinr") if _up.get("usdinr") is not None else sig.get("latest_usdinr", "—")
+        c2.metric("USD/INR", f"{_inr:.2f}" if isinstance(_inr, (int, float)) else _inr)
         c3.metric("FX Momentum", f"{sig.get('fx_momentum', 0)}%")
         st.info(f"💡 **Advice:** {sig.get('advice', '—')}")
 

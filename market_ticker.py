@@ -167,10 +167,27 @@ def _fetch_global_markets() -> list[dict]:
         ("fuel_oil",    "Fuel Oil",     "$",       "\u26fd"),
     ]
 
+    # Pre-fetch brent/wti/usdinr from unified source (hub_cache.json —
+    # authoritative). Prevents ticker falling to simulated data while other
+    # UI components show live values.
+    try:
+        from market_data import get_unified_prices
+        _up = get_unified_prices()
+    except Exception:
+        _up = {}
+    _unified_override = {
+        "brent":  {"current": _up.get("brent"),  "history_7d": _up.get("brent")},
+        "wti":    {"current": _up.get("wti"),    "history_7d": _up.get("wti")},
+        "usdinr": {"current": _up.get("usdinr"), "history_7d": _up.get("usdinr")},
+    }
+
     brent_usd = None
     for widget_id, label, prefix, icon in TICKERS:
         try:
-            data = fetch_api_data(widget_id)
+            if widget_id in _unified_override and _unified_override[widget_id]["current"] is not None:
+                data = _unified_override[widget_id]
+            else:
+                data = fetch_api_data(widget_id)
             if data and "current" in data:
                 curr = float(data["current"])
                 hist = float(data.get("history_7d", curr))

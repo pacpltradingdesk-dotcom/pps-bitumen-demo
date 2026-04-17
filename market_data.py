@@ -1,7 +1,115 @@
 import datetime
+import json
 import random
+from pathlib import Path
+
 import yfinance as yf
 from api_manager import fetch_api_data
+
+_ROOT = Path(__file__).parent
+_HUB_CACHE_PATH = _ROOT / "hub_cache.json"
+_LIVE_PRICES_PATH = _ROOT / "live_prices.json"
+
+
+def get_unified_prices() -> dict:
+    """SINGLE SOURCE OF TRUTH for Brent/WTI/USD-INR/VG30 across every UI component.
+
+    Read priority (high to low):
+      1. hub_cache.json — populated by background API-refresh daemon from
+         yfinance (crude) + Frankfurter/ECB (fx). Authoritative live snapshot.
+      2. fetch_api_data() fallback — direct yfinance call if hub_cache empty.
+      3. Hard coded deterministic defaults — NEVER randomized (randomized
+         fallbacks were the root cause of cross-component divergence).
+
+    Returns flat dict: {brent, wti, usdinr, vg30, brent_chg_pct, wti_chg_pct,
+    usdinr_chg_pct, vg30_chg_pct, timestamp, source}. Values are floats (prices)
+    / percentages (floats), NOT preformatted strings — each consumer formats
+    its own way. This prevents format-string divergence.
+    """
+    out = {
+        "brent": None, "wti": None, "usdinr": None, "vg30": None,
+        "brent_chg_pct": 0.0, "wti_chg_pct": 0.0,
+        "usdinr_chg_pct": 0.0, "vg30_chg_pct": 0.0,
+        "timestamp": "",
+        "source": "unknown",
+    }
+
+    # ── 1. Try hub_cache.json (authoritative) ────────────────────────────
+    try:
+        hub = json.loads(_HUB_CACHE_PATH.read_text(encoding="utf-8"))
+        crude_rows = hub.get("eia_crude", {}).get("data", [])
+        if isinstance(crude_rows, list):
+            for rec in crude_rows:
+                if not isinstance(rec, dict):
+                    continue
+                b = rec.get("benchmark", "").lower()
+                p = rec.get("price")
+                if p is None:
+                    continue
+                if "brent" in b and out["brent"] is None:
+                    out["brent"] = float(p)
+                    out["timestamp"] = rec.get("date_time", "")
+                elif "wti" in b and out["wti"] is None:
+                    out["wti"] = float(p)
+        fx_rows = hub.get("frankfurter_fx", hub.get("fx", {})).get("data", [])
+        if isinstance(fx_rows, list):
+            for rec in fx_rows:
+                if not isinstance(rec, dict):
+                    continue
+                if "INR" in rec.get("pair", "").upper() and out["usdinr"] is None:
+                    out["usdinr"] = float(rec.get("rate", 0) or 0) or None
+        if out["brent"] or out["wti"] or out["usdinr"]:
+            out["source"] = "hub_cache"
+    except Exception:
+        pass
+
+    # ── 2. Live fetch fallback (only for keys still missing) ─────────────
+    try:
+        if out["brent"] is None:
+            d = fetch_api_data("brent")
+            if d and "current" in d:
+                out["brent"] = float(d["current"])
+                if "history_7d" in d and d["history_7d"]:
+                    out["brent_chg_pct"] = ((out["brent"] - float(d["history_7d"])) /
+                                             float(d["history_7d"])) * 100
+                out["source"] = out["source"] if out["source"] != "unknown" else "live_api"
+        if out["wti"] is None:
+            d = fetch_api_data("wti")
+            if d and "current" in d:
+                out["wti"] = float(d["current"])
+                if "history_7d" in d and d["history_7d"]:
+                    out["wti_chg_pct"] = ((out["wti"] - float(d["history_7d"])) /
+                                           float(d["history_7d"])) * 100
+        if out["usdinr"] is None:
+            d = fetch_api_data("usdinr")
+            if d and "current" in d:
+                out["usdinr"] = float(d["current"])
+                if "history_7d" in d and d["history_7d"]:
+                    out["usdinr_chg_pct"] = ((out["usdinr"] - float(d["history_7d"])) /
+                                              float(d["history_7d"])) * 100
+    except Exception:
+        pass
+
+    # ── 3. VG30 bitumen (Indian domestic, not from crude/fx APIs) ────────
+    try:
+        lp = json.loads(_LIVE_PRICES_PATH.read_text(encoding="utf-8"))
+        out["vg30"] = float(lp.get("DRUM_KANDLA_VG30") or 35500)
+    except Exception:
+        out["vg30"] = 35500.0
+
+    # ── 4. Deterministic defaults (NEVER random) ─────────────────────────
+    if out["brent"] is None:
+        out["brent"] = 98.0
+    if out["wti"] is None:
+        out["wti"] = 89.0
+    if out["usdinr"] is None:
+        out["usdinr"] = 93.0
+    if not out["timestamp"]:
+        out["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M IST")
+    if out["source"] == "unknown":
+        out["source"] = "fallback"
+
+    return out
 
 def format_change(chg_7d):
     color = "green" if chg_7d >= 0 else "red"
