@@ -141,17 +141,14 @@ st.markdown("""
   html body [data-testid="stMain"] > div:first-child,
   html body .stMainBlockContainer,
   html body section.main > div.block-container,
-  html body .main > div.block-container,
-  html body .main .block-container,
-  html body .stApp .block-container,
-  html body [class*="block-container"] {
+  html body .main > div.block-container {
       background: #FFFFFF !important;
-      border-radius: 20px !important;
-      padding: 28px 32px 36px 32px !important;
+      border-radius: 14px !important;
+      padding: 20px 24px 26px 24px !important;
       box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06),
-                  0 18px 44px rgba(15, 23, 42, 0.10) !important;
+                  0 14px 34px rgba(15, 23, 42, 0.08) !important;
       border: 1px solid #CBD5E1 !important;
-      margin: 18px 22px 26px 22px !important;
+      margin: 8px 8px 10px 8px !important;
       max-width: none !important;
       width: auto !important;
   }
