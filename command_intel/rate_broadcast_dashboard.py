@@ -246,8 +246,11 @@ def render():
             st.markdown("### Test Mode")
             test_mode = st.toggle("Test Mode (send only to self)", value=gs("rb_test_mode", False), key="rb_test")
             if test_mode:
-                test_phone = st.text_input("Your WhatsApp number", value=gs("rb_test_phone", "+91 9969562424"), key="rb_tph")
-                test_email = st.text_input("Your Email", value=gs("rb_test_email", "princepshah20@gmail.com"), key="rb_tem")
+                tm1, tm2 = st.columns(2)
+                with tm1:
+                    test_phone = st.text_input("Your WhatsApp number", value=gs("rb_test_phone", "+91 9969562424"), key="rb_tph")
+                with tm2:
+                    test_email = st.text_input("Your Email", value=gs("rb_test_email", "princepshah20@gmail.com"), key="rb_tem")
 
             if st.button("Save Settings", type="primary"):
                 ss("whatsapp_rate_limit_per_minute", wa_limit)

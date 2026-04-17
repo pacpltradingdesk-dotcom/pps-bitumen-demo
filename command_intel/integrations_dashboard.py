@@ -226,12 +226,15 @@ def _render_google_sheets_tab():
 
     # Add new sheet link
     with st.expander("➕ Link New Sheet", expanded=not sheets):
-        gs_name = st.text_input("Sheet Name", placeholder="e.g., Supplier Prices", key="_gs_new_name")
-        gs_url = st.text_input("Google Sheet URL", placeholder="https://docs.google.com/spreadsheets/d/...", key="_gs_new_url")
-        gs_output = st.text_input("Output JSON File", value="linked_sheet_data.json", key="_gs_new_output")
-        gs_worksheet = st.text_input("Worksheet Name (blank = first sheet)", key="_gs_new_ws")
-        gs_mode = st.selectbox("Sync Mode", ["manual", "auto"], key="_gs_new_mode")
-        gs_refresh = st.selectbox("Refresh Interval", [15, 30, 60, 360, 1440], format_func=lambda x: f"{x} minutes", key="_gs_new_refresh")
+        gsr1c1, gsr1c2 = st.columns(2)
+        with gsr1c1:
+            gs_name = st.text_input("Sheet Name", placeholder="e.g., Supplier Prices", key="_gs_new_name")
+            gs_output = st.text_input("Output JSON File", value="linked_sheet_data.json", key="_gs_new_output")
+            gs_mode = st.selectbox("Sync Mode", ["manual", "auto"], key="_gs_new_mode")
+        with gsr1c2:
+            gs_url = st.text_input("Google Sheet URL", placeholder="https://docs.google.com/spreadsheets/d/...", key="_gs_new_url")
+            gs_worksheet = st.text_input("Worksheet Name (blank = first sheet)", key="_gs_new_ws")
+            gs_refresh = st.selectbox("Refresh Interval", [15, 30, 60, 360, 1440], format_func=lambda x: f"{x} minutes", key="_gs_new_refresh")
 
         if st.button("🔗 Link Sheet", key="_gs_new_link") and gs_name and gs_url:
             try:
@@ -418,11 +421,15 @@ def _render_share_automation_tab():
 
     # Create new schedule
     with st.expander("➕ Create New Schedule", expanded=not schedules):
-        sa_name = st.text_input("Schedule Name", placeholder="e.g., Daily Director Report", key="_sa_new_name")
-        sa_page = st.text_input("Page/Section Name", placeholder="e.g., Director Briefing", key="_sa_new_page")
-        sa_channel = st.selectbox("Channel", ["email", "whatsapp", "both"], key="_sa_new_ch")
-        sa_freq = st.selectbox("Frequency", ["daily", "weekly", "monthly"], key="_sa_new_freq")
-        sa_time = st.text_input("Time (IST, HH:MM)", value="09:00", key="_sa_new_time")
+        sar1c1, sar1c2 = st.columns(2)
+        with sar1c1:
+            sa_name = st.text_input("Schedule Name", placeholder="e.g., Daily Director Report", key="_sa_new_name")
+            sa_channel = st.selectbox("Channel", ["email", "whatsapp", "both"], key="_sa_new_ch")
+            sa_time = st.text_input("Time (IST, HH:MM)", value="09:00", key="_sa_new_time")
+        with sar1c2:
+            sa_page = st.text_input("Page/Section Name", placeholder="e.g., Director Briefing", key="_sa_new_page")
+            sa_freq = st.selectbox("Frequency", ["daily", "weekly", "monthly"], key="_sa_new_freq")
+            sa_content = st.selectbox("Content Type", ["pdf", "summary"], key="_sa_new_content")
 
         sa_dow = None
         sa_dom = None
@@ -430,8 +437,6 @@ def _render_share_automation_tab():
             sa_dow = st.selectbox("Day of Week", ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"], key="_sa_new_dow")
         elif sa_freq == "monthly":
             sa_dom = st.number_input("Day of Month", value=1, min_value=1, max_value=28, key="_sa_new_dom")
-
-        sa_content = st.selectbox("Content Type", ["pdf", "summary"], key="_sa_new_content")
 
         # Recipients
         st.markdown("**Recipients:**")

@@ -1373,7 +1373,12 @@ def _tab_add_contractor():
         bse     = f2.text_input("BSE Code (optional)", placeholder="e.g. 500510")
         f3, f4  = st.columns(2)
         cin     = f3.text_input("CIN (optional)", placeholder="e.g. L17110GJ1912PLC000007")
-        city    = f4.text_input("Base City", placeholder="e.g. Mumbai, Maharashtra")
+        with f4:
+            try:
+                from components.autosuggest import city_picker
+                city = city_picker(key="add_con_city", label="Base City")
+            except Exception:
+                city = st.text_input("Base City", placeholder="e.g. Mumbai, Maharashtra")
         website = st.text_input("Website", "https://")
         note    = st.text_area("Notes (type, known specialisation, states active in)")
         submit_con = st.form_submit_button("✅ Add Contractor to Database")

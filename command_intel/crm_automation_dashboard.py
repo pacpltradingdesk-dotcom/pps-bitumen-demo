@@ -372,12 +372,15 @@ def _render_ai_reply_tab():
     st.divider()
     st.subheader("Test AI Classification & Reply")
 
-    test_text = st.text_area(
-        "Enter a test message",
-        placeholder="e.g., 'I need 500 MT VG30 bitumen delivered to Mumbai'",
-        height=80,
-    )
-    test_name = st.text_input("Contact name (optional)", value="Test Contact")
+    tcol1, tcol2 = st.columns([2, 1])
+    with tcol1:
+        test_text = st.text_area(
+            "Enter a test message",
+            placeholder="e.g., 'I need 500 MT VG30 bitumen delivered to Mumbai'",
+            height=80,
+        )
+    with tcol2:
+        test_name = st.text_input("Contact name (optional)", value="Test Contact")
 
     if st.button("🧪 Test Classification") and test_text:
         classification = test_classify(test_text)

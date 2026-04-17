@@ -367,6 +367,7 @@ def _render_filters(region: str, key_prefix: str) -> dict:
             time_range = st.selectbox(
                 "Time Range",
                 ["Last 24 Hours", "Last 7 Days", "Last 30 Days", "All Time"],
+                index=2,
                 key=f"{key_prefix}_time"
             )
         with c2:
@@ -590,7 +591,13 @@ def _render_news_list(region: str, sound_on: bool, key_prefix: str):
         articles = [a for a in articles if a.get("status", "new") in f["status"]]
 
     if not articles:
-        st.info("No articles match the current filters. Try broadening the filters or trigger a manual fetch.")
+        st.info(
+            f"No articles match the current filters "
+            f"(time window: {f['max_age_hours']}h, {len(all_arts)} article"
+            f"{'s' if len(all_arts)!=1 else ''} in {region} within 7 days). "
+            "Widen **Time Range** to 'Last 30 Days' or 'All Time', "
+            "or click **🔄 Fetch Now** on the Source Health tab."
+        )
         return
 
     st.caption(f"Showing {len(articles)} article{'s' if len(articles)!=1 else ''}")
