@@ -103,16 +103,25 @@ def render():
     except Exception:
         pass
 
-    # Quick Add Task
+    # Quick Add Task — 2-column layout (fields paired, notes full-width below)
     with st.expander("➕ Add New Task Manually",
                      expanded=bool(_ctx_client_default)):
         with st.form("new_task_form"):
-            new_client = st.text_input("Client Name", value=_ctx_client_default)
-            new_type = st.selectbox("Task Type", ["Call", "Email", "Visit", "Follow-up", "Payment"])
+            lc, rc = st.columns(2)
+            with lc:
+                try:
+                    from components.autosuggest import customer_picker
+                    new_client = customer_picker(key="crm_new_client",
+                                                   default=_ctx_client_default,
+                                                   label="Client Name")
+                except Exception:
+                    new_client = st.text_input("Client Name", value=_ctx_client_default)
+                new_type = st.selectbox("Task Type", ["Call", "Email", "Visit", "Follow-up", "Payment"])
+            with rc:
+                new_priority = st.selectbox("Priority", ["High", "Medium", "Low"])
+                new_due = st.date_input("Due Date")
             new_note = st.text_area("Notes")
-            new_priority = st.selectbox("Priority", ["High", "Medium", "Low"])
-            new_due = st.date_input("Due Date")
-            if st.form_submit_button("Add Task", type="primary"):
+            if st.form_submit_button("Add Task", type="primary", use_container_width=True):
                 try:
                     crm.add_task(new_client, new_type, str(new_due), new_note, new_priority)
                     st.success("Task added!")

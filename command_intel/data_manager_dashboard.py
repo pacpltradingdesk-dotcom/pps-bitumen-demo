@@ -70,10 +70,13 @@ def render():
     # ── Tab 1: Import ──
     with tabs[0]:
         st.subheader("Import Data")
-        data_type = st.selectbox("Data Type", [
-            "Contacts (Excel/CSV)", "Price History (CSV)", "Customer Data (Excel)", "Supplier Data (Excel)"
-        ])
-        uploaded = st.file_uploader(f"Upload {data_type}", type=["xlsx", "csv", "json"])
+        ic1, ic2 = st.columns([1, 2])
+        with ic1:
+            data_type = st.selectbox("Data Type", [
+                "Contacts (Excel/CSV)", "Price History (CSV)", "Customer Data (Excel)", "Supplier Data (Excel)"
+            ])
+        with ic2:
+            uploaded = st.file_uploader(f"Upload {data_type}", type=["xlsx", "csv", "json"])
 
         if uploaded:
             try:

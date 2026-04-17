@@ -482,17 +482,21 @@ def render():
 
                 st.markdown("---")
                 st.markdown("### 💰 Price Intelligence Feed")
-                st.caption("Auto-translated to English • Prices highlighted • Most recent first")
+                st.caption("Auto-translated to English • Prices highlighted • 2-column grid, most recent first")
 
-                for i, msg in enumerate(price_msgs[:20]):
+                colors = [
+                    ("#eff6ff", "#1e40af", "#2563eb"),
+                    ("#fef3c7", "#92400e", "#f59e0b"),
+                    ("#f0fdf4", "#065f46", "#059669"),
+                    ("#fdf2f8", "#9d174d", "#ec4899"),
+                ]
+
+                def _build_price_card(i, msg):
                     original = msg.get("text_original", "")
                     english = msg.get("text_english", original)
                     channel = msg.get("channel", "")
                     date = msg.get("date", "")
                     prices = msg.get("prices_found", [])
-                    sender = msg.get("sender", "")
-
-                    # Highlight prices in English text
                     highlighted = english
                     for p in prices:
                         highlighted = highlighted.replace(
@@ -500,27 +504,34 @@ def render():
                             f'<span style="background:#fef3c7;color:#92400e;font-weight:800;'
                             f'padding:1px 6px;border-radius:4px;font-size:0.9rem;">{p}</span>'
                         )
-
-                    # Detect language
                     ascii_ratio = sum(1 for c in original if ord(c) < 128) / max(len(original), 1)
                     is_translated = ascii_ratio < 0.7
                     lang_badge = ""
                     if is_translated:
                         lang_badge = ('<span style="background:#7c3aed;color:white;font-size:0.6rem;'
                                      'padding:2px 6px;border-radius:10px;margin-left:6px;">TRANSLATED</span>')
-
-                    # Card colors (alternate)
-                    colors = [
-                        ("#eff6ff", "#1e40af", "#2563eb"),
-                        ("#fef3c7", "#92400e", "#f59e0b"),
-                        ("#f0fdf4", "#065f46", "#059669"),
-                        ("#fdf2f8", "#9d174d", "#ec4899"),
-                    ]
-                    bg, txt, border = colors[i % len(colors)]
-
-                    st.markdown(f"""
+                    bg, _txt, border = colors[i % len(colors)]
+                    orig_html = ""
+                    if is_translated:
+                        orig_html = (
+                            f'<div style="font-size:0.72rem;color:#64748b;margin-top:6px;padding-top:6px;'
+                            f'border-top:1px dashed {border}40;font-style:italic;">'
+                            f'📝 Original: {original[:150]}{"..." if len(original) > 150 else ""}'
+                            f'</div>'
+                        )
+                    prices_html = ""
+                    if prices:
+                        chips = "".join(
+                            f'<span style="background:{border};color:white;font-size:0.7rem;'
+                            f'font-weight:700;padding:2px 8px;border-radius:12px;">{p}</span>'
+                            for p in prices[:5]
+                        )
+                        prices_html = (
+                            f'<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">{chips}</div>'
+                        )
+                    return f'''
 <div style="background:{bg};border-left:4px solid {border};border-radius:10px;
-            padding:14px 16px;margin-bottom:10px;">
+            padding:14px 16px;margin-bottom:10px;height:100%;">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
     <span style="font-size:0.7rem;font-weight:700;color:{border};">
       📡 {channel}{lang_badge}
@@ -530,25 +541,21 @@ def render():
   <div style="font-size:0.88rem;color:#0f172a;line-height:1.5;font-weight:500;word-wrap:break-word;">
     {highlighted}
   </div>
-""", unsafe_allow_html=True)
+  {orig_html}
+  {prices_html}
+</div>'''
 
-                    # Show original if translated
-                    if is_translated:
-                        st.markdown(f"""
-  <div style="font-size:0.72rem;color:#64748b;margin-top:6px;padding-top:6px;
-              border-top:1px dashed {border}40;font-style:italic;">
-    📝 Original: {original[:150]}{'...' if len(original) > 150 else ''}
-  </div>
-""", unsafe_allow_html=True)
-
-                    if prices:
-                        st.markdown(f"""
-  <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
-    {''.join(f'<span style="background:{border};color:white;font-size:0.7rem;font-weight:700;padding:2px 8px;border-radius:12px;">{p}</span>' for p in prices[:5])}
-  </div>
-""", unsafe_allow_html=True)
-
-                    st.markdown("</div>", unsafe_allow_html=True)
+                # 2-column grid — render pairs of cards side-by-side
+                _shown = price_msgs[:20]
+                for row_start in range(0, len(_shown), 2):
+                    c1, c2 = st.columns(2, gap="medium")
+                    for col, (rel_i, msg) in zip(
+                        (c1, c2),
+                        enumerate(_shown[row_start:row_start + 2]),
+                    ):
+                        with col:
+                            st.markdown(_build_price_card(row_start + rel_i, msg),
+                                         unsafe_allow_html=True)
 
                 # Prices Summary
                 all_prices = summary.get("top_prices", [])
