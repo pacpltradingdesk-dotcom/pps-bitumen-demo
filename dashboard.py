@@ -193,12 +193,8 @@ if st.session_state.get("selected_page") == "🎯 Command Center":
     # Render sidebar even on CC (render_sidebar_features already imported at top)
     render_sidebar_features("📊 Price & Info")
     # Render CC content
-    try:
-        from pages.home.command_center import render as render_cc_v5
-        render_cc_v5()
-    except Exception:
-        from command_intel import command_center_home as cmd_command_center
-        cmd_command_center.render()
+    from pages.home.command_center import render as render_cc_v5
+    render_cc_v5()
     # Belt + braces: in case render set _nav_goto AFTER the global check above
     if st.session_state.get("_nav_goto"):
         _goto = st.session_state.pop("_nav_goto")
@@ -553,7 +549,7 @@ PAGE_DISPATCH = {
         "Subscription Pricing"),
     "🏠 Home": _page_home,
     "🎯 Command Center": lambda: _safe_render(
-        lambda: __import__("command_intel.command_center_home", fromlist=["render"]).render(),
+        lambda: __import__("pages.home.command_center", fromlist=["render"]).render(),
         "Command Center"),
     "🔍 Opportunities": _page_opportunities,
     "🚨 Alert Center": lambda: _safe_render(
