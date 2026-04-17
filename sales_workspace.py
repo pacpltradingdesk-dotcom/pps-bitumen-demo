@@ -173,7 +173,11 @@ def render_deal_room():
             customers = load_customers()
             # If client selected, auto-fill city
             curr_client = next((c for c in customers if c['name'] == selected_client), {})
-            dest_city = st.text_input("Destination City", value=curr_client.get('city', ''))
+            try:
+                from components.autosuggest import city_picker as _city_picker
+                dest_city = _city_picker(key="sw_dest_city", default=curr_client.get('city', ''), label="Destination City")
+            except Exception:
+                dest_city = st.text_input("Destination City", value=curr_client.get('city', ''))
             
         with c_qty:
             qty = st.number_input("Quantity (MT)", min_value=10, value=20)

@@ -1747,7 +1747,11 @@ def _tab_add_edit_data():
             f5, f6   = st.columns(2)
             gstin    = f5.text_input("GSTIN", placeholder="27AABCL0100K1ZR")
             nse      = f6.text_input("NSE Code", placeholder="LT")
-            city     = st.text_input("Base City / HQ", placeholder="e.g. Mumbai, Maharashtra")
+            try:
+                from components.autosuggest import city_picker as _city_picker
+                city = _city_picker(key="osint_city", label="Base City / HQ")
+            except Exception:
+                city = st.text_input("Base City / HQ", placeholder="e.g. Mumbai, Maharashtra")
             website  = st.text_input("Website", "https://")
 
             st.markdown("##### Corporate Contact")

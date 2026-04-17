@@ -203,11 +203,19 @@ def render():
         st.markdown("---")
         st.markdown("#### ➕ Add New Source")
         with st.form("add_supplier_form"):
+            try:
+                from components.autosuggest import city_picker as _city_picker
+                _have_ecos_city_picker = True
+            except Exception:
+                _have_ecos_city_picker = False
             c1, c2 = st.columns(2)
             with c1:
                 s_name = st.text_input("Company Name")
                 s_cat = st.selectbox("Category", SUPPLIER_CATEGORIES)
-                s_city = st.text_input("City/Location")
+                if _have_ecos_city_picker:
+                    s_city = _city_picker(key="ecos_supp_city", label="City/Location")
+                else:
+                    s_city = st.text_input("City/Location")
             with c2:
                 s_contact = st.text_input("Contact Number/Person")
                 s_gst = st.text_input("GSTIN")

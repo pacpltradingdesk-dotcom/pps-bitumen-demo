@@ -75,10 +75,20 @@ def render():
     with tabs[1]:
         st.subheader("Generate E-Way Bill")
 
+        try:
+            from components.autosuggest import city_picker as _city_picker
+            _have_city_picker = True
+        except Exception:
+            _have_city_picker = False
+
         gc1, gc2 = st.columns(2)
         with gc1:
-            from_city = st.text_input("From City", value="Vadodara", key="ew_from")
-            to_city = st.text_input("To City", key="ew_to", placeholder="Destination city")
+            if _have_city_picker:
+                from_city = _city_picker(key="ew_from", default="Vadodara", label="From City")
+                to_city = _city_picker(key="ew_to", label="To City")
+            else:
+                from_city = st.text_input("From City", value="Vadodara", key="ew_from")
+                to_city = st.text_input("To City", key="ew_to", placeholder="Destination city")
             vehicle = st.text_input("Vehicle No", key="ew_veh", placeholder="GJ05AB1234")
         with gc2:
             to_gstin = st.text_input("Buyer GSTIN", key="ew_gstin", placeholder="27XXXXX...")
