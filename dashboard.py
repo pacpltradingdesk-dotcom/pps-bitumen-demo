@@ -126,18 +126,17 @@ st.set_page_config(
 # visually group within the main card.
 st.markdown("""
 <style>
-  /* Page-level grey backdrop so the main card pops */
+  /* Page-level grey backdrop — slightly darker so the card pops clearly */
   [data-testid="stAppViewContainer"] {
-      background: #F1F5F9;
+      background: #E5EAF0 !important;
   }
   [data-testid="stAppViewContainer"] > .main,
   .stApp {
-      background: transparent;
+      background: transparent !important;
   }
 
-  /* Main content wrapped as a white card. Aggressive selector coverage
-     across all Streamlit versions + high-specificity body prefix so our
-     rule beats Streamlit's own emotion-generated stylesheet. */
+  /* Main content wrapped as a white card with prominent shadow + border so
+     the "screen" boundary is unmistakable. */
   html body [data-testid="stMainBlockContainer"],
   html body [data-testid="stMain"] > div:first-child,
   html body .stMainBlockContainer,
@@ -147,12 +146,12 @@ st.markdown("""
   html body .stApp .block-container,
   html body [class*="block-container"] {
       background: #FFFFFF !important;
-      border-radius: 16px !important;
-      padding: 24px 28px 32px 28px !important;
-      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04),
-                  0 8px 28px rgba(15, 23, 42, 0.06) !important;
-      border: 1px solid #E2E8F0 !important;
-      margin: 14px 18px 22px 18px !important;
+      border-radius: 20px !important;
+      padding: 28px 32px 36px 32px !important;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06),
+                  0 18px 44px rgba(15, 23, 42, 0.10) !important;
+      border: 1px solid #CBD5E1 !important;
+      margin: 18px 22px 26px 22px !important;
       max-width: none !important;
       width: auto !important;
   }
