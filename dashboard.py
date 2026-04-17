@@ -153,10 +153,18 @@ st.markdown("""
       width: auto !important;
   }
 
-  /* Main wrapper — ensure the block container has room to show its margin */
+  /* Main wrapper — ensure the block container has room to show its margin
+     AND fills the space to the right of the sidebar (no 1280px centering cap). */
   html body [data-testid="stMain"],
-  html body section.main {
+  html body section.main,
+  html body [data-testid="stAppViewContainer"] > .main {
       background: transparent !important;
+      max-width: none !important;
+      width: 100% !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      margin-left: 0 !important;
+      margin-right: 0 !important;
   }
 
   /* Sidebar — keep clean white so it reads as a rail */
