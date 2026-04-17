@@ -19,6 +19,13 @@ IST = timezone(timedelta(hours=5, minutes=30))
 ROOT = Path(__file__).parent.parent.parent
 
 _CONFIG_FILE = ROOT / "telegram_account_config.json"
+# Durable backup location OUTSIDE the repo tree — survives:
+#   - git-tracked file resets
+#   - VPS snapshot rollbacks that rebuild /opt/pps-bitumen from scratch
+#   - redeploys via deploy/hostinger_setup.sh
+# Only wiped if the whole VPS is reimaged.
+_DURABLE_DIR = Path.home() / ".pps"
+_DURABLE_CONFIG_FILE = _DURABLE_DIR / "telegram_account_config.json"
 _PRICE_INTEL_FILE = ROOT / "telegram_price_intel.json"
 _CHANNEL_DATA_FILE = ROOT / "telegram_channel_messages.json"
 _ALERTS_FILE = ROOT / "sre_alerts.json"
@@ -65,15 +72,40 @@ def _load_config():
     except Exception:
         pass
 
+    # 5. Durable backup outside repo tree (survives snapshot rollbacks).
+    try:
+        if _DURABLE_CONFIG_FILE.exists():
+            with open(_DURABLE_CONFIG_FILE, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+                cfg["_source"] = "durable_backup"
+                return cfg
+    except Exception:
+        pass
+
     return default
 
 
 def _save_config(cfg):
-    """Persist to local file + session memory."""
+    """Persist creds to every durable store we control so the user never has
+    to re-enter them: (a) local file in repo, (b) durable backup outside the
+    repo, (c) session memory for the current run.
+    """
     to_write = {k: v for k, v in cfg.items() if not k.startswith("_")}
     try:
         with open(_CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(to_write, f, indent=2)
+    except Exception:
+        pass
+    try:
+        _DURABLE_DIR.mkdir(parents=True, exist_ok=True)
+        with open(_DURABLE_CONFIG_FILE, "w", encoding="utf-8") as f:
+            json.dump(to_write, f, indent=2)
+        # chmod 600 so only the service user can read creds
+        try:
+            import os
+            os.chmod(_DURABLE_CONFIG_FILE, 0o600)
+        except Exception:
+            pass
     except Exception:
         pass
     try:
