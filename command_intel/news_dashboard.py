@@ -98,11 +98,11 @@ _CSS = """
 <style>
 /* ── Scrolling Ticker ─────────────────────────────────────────────────── */
 .news-ticker-wrap {
-    background: #0d1117;
-    border: 1px solid #30363d;
-    border-radius: 6px;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
     overflow: hidden;
-    padding: 6px 0;
+    padding: 8px 0;
     margin-bottom: 12px;
     position: relative;
 }
@@ -111,15 +111,15 @@ _CSS = """
     left: 0;
     top: 0;
     bottom: 0;
-    background: #e63946;
+    background: #DC2626;
     color: #fff;
     font-weight: 700;
     font-size: 0.78em;
-    padding: 0 10px;
+    padding: 0 12px;
     display: flex;
     align-items: center;
     z-index: 2;
-    border-radius: 6px 0 0 6px;
+    border-radius: 10px 0 0 10px;
     white-space: nowrap;
 }
 .news-ticker-inner {
@@ -130,9 +130,10 @@ _CSS = """
 .news-ticker-text {
     display: inline-block;
     white-space: nowrap;
-    animation: ticker-scroll 60s linear infinite;
-    color: #c9d1d9;
+    animation: ticker-scroll 180s linear infinite;
+    color: #334155;
     font-size: 0.82em;
+    font-weight: 500;
 }
 @keyframes ticker-scroll {
     0%   { transform: translateX(100vw); }
@@ -255,14 +256,26 @@ _CSS = """
 .dot-unknown { background: #555; }
 /* ── Stat pill ────────────────────────────────────────────────────────── */
 .stat-pill {
-    background: #21262d;
-    border: 1px solid #30363d;
-    border-radius: 8px;
-    padding: 12px 16px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-left: 4px solid #4F46E5;
+    border-radius: 10px;
+    padding: 14px 16px;
     text-align: center;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+    transition: box-shadow 0.15s, transform 0.15s;
 }
-.stat-num { font-size: 1.8em; font-weight: 700; color: #58a6ff; }
-.stat-lbl { font-size: 0.75em; color: #8b949e; margin-top: 2px; }
+.stat-pill:hover {
+    box-shadow: 0 4px 12px rgba(15,23,42,0.08);
+    transform: translateY(-2px);
+}
+.stat-num { font-size: 1.8em; font-weight: 800; color: #4F46E5; letter-spacing: -0.02em; }
+.stat-lbl { font-size: 0.72em; color: #64748B; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+.stat-pill.red    { border-left-color: #DC2626; } .stat-pill.red    .stat-num { color: #DC2626; }
+.stat-pill.blue   { border-left-color: #3B82F6; } .stat-pill.blue   .stat-num { color: #3B82F6; }
+.stat-pill.green  { border-left-color: #10B981; } .stat-pill.green  .stat-num { color: #10B981; }
+.stat-pill.orange { border-left-color: #F59E0B; } .stat-pill.orange .stat-num { color: #F59E0B; }
+.stat-pill.slate  { border-left-color: #64748B; } .stat-pill.slate  .stat-num { color: #64748B; font-size: 0.95em; }
 /* ── Hindi badge ──────────────────────────────────────────────────────── */
 .lang-hi {
     background: #ff9933;
@@ -517,26 +530,26 @@ def _render_stats(articles: list[dict], region: str):
     last_t   = ne.get_last_fetch_time()
 
     pills = [
-        (str(total),    "Total Articles"),
-        (str(breaking), "Breaking"),
-        (str(unread),   "Unread"),
-        (str(saved),    "Saved"),
+        (str(total),    "Total Articles", ""),
+        (str(breaking), "Breaking",        "red"),
+        (str(unread),   "Unread",          "blue"),
+        (str(saved),    "Saved",           "green"),
     ]
     if region == "Domestic":
-        pills.append((str(hi_count), "Hindi"))
+        pills.append((str(hi_count), "Hindi", "orange"))
 
     cols = st.columns(len(pills) + 1)
-    for i, (num, lbl) in enumerate(pills):
+    for i, (num, lbl, accent) in enumerate(pills):
         with cols[i]:
             st.markdown(
-                f'<div class="stat-pill"><div class="stat-num">{num}</div>'
+                f'<div class="stat-pill {accent}"><div class="stat-num">{num}</div>'
                 f'<div class="stat-lbl">{lbl}</div></div>',
                 unsafe_allow_html=True,
             )
     with cols[-1]:
         st.markdown(
-            f'<div class="stat-pill"><div class="stat-num" style="font-size:0.9em;color:#8b949e">'
-            f'{last_t}</div><div class="stat-lbl">Last Fetch (IST)</div></div>',
+            f'<div class="stat-pill slate"><div class="stat-num">{last_t}</div>'
+            f'<div class="stat-lbl">Last Fetch (IST)</div></div>',
             unsafe_allow_html=True,
         )
 
