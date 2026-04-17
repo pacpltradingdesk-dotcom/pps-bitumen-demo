@@ -317,18 +317,18 @@ class DirectorBriefingEngine:
             f"*{greeting}, PPS Sir*",
             f"*PACPL Daily Brief \u2014 {briefing.get('timestamp', '')}*",
             "",
-            "\ud83d\udcca *MARKET STATUS*",
+            "\U0001F4CA *MARKET STATUS*",
             f"  Brent: ${market.get('brent_price', 'N/A')}/bbl ({market.get('brent_pct', 0):+.1f}%)",
             f"  USD/INR: {market.get('fx_rate', 'N/A')} ({market.get('fx_pct', 0):+.1f}%)",
             "",
-            "\ud83d\udcc8 *15-DAY OUTLOOK*",
+            "\U0001F4C8 *15-DAY OUTLOOK*",
             f"  Price: {price_dir.get('arrow', '')} {price_dir.get('direction', 'N/A')} "
             f"({price_dir.get('confidence_pct', 0)}% conf)",
             f"  Demand: {demand.get('total_score', 0)}/100 ({demand.get('label', '')})",
             f"  Strategy: *{strategy.get('strategy', 'N/A')}*",
             f"  {strategy.get('action', '')}",
             "",
-            "\ud83d\udcb0 *YESTERDAY SUMMARY*",
+            "\U0001F4B0 *YESTERDAY SUMMARY*",
             f"  Deals: {deals.get('count', 0)} "
             f"(Value: {_fmt_inr(deals.get('total_value', 0))})",
             f"  Comms: {comms.get('total', 0)} "
@@ -341,7 +341,7 @@ class DirectorBriefingEngine:
         # Top 10 to call
         buyers = actions.get("buyers_to_call", [])
         if buyers:
-            lines.append("\ud83d\udcde *TOP CALLS TODAY*")
+            lines.append("\U0001F4DE *TOP CALLS TODAY*")
             for i, b in enumerate(buyers[:10], 1):
                 name = b.get("name", "Unknown")
                 city = b.get("city", "")
@@ -354,7 +354,7 @@ class DirectorBriefingEngine:
         # Followups
         followups = actions.get("followups_due", [])
         if followups:
-            lines.append("\ud83d\udd04 *FOLLOWUPS DUE*")
+            lines.append("\U0001F504 *FOLLOWUPS DUE*")
             for fu in followups[:5]:
                 name = fu.get("customer_name", fu.get("name", "Unknown"))
                 lines.append(f"  \u2022 {name}")
@@ -363,6 +363,6 @@ class DirectorBriefingEngine:
         lines.extend([
             "\u2014 *PACPL Agentic AI*",
             "PPS Anantam Corporation Pvt Ltd",
-            "\ud83d\udcf1 +91 7795242424",
+            "\U0001F4F1 +91 7795242424",
         ])
         return "\n".join(lines)

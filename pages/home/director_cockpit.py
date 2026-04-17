@@ -81,7 +81,11 @@ def _gen_wa_msg(cust, city, grade, qty, price, src=""):
     try:
         from communication_engine import CommunicationHub
         msg = CommunicationHub().whatsapp_offer(cust, city, grade, qty, price, src)
-        return msg if msg else ""
+        if not msg:
+            return ""
+        # Defensive: strip any lone surrogates so downstream UTF-8 encoding
+        # (Streamlit response, PDF export) doesn't raise.
+        return "".join(c for c in msg if not 0xD800 <= ord(c) <= 0xDFFF)
     except: return f"Dear {cust},\n\nPPS Anantams - Rate Offer\nGrade: {grade} | Qty: {qty} MT\nPrice: Rs.{price:,.0f}/MT\nCity: {city}\n\n100% Advance | 24hr Validity\nPrince P Shah | +91 7795242424"
 
 

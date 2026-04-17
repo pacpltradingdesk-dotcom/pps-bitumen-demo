@@ -203,12 +203,12 @@ def render():
             for log in logs:
                 entry_type = log.get("entry_type", "unknown")
                 type_icons = {
-                    "customer_interaction": "\ud83d\udcde",
-                    "market_intel": "\ud83d\udcca",
-                    "deal_update": "\ud83d\udcbc",
-                    "ai_note": "\ud83e\udde0",
+                    "customer_interaction": "\U0001F4DE",
+                    "market_intel": "\U0001F4CA",
+                    "deal_update": "\U0001F4BC",
+                    "ai_note": "\U0001F9E0",
                 }
-                icon = type_icons.get(entry_type, "\ud83d\udcdd")
+                icon = type_icons.get(entry_type, "\U0001F4DD")
                 with st.expander(
                     f"{icon} {entry_type.replace('_', ' ').title()} — "
                     f"{log.get('customer_name', log.get('intel_source', 'N/A'))} "

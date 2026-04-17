@@ -33,10 +33,23 @@ _WA_TICK = (
 )
 
 
+def _sanitize_surrogates(s: str) -> str:
+    """Strip lone UTF-16 surrogates (U+D800–U+DFFF) that would otherwise
+    blow up Streamlit's UTF-8 HTTP response with 'surrogates not allowed'.
+    Some upstream message templates were authored with \\ud83c\\udfe2-style
+    escapes that Python treats as two separate lone surrogates rather than
+    one emoji code point — this is a defensive catch-all.
+    """
+    if not s:
+        return s
+    return "".join(c for c in s if not 0xD800 <= ord(c) <= 0xDFFF)
+
+
 def _format_body(msg: str) -> str:
     """Escape HTML, convert *bold* to <strong>, preserve newlines."""
     if not msg:
         return "(empty)"
+    msg = _sanitize_surrogates(msg)
     out = _html.escape(msg, quote=False)
     out = _re.sub(r"\*([^*\n]+?)\*", r"<strong>\1</strong>", out)
     out = out.replace("\n", "<br>")
