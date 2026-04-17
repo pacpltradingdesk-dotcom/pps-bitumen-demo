@@ -51,6 +51,8 @@ logs/
 # Secrets
 telegram_account_config.json
 whatsapp_config.json
+.streamlit/secrets.toml
+ai_fallback_config.json
 
 # Heavy cache (not needed for demo)
 api_cache.json

@@ -1,31 +1,19 @@
 """
-Multi-Provider AI Fallback Engine — FREE-FIRST
-================================================
-Auto-selects the best available AI for dashboard Q&A.
+AI Engine — OpenAI-only (17-Apr-2026)
+========================================
+Single-provider Q&A engine. Uses OpenAI GPT-4o-mini exclusively.
 
-Priority chain (FREE providers first, PAID last):
-  1. Ollama + Llama3/Mistral     — FREE, local (offline)  ★ PRIMARY
-  2. HuggingFace Inference API   — FREE cloud tier
-  3. GPT4All (Phi-3 Mini)        — FREE, fully offline
-  4. OpenAI GPT-4o-mini          — Paid (only if key configured)
-  5. Anthropic Claude Haiku      — Paid (final fallback)
+Previously a multi-provider fallback chain (Ollama / HuggingFace / GPT4All /
+Groq / Gemini / Mistral / DeepSeek / Claude); all removed per user request.
+
+Setup:
+  pip install openai
+  Set OPENAI_API_KEY env var, or paste into secrets.toml as [ai] openai="sk-..."
 
 Behaviour:
-  • FREE-FIRST: System runs at ZERO cost by default.
-  • Paid providers (OpenAI, Claude) only used when user has API keys.
-  • Auto-detects installed packages & configured API keys.
-  • Falls through chain silently until a provider succeeds.
-  • Background thread checks primary (Ollama) every 5 minutes;
-    silently restores it when it recovers.
   • Every response is prefixed with the 'Who is this?' identity banner.
   • All events logged to ai_fallback_log.json.
-
-Install commands (run once in terminal):
-  pip install ollama                  → Provider 1 client (+ install Ollama app from ollama.com)
-  pip install huggingface-hub         → Provider 2
-  pip install gpt4all                 → Provider 3
-  pip install openai                  → Provider 4 (optional — paid)
-  pip install anthropic               → Provider 5 (optional — paid)
+  • If OpenAI key missing or API fails, returns a deterministic fallback message.
 """
 
 from __future__ import annotations
@@ -68,116 +56,14 @@ OLLAMA_DEFAULT_MODEL = "llama3"
 #   Each entry describes one AI provider in priority order.
 
 PROVIDER_CHAIN: list[dict] = [
-    # ── FREE PROVIDERS FIRST (zero cost) ──────────────────────────────────────
-    {
-        "id":          "ollama",
-        "name":        "Ollama Llama3",
-        "short":       "Ollama",
-        "type":        "Free — Local Offline",
-        "cost":        "FREE",
-        "icon":        "🦙",
-        "pkg":         "ollama",
-        "needs_key":   False,
-        "env_key":     "",
-        "cfg_key":     "",
-        "install_cmd": "pip install ollama",
-        "setup_note":  "1) Install Ollama app from ollama.com  2) Run: ollama pull llama3",
-    },
-    {
-        "id":          "huggingface",
-        "name":        "HuggingFace Zephyr-7B",
-        "short":       "HuggingFace",
-        "type":        "Free — Cloud API",
-        "cost":        "FREE",
-        "icon":        "🤗",
-        "pkg":         "huggingface_hub",
-        "needs_key":   False,   # Works without token (rate-limited)
-        "env_key":     "HUGGINGFACE_TOKEN",
-        "cfg_key":     "huggingface_token",
-        "install_cmd": "pip install huggingface-hub",
-        "setup_note":  "Optional token at huggingface.co/settings/tokens (increases rate limits)",
-    },
-    {
-        "id":          "gpt4all",
-        "name":        "GPT4All Phi-3 Mini",
-        "short":       "GPT4All",
-        "type":        "Free — Fully Offline",
-        "cost":        "FREE",
-        "icon":        "💻",
-        "pkg":         "gpt4all",
-        "needs_key":   False,
-        "env_key":     "",
-        "cfg_key":     "",
-        "install_cmd": "pip install gpt4all",
-        "setup_note":  "First run downloads ~2 GB model automatically to ~/.cache/gpt4all/",
-    },
-    # ── FREE CLOUD PROVIDERS (API key required but FREE tier) ─────────────────
-    {
-        "id":          "groq",
-        "name":        "Groq Llama-3.3-70B",
-        "short":       "Groq",
-        "type":        "Free — Cloud (Speed)",
-        "cost":        "FREE",
-        "icon":        "⚡",
-        "pkg":         "urllib",
-        "needs_key":   True,
-        "env_key":     "GROQ_API_KEY",
-        "cfg_key":     "groq_api_key",
-        "install_cmd": "",
-        "setup_note":  "Get free key at: https://console.groq.com/keys",
-        "restricted":  False,
-    },
-    {
-        "id":          "gemini",
-        "name":        "Google Gemini 2.0 Flash",
-        "short":       "Gemini",
-        "type":        "Free — Cloud (Analysis)",
-        "cost":        "FREE",
-        "icon":        "💎",
-        "pkg":         "urllib",
-        "needs_key":   True,
-        "env_key":     "GEMINI_API_KEY",
-        "cfg_key":     "gemini_api_key",
-        "install_cmd": "",
-        "setup_note":  "Get free key at: https://aistudio.google.com/apikey",
-        "restricted":  False,
-    },
-    {
-        "id":          "mistral",
-        "name":        "Mistral Small",
-        "short":       "Mistral",
-        "type":        "Free — Cloud (EU-safe)",
-        "cost":        "FREE",
-        "icon":        "🌀",
-        "pkg":         "urllib",
-        "needs_key":   True,
-        "env_key":     "MISTRAL_API_KEY",
-        "cfg_key":     "mistral_api_key",
-        "install_cmd": "",
-        "setup_note":  "Get free key at: https://console.mistral.ai/api-keys",
-        "restricted":  False,
-    },
-    {
-        "id":          "deepseek",
-        "name":        "DeepSeek Chat",
-        "short":       "DeepSeek",
-        "type":        "Free — Cloud (Research ONLY)",
-        "cost":        "FREE",
-        "icon":        "🔬",
-        "pkg":         "urllib",
-        "needs_key":   True,
-        "env_key":     "DEEPSEEK_API_KEY",
-        "cfg_key":     "deepseek_api_key",
-        "install_cmd": "",
-        "setup_note":  "Get free key at: https://platform.deepseek.com/api_keys — RESEARCH ONLY, no customer data",
-        "restricted":  True,
-    },
-    # ── PAID PROVIDERS (only if user has API keys) ────────────────────────────
+    # Single provider — OpenAI GPT-4o-mini. All other providers (Ollama,
+    # HuggingFace, GPT4All, Groq, Gemini, Mistral, DeepSeek, Claude) removed
+    # per user request on 17-Apr-2026.
     {
         "id":          "openai",
         "name":        "OpenAI GPT-4o-mini",
         "short":       "OpenAI",
-        "type":        "Paid — Optional",
+        "type":        "Paid — Primary",
         "cost":        "PAID",
         "icon":        "🤖",
         "pkg":         "openai",
@@ -186,20 +72,6 @@ PROVIDER_CHAIN: list[dict] = [
         "cfg_key":     "openai_api_key",
         "install_cmd": "pip install openai",
         "setup_note":  "Get key at: https://platform.openai.com/api-keys",
-    },
-    {
-        "id":          "claude",
-        "name":        "Anthropic Claude Haiku",
-        "short":       "Claude",
-        "type":        "Paid — Final Fallback",
-        "cost":        "PAID",
-        "icon":        "🔮",
-        "pkg":         "anthropic",
-        "needs_key":   True,
-        "env_key":     "ANTHROPIC_API_KEY",
-        "cfg_key":     "anthropic_api_key",
-        "install_cmd": "pip install anthropic",
-        "setup_note":  "Get key at: https://console.anthropic.com",
     },
 ]
 

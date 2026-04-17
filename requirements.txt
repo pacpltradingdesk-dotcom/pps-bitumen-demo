@@ -43,3 +43,6 @@ psutil>=5.9.0
 
 # Testing (Phase 1 onward)
 pytest>=8.3.0
+
+# AI (OpenAI only — multi-provider chain removed 17-Apr-2026)
+openai>=1.40.0
