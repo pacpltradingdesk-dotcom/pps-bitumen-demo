@@ -170,7 +170,7 @@ def render():
             key="qs_manual",
         )
 
-        # ── Message preview ──────────────────────────────────────────────
+        # ── Message preview — graphical card matching target channel ─────
         st.markdown("---")
         st.markdown("**Message Preview**")
 
@@ -183,7 +183,14 @@ def render():
             ],
         }
         preview = format_message(page_name, sample_data, channel=channel_key)
-        st.text_area("Formatted Message", value=preview, height=200, disabled=True, key="qs_preview")
+        try:
+            from components.message_preview import render_msg_preview
+            _preview_channel = channel_key if channel_key in ("whatsapp", "telegram", "email", "sms") else "generic"
+            render_msg_preview(preview, channel=_preview_channel,
+                                email_subject=f"PPS Anantam — {page_name}")
+        except Exception:
+            st.text_area("Formatted Message", value=preview, height=200,
+                          disabled=True, key="qs_preview")
 
         # ── Custom note ──────────────────────────────────────────────────
         custom_note = st.text_input(

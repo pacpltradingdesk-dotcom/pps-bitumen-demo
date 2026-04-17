@@ -108,6 +108,43 @@ def render_msg_preview(
 ''',
             unsafe_allow_html=True,
         )
+    elif channel == "telegram":
+        st.markdown(
+            f'''
+<div style="max-width:460px;margin:12px 0;border-radius:14px;overflow:hidden;
+            box-shadow:0 4px 16px rgba(15,23,42,0.08);border:1px solid #E2E8F0;
+            font-family:-apple-system,'Segoe UI Emoji','Segoe UI',Roboto,sans-serif;">
+  <div style="background:#517DA2;color:#fff;padding:10px 14px;display:flex;
+              align-items:center;gap:10px;">
+    <div style="width:34px;height:34px;border-radius:50%;background:#2AABEE;
+                display:flex;align-items:center;justify-content:center;
+                font-weight:800;font-size:0.9rem;color:#fff;">PA</div>
+    <div style="flex:1;">
+      <div style="font-weight:700;font-size:0.95rem;">{_html.escape(sender)}</div>
+      <div style="font-size:0.72rem;opacity:0.85;">@ppsanatams_bot • online</div>
+    </div>
+    <div style="font-size:1.1rem;opacity:0.7;">✈️</div>
+  </div>
+  <div style="background:#E6EBEE;padding:16px 12px 10px 12px;min-height:60px;">
+    <div style="background:#EFFDDE;max-width:88%;margin-left:auto;
+                border-radius:14px 14px 4px 14px;padding:10px 14px 6px 14px;
+                font-size:0.88rem;color:#0F172A;line-height:1.55;
+                box-shadow:0 1px 2px rgba(0,0,0,0.08);white-space:normal;
+                word-break:break-word;">
+      {body}
+      <div style="text-align:right;font-size:0.68rem;color:#658D6F;margin-top:4px;">
+        {now_str} &nbsp;
+        <svg width="16" height="12" viewBox="0 0 16 12" style="vertical-align:middle">
+          <path d="M1 6.5 L4 9.5 L9 3" stroke="#4FA15C" stroke-width="1.5" fill="none"/>
+          <path d="M6 6.5 L9 9.5 L14 3" stroke="#4FA15C" stroke-width="1.5" fill="none"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>
+''',
+            unsafe_allow_html=True,
+        )
     elif channel == "sms":
         st.markdown(
             f'''

@@ -93,9 +93,16 @@ def render():
                                 _msg = _comm.whatsapp_reactivation(_comm_cust, _comm_city, _comm_price, _comm_price + 2000, 2000)
                             else:
                                 _msg = _comm.whatsapp_payment_reminder(_comm_cust, 500000)
-                        st.text_area("📱 WhatsApp Message (copy & send):", _msg,
-                                     height=380, key="wa_out")
-                        st.caption("✨ Premium format — Unicode box headers, sectioned content, full bank + CTA footer.")
+                        try:
+                            from components.message_preview import render_msg_preview
+                            render_msg_preview(_msg, channel="whatsapp",
+                                                sender=f"PPS Anantam → {_comm_cust}")
+                        except Exception:
+                            pass
+                        with st.expander("✏️ Edit WhatsApp message", expanded=False):
+                            st.text_area("📱 WhatsApp Message (copy & send):", _msg,
+                                         height=380, key="wa_out")
+                            st.caption("✨ Premium format — Unicode box headers, sectioned content, full bank + CTA footer.")
 
                     elif _channel == "Email":
                         if _premium and _msg_type == "Offer":

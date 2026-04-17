@@ -299,12 +299,16 @@ def _render_whatsapp_panel(sk: str, page_name: str, get_ctx_fn):
         )
         phones = [p.strip() for p in phone_input.split(",") if p.strip()] if phone_input else []
 
-        # Preview
+        # Preview — graphical WhatsApp bubble
         if st.checkbox("Preview message", key=f"{sk}_wa_preview"):
             ctx = get_ctx_fn()
             from universal_action_engine import build_whatsapp_summary
             preview = build_whatsapp_summary(ctx)
-            st.text_area("Preview", value=preview, height=200, disabled=True, key=f"{sk}_wa_prev_txt")
+            try:
+                from components.message_preview import render_msg_preview
+                render_msg_preview(preview, channel="whatsapp")
+            except Exception:
+                st.text_area("Preview", value=preview, height=200, disabled=True, key=f"{sk}_wa_prev_txt")
 
         wc1, wc2 = st.columns(2)
         with wc1:

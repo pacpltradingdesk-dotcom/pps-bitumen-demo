@@ -271,7 +271,13 @@ padding:8px 16px;border-radius:6px;cursor:pointer;width:100%;font-weight:600;box
             with st.popover("📱", use_container_width=True, help="WhatsApp"):
                 st.markdown(f"**WhatsApp Share**")
                 wa_msg = f"🏛️ PPS ANANTAM — {page_name}\nLatest update from PPS Bitumen Dashboard"
-                st.text_area("Message", value=wa_msg, key="_qa_wa_msg", height=100)
+                try:
+                    from components.message_preview import render_msg_preview
+                    render_msg_preview(wa_msg, channel="whatsapp")
+                except Exception:
+                    pass
+                with st.expander("✏️ Edit message", expanded=False):
+                    st.text_area("Message", value=wa_msg, key="_qa_wa_msg", height=100)
                 phone = st.text_input("Phone (with +91)", placeholder="+919876543210", key="_qa_wa_ph")
                 if st.button("Send via WA", key="_qa_wa_send", type="primary", use_container_width=True):
                     if phone:
@@ -291,7 +297,13 @@ padding:8px 16px;border-radius:6px;cursor:pointer;width:100%;font-weight:600;box
             with st.popover("✈️", use_container_width=True, help="Telegram"):
                 st.markdown(f"**Telegram Share**")
                 tg_msg = f"🏛️ PPS ANANTAM — {page_name}\nLatest update from PPS Bitumen Dashboard"
-                st.text_area("Message", value=tg_msg, key="_qa_tg_msg", height=100)
+                try:
+                    from components.message_preview import render_msg_preview
+                    render_msg_preview(tg_msg, channel="telegram")
+                except Exception:
+                    pass
+                with st.expander("✏️ Edit message", expanded=False):
+                    st.text_area("Message", value=tg_msg, key="_qa_tg_msg", height=100)
                 if st.button("Send to All Chats", key="_qa_tg_send", type="primary", use_container_width=True):
                     try:
                         from telegram_engine import broadcast_message

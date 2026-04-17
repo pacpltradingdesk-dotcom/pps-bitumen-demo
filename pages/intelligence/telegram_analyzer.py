@@ -870,7 +870,12 @@ def render():
             send_text = _build_send_text(_conc, _summ)
 
             st.markdown("### 📝 Message Preview")
-            st.code(send_text, language=None)
+            try:
+                from components.message_preview import render_msg_preview
+                render_msg_preview(send_text, channel="telegram",
+                                    sender="PPS Anantam Telegram Bot")
+            except Exception:
+                st.code(send_text, language=None)
 
             total_recipients = len(wa_numbers) + len(tg_chats)
 

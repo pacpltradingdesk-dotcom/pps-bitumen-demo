@@ -81,16 +81,18 @@ def render():
             vip_text = " | ".join([f"{'👑' if t=='platinum' else '🥇' if t=='gold' else '🥈' if t=='silver' else '📋'} {t.title()}: {n}" for t, n in sorted(vip_counts.items())])
             st.caption(f"VIP Breakdown: {vip_text}")
 
-        # Message preview
+        # Message preview — graphical WhatsApp bubble
         with st.expander("📝 Message Preview (first customer)", expanded=False):
             if filtered:
                 sample = filtered[0]
                 try:
                     from rate_broadcast_engine import calculate_personalized_rate, generate_wa_message
+                    from components.message_preview import render_msg_preview
                     bulk = calculate_personalized_rate(sample.get("city", ""), sample.get("grade", "VG30"), "Bulk")
                     drum = calculate_personalized_rate(sample.get("city", ""), sample.get("grade", "VG30"), "Drum")
                     msg = generate_wa_message(sample, {"bulk": bulk, "drum": drum}, "manual")
-                    st.code(msg)
+                    render_msg_preview(msg, channel="whatsapp",
+                                        sender=f"PPS Anantam → {sample.get('name', 'Customer')}")
                 except Exception as e:
                     st.info(f"Preview not available: {e}")
             else:
