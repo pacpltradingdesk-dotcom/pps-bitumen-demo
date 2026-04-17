@@ -13,6 +13,38 @@ def inject_theme() -> None:
     st.markdown(
         """
         <style>
+        /* Sidebar toggle — always-visible floating button so user can hide/show sidebar */
+        [data-testid="collapsedControl"],
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="stSidebarCollapseButton"],
+        button[kind="header"],
+        button[kind="headerNoPadding"] {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            position: fixed !important;
+            top: 12px !important;
+            left: 12px !important;
+            z-index: 999999 !important;
+            background: #FFFFFF !important;
+            border: 1px solid #E5E7EB !important;
+            border-radius: 8px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08) !important;
+            width: 36px !important;
+            height: 36px !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+        }
+        [data-testid="collapsedControl"]:hover,
+        [data-testid="stSidebarCollapsedControl"]:hover,
+        [data-testid="stSidebarCollapseButton"]:hover,
+        button[kind="header"]:hover,
+        button[kind="headerNoPadding"]:hover {
+            border-color: #4F46E5 !important;
+            box-shadow: 0 2px 8px rgba(79,70,229,0.2) !important;
+        }
+
         /* 1. Global CSS Variables - Clean Light Theme */
         :root {
             --bg-app: #FAFAFA;
