@@ -401,111 +401,108 @@ def _render_filters(region: str, key_prefix: str) -> dict:
 
 def _render_card(a: dict, idx: int, region_key: str):
     """
-    Render a single news card using native Streamlit components.
-    Avoids st.markdown(HTML) which shows raw tags in some Streamlit versions.
+    Render a single news card as a light-palette square tile.
+    Designed to sit inside a 3-col grid (see _render_news_list).
     """
     score    = a.get("impact_score", 0)
     status   = a.get("status", "new")
     lang     = a.get("language", "en")
-    tags     = a.get("tags", [])
+    tags     = a.get("tags", []) or []
     senti    = a.get("sentiment", "neutral")
     headline = a.get("headline", "—")
     url      = a.get("source_url", "#")
     src_name = a.get("source_name", "")
     pub_time = a.get("published_at_ist", "")
-    summary  = a.get("summary", "")[:300]
+    summary  = (a.get("summary", "") or "")[:180]
     art_id   = a.get("article_id", "")
     dup      = a.get("duplicate_count", 1)
 
-    # Border color based on status/score
-    if score >= 80:
-        border = "4px solid #ff2d2d"
-        bg     = "#1a0505"
-    elif status == "saved":
-        border = "4px solid #2ea44f"
-        bg     = "#0d1117"
-    elif status == "read":
-        border = "1px solid #30363d"
-        bg     = "#0d1117"
+    # Clean light palette with accent-left border based on impact/status
+    if status == "saved":
+        accent, bg = "#10B981", "#F0FDF4"
+    elif score >= 80:
+        accent, bg = "#DC2626", "#FEF2F2"
+    elif score >= 60:
+        accent, bg = "#F59E0B", "#FFFBEB"
+    elif score >= 40:
+        accent, bg = "#3B82F6", "#EFF6FF"
     else:
-        border = "1px solid #30363d"
-        bg     = "#161b22"
+        accent, bg = "#94A3B8", "#FFFFFF"
 
-    opacity = "0.65" if status == "read" else "1.0"
+    opacity  = "0.70" if status == "read" else "1.0"
+    il       = _impact_label(score)
+    senti_ic = SENTIMENT_ICON.get(senti, "🔵")
+    dup_note = f" · +{dup-1}" if dup > 1 else ""
+    hi_chip  = ('<span style="background:#ff9933;color:#fff;font-size:0.62rem;'
+                'padding:1px 5px;border-radius:4px;font-weight:700;margin-left:4px;">HI</span>'
+                if lang == "hi" else "")
 
-    with st.container():
-        st.markdown(
-            f'<div style="border-left:{border};background:{bg};border-radius:8px;'
-            f'padding:14px 16px;margin-bottom:10px;opacity:{opacity};">',
-            unsafe_allow_html=True,
-        )
-
-        # Row 1: Impact badge + sentiment + language + source + time
-        il       = _impact_label(score)
-        ic       = _impact_color(score)
-        senti_ic = SENTIMENT_ICON.get(senti, "🔵")
-        lang_tag = " `HI`" if lang == "hi" else ""
-        dup_note = f"  _(+{dup-1} similar)_" if dup > 1 else ""
-
-        meta_parts = [
-            f'<span style="background:{ic};color:#fff;padding:2px 8px;border-radius:10px;'
-            f'font-size:0.75em;font-weight:700">{il} {score}</span>',
-            f'<span style="color:#8b949e;font-size:0.78em">{senti_ic} {src_name} &nbsp;|&nbsp; 🕐 {pub_time}{dup_note}</span>',
-        ]
-        if lang == "hi":
-            meta_parts.insert(1, '<span style="background:#ff9933;color:#fff;font-size:0.68em;'
-                               'padding:1px 5px;border-radius:4px;font-weight:700">HI</span>')
-
-        st.markdown(" &nbsp; ".join(meta_parts), unsafe_allow_html=True)
-
-        # Row 2: Headline as clickable link
-        st.markdown(
-            f'<p style="font-size:0.95em;font-weight:600;color:#c9d1d9;margin:6px 0 4px 0;">'
-            f'<a href="{url}" target="_blank" style="color:#58a6ff;text-decoration:none;">'
-            f'{headline}</a></p>',
-            unsafe_allow_html=True,
-        )
-
-        # Row 3: Tags as inline colored badges
-        if tags:
-            badge_parts = []
-            for t in tags:
-                color = TAG_COLORS.get(t, "#444444")
-                badge_parts.append(
-                    f'<span style="background:{color};color:#fff;padding:2px 7px;'
-                    f'border-radius:10px;font-size:0.72em;margin:1px 2px;'
-                    f'display:inline-block">{t}</span>'
-                )
-            st.markdown('<div style="margin:4px 0 6px 0">' + "".join(badge_parts) + "</div>",
-                        unsafe_allow_html=True)
-
-        # Row 4: Summary
-        if summary:
-            st.markdown(
-                f'<p style="font-size:0.82em;color:#8b949e;margin:4px 0 8px 0;line-height:1.5">'
-                f'{summary}</p>',
-                unsafe_allow_html=True,
+    # Tags (max 3 visible, coloured)
+    tag_html = ""
+    if tags:
+        parts = []
+        for t in tags[:3]:
+            color = TAG_COLORS.get(t, "#64748B")
+            parts.append(
+                f'<span style="background:{color};color:#fff;padding:1px 7px;'
+                f'border-radius:10px;font-size:0.62rem;margin:0 3px 3px 0;'
+                f'display:inline-block;font-weight:600;">{t}</span>'
             )
+        more = f'<span style="color:#94A3B8;font-size:0.62rem;">+{len(tags)-3}</span>' if len(tags) > 3 else ""
+        tag_html = f'<div style="margin-top:auto;padding-top:6px;">{"".join(parts)}{more}</div>'
 
-        st.markdown("</div>", unsafe_allow_html=True)
+    # Safely escape headline & summary just to prevent HTML injection
+    import html as _h
+    headline_e = _h.escape(headline)
+    summary_e  = _h.escape(summary)
 
-    # Action buttons (outside the card div — native Streamlit)
-    b1, b2, b3, b4, _ = st.columns([1, 1, 1, 1, 3])
-    with b1:
-        if st.button("✅ Read", key=f"read_{region_key}_{idx}_{art_id}", use_container_width=True):
+    card = f"""
+<div style="
+  background:{bg};
+  border:1px solid #E5E7EB;
+  border-left:4px solid {accent};
+  border-radius:12px;
+  padding:12px 14px;
+  min-height:250px;
+  display:flex;
+  flex-direction:column;
+  opacity:{opacity};
+  box-shadow:0 1px 2px rgba(15,23,42,0.04);
+  margin-bottom:6px;
+">
+  <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap;">
+    <span style="background:{accent};color:#fff;padding:2px 8px;border-radius:10px;
+                 font-size:0.68rem;font-weight:700;">{il} {score}</span>
+    <span style="color:#64748B;font-size:0.7rem;">{senti_ic} {src_name}{dup_note}</span>
+    {hi_chip}
+  </div>
+  <a href="{url}" target="_blank" style="color:#0F172A;text-decoration:none;">
+    <div style="font-size:0.9rem;font-weight:700;line-height:1.35;margin-bottom:6px;
+                color:#0F172A;">{headline_e}</div>
+  </a>
+  <div style="color:#475569;font-size:0.76rem;line-height:1.45;flex:1;">{summary_e}</div>
+  {tag_html}
+  <div style="color:#94A3B8;font-size:0.66rem;margin-top:6px;">🕐 {pub_time}</div>
+</div>
+""".strip()
+    st.markdown(card, unsafe_allow_html=True)
+
+    # Compact action row — emoji-only so it fits inside a 1/3-width column
+    bc1, bc2, bc3, bc4 = st.columns(4)
+    with bc1:
+        if st.button("✅", key=f"read_{region_key}_{idx}_{art_id}", help="Mark as Read", use_container_width=True):
             ne.mark_article(art_id, "read")
             st.rerun()
-    with b2:
-        if st.button("🔖 Save", key=f"save_{region_key}_{idx}_{art_id}", use_container_width=True):
+    with bc2:
+        if st.button("🔖", key=f"save_{region_key}_{idx}_{art_id}", help="Save", use_container_width=True):
             ne.mark_article(art_id, "saved")
             st.rerun()
-    with b3:
-        if st.button("🗑 Archive", key=f"arch_{region_key}_{idx}_{art_id}", use_container_width=True):
+    with bc3:
+        if st.button("🗑", key=f"arch_{region_key}_{idx}_{art_id}", help="Archive", use_container_width=True):
             ne.mark_article(art_id, "archived")
             st.rerun()
-    with b4:
-        st.link_button("🔗 Open Source", url, use_container_width=True)
-    st.divider()
+    with bc4:
+        st.link_button("🔗", url, help="Open Source", use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # STATS ROW
@@ -585,9 +582,15 @@ def _render_news_list(region: str, sound_on: bool, key_prefix: str):
 
     st.caption(f"Showing {len(articles)} article{'s' if len(articles)!=1 else ''}")
 
-    # Render cards
-    for idx, a in enumerate(articles):
-        _render_card(a, idx, key_prefix)
+    # Render cards in 3-column grid (square-ish tiles)
+    for row_start in range(0, len(articles), 3):
+        row_cols = st.columns(3, gap="small")
+        for col_idx in range(3):
+            art_idx = row_start + col_idx
+            if art_idx >= len(articles):
+                break
+            with row_cols[col_idx]:
+                _render_card(articles[art_idx], art_idx, key_prefix)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # SOURCE HEALTH TAB
