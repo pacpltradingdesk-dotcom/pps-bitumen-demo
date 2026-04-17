@@ -95,7 +95,7 @@ def render_sidebar_features(module: str) -> str:
                     st.session_state["_sidebar_logo_b64"] = base64.b64encode(_lf.read()).decode()
             _logo_b64 = st.session_state["_sidebar_logo_b64"]
             st.markdown(f"""
-<div style="text-align:center;padding:16px 12px;margin:-16px -16px 24px;
+<div style="text-align:center;padding:16px 12px 12px 12px;margin:-16px -16px 0 -16px;
             background: #FAFAFA; border-bottom: 1px solid #E5E7EB; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
   <img src="data:image/jpeg;base64,{_logo_b64}"
        style="height:60px;margin-bottom:12px;border-radius:10px;box-shadow:0 10px 15px -3px rgba(0,0,0,0.05); border: 1px solid #E5E7EB;" alt="PPS Anantams">
@@ -106,6 +106,17 @@ def render_sidebar_features(module: str) -> str:
     AI Commander v6.0 Server
   </div>
 </div>""", unsafe_allow_html=True)
+
+        # Persistent Home button — always visible under logo so user can
+        # return to Command Center from any deep page in one click.
+        if st.button("🏠 Home", key=f"_sidebar_home_btn_{module}",
+                      use_container_width=True,
+                      help="Return to Command Center"):
+            st.session_state["selected_page"] = "🎯 Command Center"
+            st.session_state["_active_module"] = "📊 Price & Info"
+            st.rerun()
+        st.markdown("<div style='margin-bottom: 16px;'></div>",
+                     unsafe_allow_html=True)
 
         # Module header
         st.markdown(
