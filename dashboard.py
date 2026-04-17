@@ -135,18 +135,22 @@ st.markdown("""
       background: transparent;
   }
 
-  /* Main content wrapped as a white card — full available width, small
-     symmetric gutter so the card doesn't kiss the viewport edges. */
+  /* Main content wrapped as a white card. Streamlit 1.56 exposes both the
+     legacy .main .block-container selector AND the newer data-testid nodes —
+     target all three so the rule wins regardless of Streamlit internals. */
+  [data-testid="stMainBlockContainer"],
+  [data-testid="stMain"] > div,
+  section.main > div.block-container,
+  .main > div.block-container,
   .main .block-container {
-      background: #FFFFFF;
-      border-radius: 16px;
+      background: #FFFFFF !important;
+      border-radius: 16px !important;
       padding: 24px 28px 32px 28px !important;
       box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04),
-                  0 8px 28px rgba(15, 23, 42, 0.06);
-      border: 1px solid #E2E8F0;
-      margin: 14px 14px 22px 14px;
+                  0 8px 28px rgba(15, 23, 42, 0.06) !important;
+      border: 1px solid #E2E8F0 !important;
+      margin: 14px 18px 22px 18px !important;
       max-width: none !important;
-      width: calc(100% - 28px) !important;
   }
 
   /* Sidebar — keep clean white so it reads as a rail */
