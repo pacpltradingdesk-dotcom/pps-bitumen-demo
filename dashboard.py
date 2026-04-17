@@ -135,17 +135,18 @@ st.markdown("""
       background: transparent;
   }
 
-  /* Main content wrapped as a white card */
+  /* Main content wrapped as a white card — full available width, small
+     symmetric gutter so the card doesn't kiss the viewport edges. */
   .main .block-container {
       background: #FFFFFF;
       border-radius: 16px;
-      padding: 26px 34px 36px 34px !important;
+      padding: 24px 28px 32px 28px !important;
       box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04),
                   0 8px 28px rgba(15, 23, 42, 0.06);
       border: 1px solid #E2E8F0;
-      margin-top: 18px;
-      margin-bottom: 26px;
-      max-width: 1480px;
+      margin: 14px 14px 22px 14px;
+      max-width: none !important;
+      width: calc(100% - 28px) !important;
   }
 
   /* Sidebar — keep clean white so it reads as a rail */
