@@ -224,6 +224,12 @@ _ensure_db_schema()
 
 inject_theme()
 
+try:
+    from components.sidebar_toggle import inject as _inject_sidebar_toggle
+    _inject_sidebar_toggle()
+except Exception:
+    pass
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # LOGIN GATE — Must authenticate before accessing anything
 # ═══════════════════════════════════════════════════════════════════════════════
