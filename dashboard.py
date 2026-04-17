@@ -136,7 +136,8 @@ st.markdown("""
   }
 
   /* Main content wrapped as a white card with prominent shadow + border so
-     the "screen" boundary is unmistakable. */
+     the "screen" boundary is unmistakable. Fills the full width after the
+     sidebar — only a tiny breathing margin on the sides. */
   html body [data-testid="stMainBlockContainer"],
   html body [data-testid="stMain"] > div:first-child,
   html body .stMainBlockContainer,
@@ -148,9 +149,20 @@ st.markdown("""
       box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06),
                   0 14px 34px rgba(15, 23, 42, 0.08) !important;
       border: 1px solid #CBD5E1 !important;
-      margin: 8px 8px 10px 8px !important;
-      max-width: none !important;
-      width: auto !important;
+      margin: 8px !important;
+      max-width: calc(100% - 16px) !important;
+      width: calc(100% - 16px) !important;
+      box-sizing: border-box !important;
+  }
+
+  /* Ensure content INSIDE the card also uses the full card width — Streamlit's
+     default vertical block can otherwise cap around 1280px on wide monitors. */
+  html body [data-testid="stMainBlockContainer"] > div,
+  html body [data-testid="stMainBlockContainer"] > div > [data-testid="stVerticalBlock"],
+  html body .block-container > div,
+  html body .block-container > div > [data-testid="stVerticalBlock"] {
+      max-width: 100% !important;
+      width: 100% !important;
   }
 
   /* Main wrapper — ensure the block container has room to show its margin
