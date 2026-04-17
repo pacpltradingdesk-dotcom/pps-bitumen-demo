@@ -135,14 +135,17 @@ st.markdown("""
       background: transparent;
   }
 
-  /* Main content wrapped as a white card. Streamlit 1.56 exposes both the
-     legacy .main .block-container selector AND the newer data-testid nodes —
-     target all three so the rule wins regardless of Streamlit internals. */
-  [data-testid="stMainBlockContainer"],
-  [data-testid="stMain"] > div,
-  section.main > div.block-container,
-  .main > div.block-container,
-  .main .block-container {
+  /* Main content wrapped as a white card. Aggressive selector coverage
+     across all Streamlit versions + high-specificity body prefix so our
+     rule beats Streamlit's own emotion-generated stylesheet. */
+  html body [data-testid="stMainBlockContainer"],
+  html body [data-testid="stMain"] > div:first-child,
+  html body .stMainBlockContainer,
+  html body section.main > div.block-container,
+  html body .main > div.block-container,
+  html body .main .block-container,
+  html body .stApp .block-container,
+  html body [class*="block-container"] {
       background: #FFFFFF !important;
       border-radius: 16px !important;
       padding: 24px 28px 32px 28px !important;
@@ -151,6 +154,13 @@ st.markdown("""
       border: 1px solid #E2E8F0 !important;
       margin: 14px 18px 22px 18px !important;
       max-width: none !important;
+      width: auto !important;
+  }
+
+  /* Main wrapper — ensure the block container has room to show its margin */
+  html body [data-testid="stMain"],
+  html body section.main {
+      background: transparent !important;
   }
 
   /* Sidebar — keep clean white so it reads as a rail */
