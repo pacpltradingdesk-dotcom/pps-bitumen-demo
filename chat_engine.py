@@ -124,7 +124,11 @@ def render_chat_panel():
 
         # New conversation button
         with st.popover("➕ New Chat"):
-            new_name = st.text_input("Customer name", key="_chat_new_name")
+            try:
+                from components.autosuggest import customer_picker
+                new_name = customer_picker(key="_chat_new_name", label="Customer name")
+            except Exception:
+                new_name = st.text_input("Customer name", key="_chat_new_name")
             if st.button("Start Chat", key="_chat_start_btn") and new_name:
                 convo_id = engine.create_conversation(new_name.strip())
                 st.session_state["_active_chat"] = convo_id

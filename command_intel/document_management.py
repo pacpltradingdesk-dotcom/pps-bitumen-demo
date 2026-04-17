@@ -925,9 +925,15 @@ def _payment_create_form():
                 _pay_cust_default = get_context("customer_name", "") or ""
             except Exception:
                 pass
-        customer_name = st.text_input("Customer Name",
-                                      value=_pay_cust_default,
-                                      key="pay_customer")
+        try:
+            from components.autosuggest import customer_picker
+            customer_name = customer_picker(key="pay_customer",
+                                             default=_pay_cust_default,
+                                             label="Customer Name")
+        except Exception:
+            customer_name = st.text_input("Customer Name",
+                                          value=_pay_cust_default,
+                                          key="pay_customer")
         sell_product = st.selectbox("Product", ["BITUMEN VG30", "BITUMEN VG40", "CRMB 55"],
                                     key="pay_sell_product")
         sell_packing = st.selectbox("Packing", ["BULK", "DRUM"], key="pay_sell_packing")
@@ -1389,8 +1395,13 @@ def _transporter_management():
             t_contact = st.text_input("Contact *")
             t_gstin = st.text_input("GSTIN")
         with col2:
-            t_city = st.text_input("City *")
-            t_state = st.text_input("State")
+            try:
+                from components.autosuggest import city_picker, state_picker
+                t_city = city_picker(key="dm_t_city", label="City *")
+                t_state = state_picker(key="dm_t_state", label="State")
+            except Exception:
+                t_city = st.text_input("City *")
+                t_state = st.text_input("State")
             t_pan = st.text_input("PAN")
         with col3:
             t_vehicle_types = st.multiselect("Vehicle Types", ["BULK", "DRUM", "CONTAINER"])

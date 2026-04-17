@@ -114,7 +114,11 @@ def render():
             vehicle = st.text_input("Vehicle No", key="tk_veh", placeholder="GJ05AB1234")
             source = st.text_input("Source", key="tk_src", placeholder="Kandla Terminal")
             destination = st.text_input("Destination", key="tk_dest", placeholder="Ahmedabad")
-            customer = st.text_input("Customer", key="tk_cust")
+            try:
+                from components.autosuggest import customer_picker
+                customer = customer_picker(key="tk_cust", label="Customer")
+            except Exception:
+                customer = st.text_input("Customer", key="tk_cust")
         with dc2:
             driver = st.text_input("Driver Name", key="tk_drv")
             phone = st.text_input("Driver Phone", key="tk_ph")

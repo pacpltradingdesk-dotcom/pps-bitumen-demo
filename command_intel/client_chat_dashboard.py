@@ -105,8 +105,12 @@ def render():
         # Start new or select existing conversation
         c1, c2 = st.columns([2, 1])
         with c1:
-            customer_name = st.text_input("Customer Name", key="chat_cust",
-                                          placeholder="Enter customer name to start chat...")
+            try:
+                from components.autosuggest import customer_picker
+                customer_name = customer_picker(key="chat_cust", label="Customer Name")
+            except Exception:
+                customer_name = st.text_input("Customer Name", key="chat_cust",
+                                              placeholder="Enter customer name to start chat...")
         with c2:
             if st.button("New Chat", type="primary", use_container_width=True):
                 if customer_name:
