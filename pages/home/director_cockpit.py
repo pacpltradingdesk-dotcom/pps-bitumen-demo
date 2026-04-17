@@ -81,8 +81,11 @@ def _gen_wa_msg(cust, city, grade, qty, price, src=""):
     try:
         from communication_engine import CommunicationHub
         msg = CommunicationHub().whatsapp_offer(cust, city, grade, qty, price, src)
-        return msg.encode("utf-8", errors="replace").decode("utf-8") if msg else ""
+        return msg if msg else ""
     except: return f"Dear {cust},\n\nPPS Anantams - Rate Offer\nGrade: {grade} | Qty: {qty} MT\nPrice: Rs.{price:,.0f}/MT\nCity: {city}\n\n100% Advance | 24hr Validity\nPrince P Shah | +91 7795242424"
+
+
+from components.message_preview import render_msg_preview as _render_msg_preview
 
 def _log_crm(cust, ch, content):
     try:
@@ -482,14 +485,23 @@ def _step5():
         st.success(f"Quote sent via {snt}! CRM logged + 3-day follow-up created.")
         st.balloons()
 
-    # Message preview (safe — catch any encoding errors)
+    # Message preview — graphical bubble that mirrors the actual channel UI,
+    # plus a collapsed editor below for manual tweaks.
     st.markdown("")
     try:
-        msg = _gen_wa_msg(cu, ci, gr, qt, pr, src)
+        msg_default = _gen_wa_msg(cu, ci, gr, qt, pr, src)
     except Exception:
-        msg = f"Dear {cu},\n\nPPS Anantams - Rate Offer\nGrade: {gr} | Qty: {qt} MT\nPrice: Rs.{pr:,.0f}/MT\nCity: {ci}\n\n100% Advance | 24hr Validity\nPrince P Shah | +91 7795242424"
-    with st.expander("Message Preview", expanded=False):
-        msg = st.text_area("Msg", value=msg, height=180, key="cm")
+        msg_default = f"Dear {cu},\n\nPPS Anantams - Rate Offer\nGrade: {gr} | Qty: {qt} MT\nPrice: Rs.{pr:,.0f}/MT\nCity: {ci}\n\n100% Advance | 24hr Validity\nPrince P Shah | +91 7795242424"
+    # Pull current edit (if user tweaked) else use generated default
+    msg = st.session_state.get("cm", msg_default)
+    st.markdown(
+        '<div style="font-size:0.82rem;font-weight:700;color:#475569;margin:6px 0 0 2px;">📱 Message Preview</div>',
+        unsafe_allow_html=True,
+    )
+    _render_msg_preview(msg, channel="whatsapp")
+    with st.expander("✏️ Edit message", expanded=False):
+        msg = st.text_area("Msg", value=msg, height=180, key="cm",
+                           help="Edit the WhatsApp message. *text* renders as bold in the preview above.")
 
     # ── Send & Share Buttons ──
     st.markdown("")
