@@ -135,12 +135,15 @@ def _render_recipient_lists():
                     else:
                         st.caption("No recipients in this list.")
 
+                    rc1, rc2, rc3 = st.columns(3)
+                    with rc1:
+                        new_name = st.text_input("Name", key=f"rl_add_name_{rl['id']}")
+                    with rc2:
+                        new_email = st.text_input("Email", key=f"rl_add_email_{rl['id']}")
+                    with rc3:
+                        new_wa = st.text_input("WhatsApp", key=f"rl_add_wa_{rl['id']}")
                     dc1, dc2 = st.columns(2)
                     with dc1:
-                        # Add recipient to this list
-                        new_name = st.text_input("Name", key=f"rl_add_name_{rl['id']}")
-                        new_email = st.text_input("Email", key=f"rl_add_email_{rl['id']}")
-                        new_wa = st.text_input("WhatsApp", key=f"rl_add_wa_{rl['id']}")
                         if st.button("Add Recipient", key=f"rl_add_btn_{rl['id']}"):
                             if new_name and (new_email or new_wa):
                                 recips.append({"name": new_name, "email": new_email, "whatsapp": new_wa})

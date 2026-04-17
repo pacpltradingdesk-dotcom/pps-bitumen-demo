@@ -132,15 +132,17 @@ def _step2_map():
 
     st.caption(f"Target table: **{target_table}** — assign a source column to each field.")
     chosen: dict[str, str] = {}
-    for field in schema:
-        default = suggested.get(field, "")
-        options = [""] + source_cols
-        idx = options.index(default) if default in options else 0
-        chosen[field] = st.selectbox(
-            f"**{field}**"
-            + ("  _(required)_" if field == "name" else ""),
-            options, index=idx, key=f"_iw_map_{field}"
-        )
+    _map_cols = st.columns(2)
+    for _i, field in enumerate(schema):
+        with _map_cols[_i % 2]:
+            default = suggested.get(field, "")
+            options = [""] + source_cols
+            idx = options.index(default) if default in options else 0
+            chosen[field] = st.selectbox(
+                f"**{field}**"
+                + ("  _(required)_" if field == "name" else ""),
+                options, index=idx, key=f"_iw_map_{field}"
+            )
 
     c1, c2 = st.columns(2)
     with c1:

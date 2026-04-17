@@ -173,8 +173,11 @@ def _render_send_message():
             except Exception:
                 tmpl_names = ["bitumen_offer_v1", "bitumen_followup_v1", "payment_reminder_v1", "price_drop_alert_v1"]
 
-            tmpl = st.selectbox("Template", tmpl_names, key="ws_send_tmpl")
-            params_str = st.text_input("Parameters (comma-separated)", key="ws_send_params")
+            tc1, tc2 = st.columns(2)
+            with tc1:
+                tmpl = st.selectbox("Template", tmpl_names, key="ws_send_tmpl")
+            with tc2:
+                params_str = st.text_input("Parameters (comma-separated)", key="ws_send_params")
 
             if st.button("Queue Template Message", type="primary", key="ws_send_tmpl_btn"):
                 if to_number:
