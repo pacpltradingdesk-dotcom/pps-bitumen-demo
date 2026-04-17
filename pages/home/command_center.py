@@ -225,33 +225,36 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
     if not isinstance(news_data, list):
         news_data = []
 
-    # Auto-migrate legacy DD-MM-YYYY dates to ISO YYYY-MM-DD in-place and
-    # persist the migration once, so future loads are fast and sort is
-    # naturally correct. Idempotent — safe to re-run on every render.
+    # Legacy DD-MM-YYYY → ISO YYYY-MM-DD migration. Runs at most ONCE per
+    # streamlit process (guarded by session_state flag) instead of writing
+    # tbl_news_feed.json on every single render — that disk write was a
+    # major per-page-load perf tax.
     import re as _re_sort
     _dd_mm = _re_sort.compile(r"^(\d{2})-(\d{2})-(\d{4})(.*)$")
-    try:
-        _needed_fix = False
-        for _a in news_data:
-            if not isinstance(_a, dict):
-                continue
-            _dt = _a.get("date_time")
-            if isinstance(_dt, str):
-                _m = _dd_mm.match(_dt)
-                if _m:
-                    _a["date_time"] = f"{_m.group(3)}-{_m.group(2)}-{_m.group(1)}{_m.group(4)}"
-                    _needed_fix = True
-        if _needed_fix:
-            import json as _json_fix
-            from pathlib import Path as _Path_fix
-            _p = _Path_fix("tbl_news_feed.json")
-            if _p.exists():
-                _p.write_text(
-                    _json_fix.dumps(news_data, indent=2, ensure_ascii=False),
-                    encoding="utf-8",
-                )
-    except Exception:
-        pass
+    if not st.session_state.get("_news_dates_migrated"):
+        try:
+            _needed_fix = False
+            for _a in news_data:
+                if not isinstance(_a, dict):
+                    continue
+                _dt = _a.get("date_time")
+                if isinstance(_dt, str):
+                    _m = _dd_mm.match(_dt)
+                    if _m:
+                        _a["date_time"] = f"{_m.group(3)}-{_m.group(2)}-{_m.group(1)}{_m.group(4)}"
+                        _needed_fix = True
+            if _needed_fix:
+                import json as _json_fix
+                from pathlib import Path as _Path_fix
+                _p = _Path_fix("tbl_news_feed.json")
+                if _p.exists():
+                    _p.write_text(
+                        _json_fix.dumps(news_data, indent=2, ensure_ascii=False),
+                        encoding="utf-8",
+                    )
+        except Exception:
+            pass
+        st.session_state["_news_dates_migrated"] = True
 
     # Sort newest-first so today's headlines always land at the top of the
     # feed. Post-migration everything is ISO, but keep the DD-MM-YYYY
