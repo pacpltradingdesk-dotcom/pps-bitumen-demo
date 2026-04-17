@@ -119,6 +119,74 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# ── Global "screen shell" CSS ──────────────────────────────────────────────
+# Soft grey page background + white rounded card for main content + subtle
+# shadow so every page feels like a discrete screen (Aampe / Refera pattern).
+# Section sub-cards (expanders, metric tiles) get lighter backing so they
+# visually group within the main card.
+st.markdown("""
+<style>
+  /* Page-level grey backdrop so the main card pops */
+  [data-testid="stAppViewContainer"] {
+      background: #F1F5F9;
+  }
+  [data-testid="stAppViewContainer"] > .main,
+  .stApp {
+      background: transparent;
+  }
+
+  /* Main content wrapped as a white card */
+  .main .block-container {
+      background: #FFFFFF;
+      border-radius: 16px;
+      padding: 26px 34px 36px 34px !important;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04),
+                  0 8px 28px rgba(15, 23, 42, 0.06);
+      border: 1px solid #E2E8F0;
+      margin-top: 18px;
+      margin-bottom: 26px;
+      max-width: 1480px;
+  }
+
+  /* Sidebar — keep clean white so it reads as a rail */
+  [data-testid="stSidebar"] {
+      background: #FFFFFF;
+      border-right: 1px solid #E2E8F0;
+  }
+  [data-testid="stSidebar"] > div:first-child {
+      background: #FFFFFF;
+  }
+
+  /* Expanders — soft grey sub-cards inside the main card */
+  [data-testid="stExpander"] {
+      border-radius: 12px;
+      border: 1px solid #E2E8F0;
+      background: #F8FAFC;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+      margin-bottom: 12px;
+  }
+  [data-testid="stExpander"] summary { padding: 6px 10px; }
+
+  /* Metric tiles — subtle card look instead of flat background */
+  [data-testid="stMetric"] {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      padding: 14px 16px;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  }
+
+  /* Tabs — cleaner separator line */
+  [data-baseweb="tab-list"] {
+      border-bottom: 1px solid #E2E8F0;
+      gap: 4px;
+  }
+
+  /* Dividers tighter */
+  [data-testid="stHorizontalBlock"] hr { border-color: #E2E8F0; }
+</style>
+""", unsafe_allow_html=True)
+
 # Auto-apply DB schema migrations on startup. Cached so it runs at most
 # once per Streamlit process, not per rerun. Without this, fresh VPS
 # deployments stayed on schema v7 (no Phase 1 tables) until something
