@@ -682,171 +682,152 @@ def render():
         send_cfg = _load_send_cfg()
 
         st.subheader("📤 Auto-Send Intel Summary")
-        st.caption("Add WhatsApp numbers & Telegram chats — send intel conclusion with one click")
+        st.caption("WhatsApp left, Telegram right — add recipients once, send intel with one click")
 
-        # ════════════════════════════════════════
-        # SENDER SETUP — Telegram Bot
-        # ════════════════════════════════════════
-        with st.expander("🔧 Sender Setup", expanded=False):
+        # Load Telegram bot config up front (used in right column)
+        _tg_settings_file = ROOT / "telegram_settings.json"
+        _tg_settings = {}
+        try:
+            if _tg_settings_file.exists():
+                _tg_settings = json.load(open(_tg_settings_file, "r", encoding="utf-8"))
+        except Exception:
+            pass
 
+        wa_numbers = send_cfg.get("whatsapp_numbers", [])
+        tg_chats = send_cfg.get("telegram_chats", [])
+
+        # ════════════════════════════════════════════════════════════════
+        # 2-COLUMN LAYOUT — WhatsApp (left) + Telegram (right)
+        # ════════════════════════════════════════════════════════════════
+        col_wa, col_tg = st.columns(2, gap="large")
+
+        # ═══════════════════════ LEFT: WhatsApp ═════════════════════════
+        with col_wa:
             st.markdown("""
-<div style="background:#f0fdf4;border-left:4px solid #25D366;border-radius:8px;padding:10px 14px;margin-bottom:12px;">
-  <span style="font-weight:700;color:#15803d;">📱 WhatsApp — No setup needed!</span><br>
-  <span style="font-size:0.78rem;color:#64748b;">Click "Send" → WhatsApp Web opens with message ready → just hit Send.<br>
-  Works from your personal WhatsApp. No API, no charges, no approval needed.</span>
+<div style="background:#dcfce7;border-left:4px solid #16a34a;border-radius:10px;padding:14px 18px;margin:4px 0 14px 0;">
+  <div style="font-size:1rem;font-weight:800;color:#15803d;">📱 WhatsApp</div>
+  <div style="font-size:0.78rem;color:#64748b;margin-top:4px;">
+    No setup needed — click Send → WhatsApp Web opens with message ready.
+    Works from your personal WhatsApp. No API, no charges.
+  </div>
 </div>""", unsafe_allow_html=True)
 
-            st.markdown("""
-<div style="background:#eff6ff;border-left:4px solid #2563eb;border-radius:8px;padding:10px 14px;margin-bottom:10px;">
-  <span style="font-weight:700;color:#1d4ed8;">✈️ Telegram Bot — One-time setup</span><br>
-  <span style="font-size:0.78rem;color:#64748b;">Bot automatically sends messages to your groups/channels.</span>
-</div>""", unsafe_allow_html=True)
-
-            # Load existing TG bot config
-            _tg_settings_file = ROOT / "telegram_settings.json"
-            _tg_settings = {}
-            try:
-                if _tg_settings_file.exists():
-                    _tg_settings = json.load(open(_tg_settings_file, "r", encoding="utf-8"))
-            except Exception:
-                pass
-
-            if _tg_settings.get("bot_token"):
-                st.success("✅ Telegram Bot configured")
+            st.markdown("**Recipients**")
+            if wa_numbers:
+                for i, num in enumerate(wa_numbers):
+                    wc1, wc2, wc3 = st.columns([3, 3, 1])
+                    with wc1:
+                        st.markdown(f"**{i+1}.** 📱 `{num.get('number', '')}`")
+                    with wc2:
+                        st.caption(num.get("label", ""))
+                    with wc3:
+                        if st.button("❌", key=f"_tca_rmwa_{i}"):
+                            wa_numbers.pop(i)
+                            send_cfg["whatsapp_numbers"] = wa_numbers
+                            _save_send_cfg(send_cfg)
+                            st.rerun()
             else:
-                st.warning("⚠️ No bot token — Telegram auto-send won't work")
+                st.info("No WhatsApp numbers added yet.")
 
-            with st.form("_tca_tg_bot_setup"):
-                st.caption("Get token from [@BotFather](https://t.me/BotFather) on Telegram")
-                tg_bot_token = st.text_input("Bot Token", type="password", placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11")
-
-                if st.form_submit_button("💾 Save Telegram Bot Token", type="primary"):
-                    if tg_bot_token:
-                        try:
-                            from telegram_engine import configure_bot
-                            result = configure_bot(tg_bot_token.strip())
-                            if result.get("ok"):
-                                bot_info = result.get("bot", {})
-                                st.success(f"✅ Bot verified: @{bot_info.get('username', '?')} ({bot_info.get('first_name', '')})")
-                                st.rerun()
-                            else:
-                                st.error(f"❌ {result.get('description', 'Invalid token')}")
-                        except Exception as e:
-                            st.error(f"Error: {e}")
+            with st.form("_tca_add_wa_form"):
+                new_wa = st.text_input("Phone (with 91)", placeholder="919876543210")
+                new_wa_label = st.text_input("Name / Label", placeholder="e.g. Rahul Sir")
+                if st.form_submit_button("➕ Add WhatsApp Number", type="primary", use_container_width=True):
+                    if new_wa:
+                        cleaned = re.sub(r'[^0-9]', '', new_wa)
+                        if len(cleaned) >= 10:
+                            if not cleaned.startswith("91"):
+                                cleaned = "91" + cleaned[-10:]
+                            wa_numbers.append({"number": cleaned, "label": new_wa_label})
+                            send_cfg["whatsapp_numbers"] = wa_numbers
+                            _save_send_cfg(send_cfg)
+                            st.success(f"✅ Added: {cleaned} ({new_wa_label})")
+                            st.rerun()
+                        else:
+                            st.warning("Invalid number. Use 10-digit mobile or with 91 prefix.")
                     else:
-                        st.warning("Enter a bot token.")
+                        st.warning("Enter a phone number.")
 
-            # Test connection
+        # ═══════════════════════ RIGHT: Telegram ════════════════════════
+        with col_tg:
+            st.markdown("""
+<div style="background:#dbeafe;border-left:4px solid #2563eb;border-radius:10px;padding:14px 18px;margin:4px 0 14px 0;">
+  <div style="font-size:1rem;font-weight:800;color:#1d4ed8;">✈️ Telegram Bot</div>
+  <div style="font-size:0.78rem;color:#64748b;margin-top:4px;">
+    One-time setup. Bot auto-sends messages to your groups/channels.
+  </div>
+</div>""", unsafe_allow_html=True)
+
             if _tg_settings.get("bot_token"):
-                if st.button("🔍 Test Telegram Bot", key="_tca_test_tg"):
+                st.success("✅ Bot configured")
+                if st.button("🔍 Test Bot Connection", key="_tca_test_tg", use_container_width=True):
                     try:
                         from telegram_engine import verify_bot
                         result = verify_bot()
                         if result.get("ok"):
                             bot = result.get("bot", {})
-                            st.success(f"✅ Bot active: @{bot.get('username', '?')} — {bot.get('first_name', '')}")
+                            st.success(f"✅ @{bot.get('username', '?')} — {bot.get('first_name', '')}")
                         else:
                             st.error(f"❌ {result.get('description', 'Failed')}")
                     except Exception as e:
                         st.error(f"❌ {e}")
+            else:
+                st.warning("⚠️ No bot token — auto-send disabled")
 
-            st.markdown("---")
-            st.markdown("""
-**Telegram Bot Setup (2 min):**
-1. Open Telegram → search **@BotFather**
-2. Send `/newbot` → give it a name → copy the **token**
-3. Paste token above and save
-4. **Add the bot** to your group/channel as admin
-5. Add the group chat ID below in Telegram Recipients
-""")
+            with st.expander("🔑 Bot Token Setup", expanded=not _tg_settings.get("bot_token")):
+                with st.form("_tca_tg_bot_setup"):
+                    st.caption("Get token from [@BotFather](https://t.me/BotFather) on Telegram")
+                    tg_bot_token = st.text_input("Bot Token", type="password",
+                                                   placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11")
+                    if st.form_submit_button("💾 Save Bot Token", type="primary", use_container_width=True):
+                        if tg_bot_token:
+                            try:
+                                from telegram_engine import configure_bot
+                                result = configure_bot(tg_bot_token.strip())
+                                if result.get("ok"):
+                                    bot_info = result.get("bot", {})
+                                    st.success(f"✅ @{bot_info.get('username', '?')}")
+                                    st.rerun()
+                                else:
+                                    st.error(f"❌ {result.get('description', 'Invalid token')}")
+                            except Exception as e:
+                                st.error(f"Error: {e}")
+                        else:
+                            st.warning("Enter a bot token.")
+                st.caption(
+                    "**Setup (2 min):** Telegram → @BotFather → `/newbot` → name → copy token → "
+                    "paste above → save → add bot to your group/channel as admin."
+                )
 
-        st.markdown("---")
+            st.markdown("**Recipients**")
+            if tg_chats:
+                for i, ch in enumerate(tg_chats):
+                    tc1, tc2, tc3 = st.columns([3, 3, 1])
+                    with tc1:
+                        st.markdown(f"**{i+1}.** ✈️ `{ch.get('chat_id', '')}`")
+                    with tc2:
+                        st.caption(ch.get("label", ""))
+                    with tc3:
+                        if st.button("❌", key=f"_tca_rmtg_{i}"):
+                            tg_chats.pop(i)
+                            send_cfg["telegram_chats"] = tg_chats
+                            _save_send_cfg(send_cfg)
+                            st.rerun()
+            else:
+                st.info("No Telegram chats added yet.")
 
-        # ── WhatsApp Recipients ──
-        st.markdown("""
-<div style="background:#dcfce7;border-left:4px solid #16a34a;border-radius:8px;padding:12px 16px;margin:10px 0;">
-  <span style="font-size:0.95rem;font-weight:700;color:#15803d;">📱 WhatsApp Recipients</span>
-</div>""", unsafe_allow_html=True)
-
-        wa_numbers = send_cfg.get("whatsapp_numbers", [])
-        if wa_numbers:
-            for i, num in enumerate(wa_numbers):
-                wc1, wc2, wc3 = st.columns([2, 2, 1])
-                with wc1:
-                    st.markdown(f"**{i+1}.** 📱 `{num.get('number', '')}`")
-                with wc2:
-                    st.caption(num.get("label", ""))
-                with wc3:
-                    if st.button("❌", key=f"_tca_rmwa_{i}"):
-                        wa_numbers.pop(i)
-                        send_cfg["whatsapp_numbers"] = wa_numbers
-                        _save_send_cfg(send_cfg)
-                        st.rerun()
-        else:
-            st.info("No WhatsApp numbers added yet.")
-
-        with st.form("_tca_add_wa_form"):
-            aw1, aw2 = st.columns(2)
-            with aw1:
-                new_wa = st.text_input("Phone (with 91)", placeholder="919876543210")
-            with aw2:
-                new_wa_label = st.text_input("Name / Label", placeholder="e.g. Rahul Sir")
-            if st.form_submit_button("➕ Add WhatsApp Number", type="primary"):
-                if new_wa:
-                    cleaned = re.sub(r'[^0-9]', '', new_wa)
-                    if len(cleaned) >= 10:
-                        if not cleaned.startswith("91"):
-                            cleaned = "91" + cleaned[-10:]
-                        wa_numbers.append({"number": cleaned, "label": new_wa_label})
-                        send_cfg["whatsapp_numbers"] = wa_numbers
-                        _save_send_cfg(send_cfg)
-                        st.success(f"✅ Added: {cleaned} ({new_wa_label})")
-                        st.rerun()
-                    else:
-                        st.warning("Invalid number. Use 10-digit mobile or with 91 prefix.")
-                else:
-                    st.warning("Enter a phone number.")
-
-        st.markdown("---")
-
-        # ── Telegram Recipients ──
-        st.markdown("""
-<div style="background:#dbeafe;border-left:4px solid #2563eb;border-radius:8px;padding:12px 16px;margin:10px 0;">
-  <span style="font-size:0.95rem;font-weight:700;color:#1d4ed8;">✈️ Telegram Recipients</span>
-</div>""", unsafe_allow_html=True)
-
-        tg_chats = send_cfg.get("telegram_chats", [])
-        if tg_chats:
-            for i, ch in enumerate(tg_chats):
-                tc1, tc2, tc3 = st.columns([2, 2, 1])
-                with tc1:
-                    st.markdown(f"**{i+1}.** ✈️ `{ch.get('chat_id', '')}`")
-                with tc2:
-                    st.caption(ch.get("label", ""))
-                with tc3:
-                    if st.button("❌", key=f"_tca_rmtg_{i}"):
-                        tg_chats.pop(i)
+            with st.form("_tca_add_tg_form"):
+                new_tg = st.text_input("Chat ID", placeholder="e.g. -1001234567890 or @channelname")
+                new_tg_label = st.text_input("Label", placeholder="e.g. PPS Team Group")
+                if st.form_submit_button("➕ Add Telegram Chat", type="primary", use_container_width=True):
+                    if new_tg:
+                        tg_chats.append({"chat_id": new_tg.strip(), "label": new_tg_label})
                         send_cfg["telegram_chats"] = tg_chats
                         _save_send_cfg(send_cfg)
+                        st.success(f"✅ Added: {new_tg.strip()} ({new_tg_label})")
                         st.rerun()
-        else:
-            st.info("No Telegram chats added yet.")
-
-        with st.form("_tca_add_tg_form"):
-            at1, at2 = st.columns(2)
-            with at1:
-                new_tg = st.text_input("Chat ID", placeholder="e.g. -1001234567890 or @channelname")
-            with at2:
-                new_tg_label = st.text_input("Label", placeholder="e.g. PPS Team Group")
-            if st.form_submit_button("➕ Add Telegram Chat", type="primary"):
-                if new_tg:
-                    tg_chats.append({"chat_id": new_tg.strip(), "label": new_tg_label})
-                    send_cfg["telegram_chats"] = tg_chats
-                    _save_send_cfg(send_cfg)
-                    st.success(f"✅ Added: {new_tg.strip()} ({new_tg_label})")
-                    st.rerun()
-                else:
-                    st.warning("Enter a Chat ID.")
+                    else:
+                        st.warning("Enter a Chat ID.")
 
         st.markdown("---")
 
