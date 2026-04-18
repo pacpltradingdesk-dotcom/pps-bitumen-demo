@@ -209,7 +209,7 @@ def run_alert_scan() -> int:
     # 2. FX movement
     try:
         fx_data = json.loads((base / "tbl_fx_rates.json").read_text(encoding="utf-8"))
-        usd_inr = [r for r in fx_data if "USD" in str(r.get("from_currency", "")) and r.get("rate")]
+        usd_inr = [r for r in fx_data if str(r.get("pair", "")) == "USD/INR" and r.get("rate")]
         if len(usd_inr) >= 2:
             latest_fx = usd_inr[-1]["rate"]
             prev_fx = usd_inr[-2]["rate"]

@@ -344,7 +344,7 @@ class ForwardStrategyEngine:
     def _get_fx_trend_signal(self) -> dict:
         """Analyze 7-day USD/INR trend."""
         fx = _load_json(BASE / "tbl_fx_rates.json", [])
-        usd_inr = [r for r in fx if "USD" in str(r.get("from_currency", "")) and r.get("rate")]
+        usd_inr = [r for r in fx if str(r.get("pair", "")) == "USD/INR" and r.get("rate")]
         if len(usd_inr) < 2:
             return {"direction": "STABLE", "change_pct": 0, "detail": "Insufficient FX data"}
 

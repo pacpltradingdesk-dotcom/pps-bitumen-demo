@@ -168,7 +168,7 @@ class DirectorBriefingEngine:
                         (latest - prev) / prev * 100, 2)
 
             fx = _load_json(BASE / "tbl_fx_rates.json", [])
-            usd_inr = [r for r in fx if "USD" in str(r.get("from_currency", "")) and r.get("rate")]
+            usd_inr = [r for r in fx if str(r.get("pair", "")) == "USD/INR" and r.get("rate")]
             if len(usd_inr) >= 2:
                 latest_fx = usd_inr[-1]["rate"]
                 prev_fx = usd_inr[-2]["rate"]
@@ -245,7 +245,7 @@ class DirectorBriefingEngine:
         try:
             fx = _load_json(BASE / "tbl_fx_rates.json", [])
             rates = [r.get("rate") for r in fx
-                     if "USD" in str(r.get("from_currency", "")) and r.get("rate")]
+                     if str(r.get("pair", "")) == "USD/INR" and r.get("rate")]
             sparklines["fx"] = rates[-days:] if len(rates) >= days else rates
         except Exception:
             pass

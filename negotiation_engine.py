@@ -324,7 +324,7 @@ class NegotiationAssistant:
 
             fx_data = json.loads((BASE / "tbl_fx_rates.json").read_text(encoding="utf-8"))
             if fx_data:
-                latest_fx = [r for r in fx_data if "USD" in str(r.get("from_currency", ""))]
+                latest_fx = [r for r in fx_data if str(r.get("pair", "")) == "USD/INR"]
                 if latest_fx:
                     context["usdinr"] = latest_fx[-1].get("rate")
         except Exception:

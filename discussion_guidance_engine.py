@@ -186,7 +186,7 @@ def _get_market_context() -> dict:
     try:
         fx_data = _load_json(BASE / "tbl_fx_rates.json")
         if fx_data:
-            usd_records = [r for r in fx_data if "USD" in str(r.get("from_currency", ""))]
+            usd_records = [r for r in fx_data if str(r.get("pair", "")) == "USD/INR"]
             if usd_records:
                 context["usdinr"] = usd_records[-1].get("rate")
     except Exception:
