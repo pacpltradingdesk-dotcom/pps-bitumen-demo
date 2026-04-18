@@ -2394,6 +2394,28 @@ def update_user(user_id: int, data: dict):
     data["updated_at"] = _now_ist()
     _update_row("users", user_id, data)
 
+def delete_user(user_id: int) -> bool:
+    """Hard-delete a user. Returns True on success. Refuses if this would
+    leave zero active director accounts."""
+    conn = _get_conn()
+    try:
+        target = conn.execute("SELECT role, is_active FROM users WHERE id = ?",
+                              (user_id,)).fetchone()
+        if not target:
+            return False
+        if target[0] == "director" and target[1]:
+            other_directors = conn.execute(
+                "SELECT COUNT(*) FROM users WHERE role = 'director' "
+                "AND is_active = 1 AND id != ?", (user_id,)
+            ).fetchone()[0]
+            if other_directors == 0:
+                raise ValueError("Cannot delete last active director account")
+        conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        conn.commit()
+        return True
+    finally:
+        conn.close()
+
 def insert_audit_log(data: dict) -> int:
     data.setdefault("created_at", _now_ist())
     return _insert_row("audit_log", data)

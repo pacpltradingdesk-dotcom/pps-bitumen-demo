@@ -810,6 +810,9 @@ PAGE_DISPATCH = {
         lambda: __import__("command_intel.health_monitor_dashboard", fromlist=["render"]).render(),
         "Health Monitor"),
     "⚙️ Settings": _page_settings,
+    "👥 User Management": lambda: _safe_render(
+        lambda: __import__("pages.system.user_management", fromlist=["render"]).render(),
+        "User Management"),
     "📥 Import Wizard": lambda: _safe_render(
         lambda: __import__("pages.system.import_wizard", fromlist=["render"]).render(),
         "Import Wizard"),
