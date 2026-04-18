@@ -2396,7 +2396,9 @@ def update_user(user_id: int, data: dict):
 
 def delete_user(user_id: int) -> bool:
     """Hard-delete a user. Returns True on success. Refuses if this would
-    leave zero active director accounts."""
+    leave zero active director accounts. Null-outs user_id on audit_log
+    entries before deletion so history is preserved (username column stays)
+    without tripping the FK constraint."""
     conn = _get_conn()
     try:
         target = conn.execute("SELECT role, is_active FROM users WHERE id = ?",
@@ -2410,6 +2412,9 @@ def delete_user(user_id: int) -> bool:
             ).fetchone()[0]
             if other_directors == 0:
                 raise ValueError("Cannot delete last active director account")
+        # Preserve audit trail — disconnect FK, keep username string.
+        conn.execute("UPDATE audit_log SET user_id = NULL WHERE user_id = ?",
+                     (user_id,))
         conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
         conn.commit()
         return True
