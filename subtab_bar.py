@@ -311,6 +311,7 @@ def _render_sticky_notes():
                     news_items.append({
                         "headline": h,
                         "publisher": a.get("source_name", a.get("publisher", "")),
+                        "url": a.get("source_url", a.get("url", "")),
                     })
                 if len(news_items) >= 3:
                     break
@@ -332,14 +333,26 @@ def _render_sticky_notes():
         pass
 
     if news_items:
+        import html as _html
         cards_html = ""
         for i, n in enumerate(news_items):
-            headline = n.get("headline", "")[:80] + "..." if len(n.get("headline", "")) > 80 else n.get("headline", "")
-            src = n.get("publisher", n.get("source", ""))[:25]
+            headline_raw = n.get("headline", "")
+            headline = _html.escape(headline_raw[:80] + "..." if len(headline_raw) > 80 else headline_raw)
+            src = _html.escape(n.get("publisher", n.get("source", ""))[:25])
+            url = n.get("url", "") or ""
+            # Anchor wraps the card so entire tile is clickable (same pattern as News page)
+            open_tag = (
+                f'<a href="{_html.escape(url, quote=True)}" target="_blank" rel="noopener noreferrer" '
+                f'style="text-decoration:none;color:inherit;display:block;">'
+            ) if url else '<div>'
+            close_tag = '</a>' if url else '</div>'
             cards_html += (
+                f'{open_tag}'
                 f'<div style="background:#FFFFFF;border:1px solid var(--border-subtle);'
                 f'border-radius:8px;padding:12px;margin-bottom:10px; box-shadow:var(--shadow-sm);'
-                f'transition: transform 0.2s ease, border-color 0.2s ease;" onmouseover="this.style.transform=\'translateY(-1px)\'; this.style.borderColor=\'var(--border-hover)\';" onmouseout="this.style.transform=\'translateY(0)\'; this.style.borderColor=\'var(--border-subtle)\';">'
+                f'cursor:pointer; transition: transform 0.2s ease, border-color 0.2s ease;" '
+                f'onmouseover="this.style.transform=\'translateY(-1px)\'; this.style.borderColor=\'var(--border-hover)\';" '
+                f'onmouseout="this.style.transform=\'translateY(0)\'; this.style.borderColor=\'var(--border-subtle)\';">'
                 f'<div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">'
                 f'<span style="font-size:0.8rem;">📰</span>'
                 f'<span style="color:var(--text-blue);font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">{src}</span>'
@@ -347,6 +360,7 @@ def _render_sticky_notes():
                 f'<div style="color:var(--text-main);font-size:0.75rem;font-weight:600;'
                 f'line-height:1.4;word-wrap:break-word;">{headline}</div>'
                 f'</div>'
+                f'{close_tag}'
             )
 
         st.markdown(
