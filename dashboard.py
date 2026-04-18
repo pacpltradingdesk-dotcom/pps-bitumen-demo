@@ -610,13 +610,6 @@ def _page_comm_hub():
     except Exception as e:
         st.error(f"Communication Hub failed to load: {e}")
 
-def _page_sync_status():
-    try:
-        from pages.system.sync_status import render
-        render()
-    except Exception as e:
-        st.error(f"Sync Status failed to load: {e}")
-
 def _page_opportunities():
     try:
         from pages.home.opportunities import render
@@ -829,24 +822,6 @@ PAGE_DISPATCH = {
         lambda: __import__("command_intel.developer_ops_dashboard", fromlist=["render"]).render(), "Developer Ops"),
     "🗺️ Dashboard Flow Map": lambda: _safe_render(
         lambda: __import__("command_intel.dashboard_flow_map", fromlist=["render"]).render(), "Dashboard Flow"),
-
-    # Legacy pages (still accessible)
-    "🏥 System Health": lambda: _safe_render(
-        lambda: __import__("command_intel.sre_dashboard", fromlist=["render"]).render(), "System Health"),
-    "📋 Source Directory": lambda: _safe_render(
-        lambda: __import__("command_intel.directory_dashboard", fromlist=["render"]).render(), "Source Directory"),
-    "🔭 Contractor OSINT": lambda: _safe_render(
-        lambda: __import__("contractor_osint", fromlist=["render"]).render(),
-        "Contractor OSINT"),
-    "🏛️ Business Intelligence": lambda: _safe_render(
-        lambda: __import__("business_knowledge_base", fromlist=["render"]).render(),
-        "Business Intelligence"),
-    "📋 Discussion Guide": lambda: _safe_render(
-        lambda: __import__("command_intel.discussion_guidance_dashboard", fromlist=["render"]).render(),
-        "Discussion Guide"),
-    "🔄 Sync Status": _page_sync_status,
-    "🏗️ Infra Demand Intelligence": lambda: _safe_render(
-        lambda: __import__("command_intel.infra_demand_dashboard", fromlist=["render"]).render(), "Infra Demand"),
 
     # Sharing
     "📤 Share Center": lambda: _safe_render(

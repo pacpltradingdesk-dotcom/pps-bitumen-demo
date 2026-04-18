@@ -73,8 +73,8 @@ def render():
         ic1, ic2 = st.columns([1, 2])
         with ic1:
             data_type = st.selectbox("Data Type", [
-                "Contacts (Excel/CSV)", "Price History (CSV)", "Customer Data (Excel)", "Supplier Data (Excel)"
-            ])
+                "Contacts (Excel/CSV)",
+            ], help="Only Contacts import is implemented. Other types: use the Import Wizard.")
         with ic2:
             uploaded = st.file_uploader(f"Upload {data_type}", type=["xlsx", "csv", "json"])
 
@@ -103,19 +103,16 @@ def render():
                     st.dataframe(col_info, use_container_width=True, hide_index=True)
 
                 if st.button("Confirm Import", type="primary"):
-                    if "Contacts" in data_type:
-                        records = df.to_dict("records")
-                        existing = []
-                        cf = ROOT / "tbl_contacts.json"
-                        if cf.exists():
-                            with open(cf, "r", encoding="utf-8") as f:
-                                existing = json.load(f)
-                        merged = existing + records
-                        with open(cf, "w", encoding="utf-8") as f:
-                            json.dump(merged, f, indent=2, default=str)
-                        st.success(f"Imported {len(records)} contacts. Total now: {len(merged)}")
-                    else:
-                        st.info("Import handler for this data type coming soon.")
+                    records = df.to_dict("records")
+                    existing = []
+                    cf = ROOT / "tbl_contacts.json"
+                    if cf.exists():
+                        with open(cf, "r", encoding="utf-8") as f:
+                            existing = json.load(f)
+                    merged = existing + records
+                    with open(cf, "w", encoding="utf-8") as f:
+                        json.dump(merged, f, indent=2, default=str)
+                    st.success(f"Imported {len(records)} contacts. Total now: {len(merged)}")
 
             except Exception as e:
                 st.error(f"Failed to process file: {e}")

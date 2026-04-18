@@ -129,8 +129,13 @@ def render_client_360(client_name):
                     use_container_width=True,
                 )
             else:
-                if st.button("📲 Open WhatsApp", use_container_width=True, key="_sw_wa"):
-                    st.warning("Set an Active Customer in the sidebar first to enable this.")
+                st.button(
+                    "📲 Open WhatsApp",
+                    disabled=True,
+                    use_container_width=True,
+                    help="Set an Active Customer in the sidebar first.",
+                    key="_sw_wa",
+                )
             if st.button("📧 Email Quote", use_container_width=True, key="_sw_email"):
                 st.session_state["_nav_goto"] = "💬 Communication Hub"
                 st.rerun()
@@ -361,5 +366,5 @@ def render_deal_room():
 ⏳ *Validity:* 24 Hours Only.
 reply 'BOOK' to lock slot."""
                     st.code(wa_msg, language="markdown")
-                    st.success("Copied to clipboard!")
+                    st.caption("📋 Copy the text above and paste into WhatsApp.")
 

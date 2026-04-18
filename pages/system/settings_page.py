@@ -53,22 +53,39 @@ def render():
             except Exception:
                 _existing_openai_key = ""
             openai_key_input = st.text_input("OpenAI / AI Key", value=_existing_openai_key, type="password", help="Required for AI Script generation (Optional).")
-            st.text_input("Google Maps API Key", type="password", help="Required for accurate distance calculations.")
+            try:
+                from settings_engine import load_settings as _ld_s2
+                _existing_maps_key = _ld_s2().get("google_maps_api_key", "")
+            except Exception:
+                _existing_maps_key = ""
+            maps_key_input = st.text_input("Google Maps API Key", value=_existing_maps_key, type="password", help="Required for accurate distance calculations.")
         with api_c2:
             st.caption("Email & WhatsApp configuration has moved to dedicated pages:")
             st.markdown("📧 **Email Engine** → SMTP Config tab")
             st.markdown("📱 **WhatsApp Engine** → API Config tab")
 
         if st.button("💾 Save API Settings"):
-            if openai_key_input.strip():
+            saved = []
+            if openai_key_input.strip() and openai_key_input.strip() != _existing_openai_key:
                 try:
                     from ai_fallback_engine import save_api_key as _save_ai_key
                     _save_ai_key("openai", openai_key_input.strip())
-                    st.toast("OpenAI API key saved to ai_fallback_config.json")
+                    saved.append("OpenAI")
                 except Exception as _ke:
-                    st.toast(f"Could not save key: {_ke}")
+                    st.toast(f"Could not save OpenAI key: {_ke}")
+            if maps_key_input.strip() and maps_key_input.strip() != _existing_maps_key:
+                try:
+                    from settings_engine import load_settings as _ld_s3, save_settings as _sv_s3
+                    _s = _ld_s3()
+                    _s["google_maps_api_key"] = maps_key_input.strip()
+                    _sv_s3(_s)
+                    saved.append("Google Maps")
+                except Exception as _ke:
+                    st.toast(f"Could not save Maps key: {_ke}")
+            if saved:
+                st.toast(f"Saved: {', '.join(saved)}")
             else:
-                st.toast("Settings Saved")
+                st.toast("No changes to save")
 
     with st.expander("🌐 Market Data API Keys", expanded=False):
         st.caption("Configure API keys for live market data feeds. All keys are stored locally in settings.json.")
