@@ -47,7 +47,27 @@ def _vg30_price() -> int | None:
         data = json.loads(_HUB_CACHE.read_text(encoding="utf-8"))
     except Exception:
         return None
-    # Probe common shapes — hub schema has evolved
+    # Current schema: hub_cache["iocl_circular"]["data"]["snapshot"]["VG30_IOCL_Koyali_basic_per_MT"] = 42000
+    try:
+        snap = data.get("iocl_circular", {}).get("data", {}).get("snapshot", {})
+        preferred = [
+            "VG30_IOCL_Koyali_basic_per_MT",
+            "VG30_IOCL_Mathura_basic_per_MT",
+            "VG30_BPCL_Mumbai_basic_per_MT",
+            "VG30_HPCL_Mumbai_basic_per_MT",
+        ]
+        for key in preferred:
+            v = snap.get(key)
+            if isinstance(v, (int, float)) and v > 0:
+                return int(v)
+        # Fallback: average any VG30_* basic keys
+        vals = [v for k, v in snap.items()
+                if k.startswith("VG30_") and "basic" in k and isinstance(v, (int, float)) and v > 0]
+        if vals:
+            return int(sum(vals) / len(vals))
+    except Exception:
+        pass
+    # Legacy shapes (kept for forward-compat)
     for path in (
         ("markets", "bitumen", "vg30_mumbai"),
         ("bitumen", "vg30", "price"),
@@ -67,26 +87,26 @@ def _vg30_price() -> int | None:
     return None
 
 
+_DIRECTION_LABEL = {"UP": "BULLISH", "DOWN": "BEARISH", "SIDEWAYS": "NEUTRAL"}
+
+
 def _composite_signal() -> tuple[str, int] | None:
-    """Return (label, score) for the 10-signal composite."""
-    try:
-        from market_intelligence_engine import get_latest_composite
-        result = get_latest_composite() or {}
-        score = result.get("score") or result.get("composite_score")
-        label = result.get("label") or result.get("sentiment")
-        if score is not None and label:
-            return (str(label).upper(), int(score))
-    except Exception:
-        pass
-    # Fallback: read cached signals file
+    """Return (label, score) for the 10-signal master composite.
+
+    Reads cached tbl_market_signals.json (refreshed by sync_engine every 60 min).
+    Shape: [{computed_at, signals: {crude_market, ..., master}}, ...]
+    Master fields: market_direction (UP/DOWN/SIDEWAYS), confidence (0-100).
+    """
     try:
         data = json.loads((_ROOT / "tbl_market_signals.json").read_text(encoding="utf-8"))
         if isinstance(data, list) and data:
             last = data[-1]
-            s = last.get("composite_score") or last.get("score")
-            l = last.get("sentiment") or last.get("label")
-            if s is not None and l:
-                return (str(l).upper(), int(s))
+            master = (last.get("signals") or {}).get("master") or {}
+            direction = master.get("market_direction")
+            confidence = master.get("confidence")
+            if direction and confidence is not None:
+                label = _DIRECTION_LABEL.get(str(direction).upper(), str(direction).upper())
+                return (label, int(confidence))
     except Exception:
         pass
     return None

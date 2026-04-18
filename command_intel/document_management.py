@@ -132,12 +132,35 @@ def _po_create_form():
     )
     from document_pdf_engine import generate_po_pdf, save_pdf_to_archive
 
-    # Load suppliers
+    # Load suppliers — SQL first (authoritative), JSON fallback (63 parties in purchase_parties.json)
     with get_connection() as conn:
         suppliers = _rows_to_list(
-            conn.execute("SELECT id, name, gstin, pan, city, state, contact, address "
+            conn.execute("SELECT id, name, gstin, pan, city, state, contact "
                          "FROM suppliers WHERE is_active = 1 ORDER BY name").fetchall()
         )
+    for s in suppliers:
+        s.setdefault("address", "")
+
+    if not suppliers:
+        try:
+            from party_master import load_suppliers as _load_json_suppliers
+            json_parties = _load_json_suppliers() or []
+            suppliers = [
+                {
+                    "id": -(i + 1),  # synthetic negative id → stored as NULL supplier_id
+                    "name": p.get("name", ""),
+                    "gstin": p.get("gstin", ""),
+                    "pan": p.get("pan", ""),
+                    "city": p.get("city", ""),
+                    "state": p.get("state", ""),
+                    "contact": p.get("contact", ""),
+                    "address": p.get("address", ""),
+                }
+                for i, p in enumerate(sorted(json_parties, key=lambda x: x.get("name", "")))
+                if p.get("name")
+            ]
+        except Exception:
+            suppliers = []
 
     if not suppliers:
         st.warning("No suppliers found. Add suppliers first.")
@@ -317,7 +340,7 @@ def _po_create_form():
                 insert_purchase_order({
                     "po_number": po_number,
                     "deal_id": deal_id,
-                    "supplier_id": supplier.get("id"),
+                    "supplier_id": (supplier.get("id") if (supplier.get("id") or 0) > 0 else None),
                     "supplier_name": supplier.get("name", ""),
                     "supplier_gstin": supplier.get("gstin", ""),
                     "supplier_address": f"{supplier.get('city', '')}, {supplier.get('state', '')}",
@@ -354,7 +377,7 @@ def _po_create_form():
             insert_purchase_order({
                 "po_number": po_number,
                 "deal_id": deal_id,
-                "supplier_id": supplier.get("id"),
+                "supplier_id": (supplier.get("id") if (supplier.get("id") or 0) > 0 else None),
                 "supplier_name": supplier.get("name", ""),
                 "supplier_gstin": supplier.get("gstin", ""),
                 "items_json": [{
