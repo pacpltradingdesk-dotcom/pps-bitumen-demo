@@ -110,8 +110,10 @@ def detect_price_anomalies(prices: list[dict] | None = None) -> dict:
         records = raw if isinstance(raw, list) else raw.get("records", raw.get("data", []))
         prices = []
         for r in records:
-            date = r.get("timestamp") or r.get("date") or r.get("created_at", "")
-            brent = r.get("brent_usd") or r.get("price") or r.get("value")
+            if str(r.get("benchmark", "")).upper() not in ("BRENT", ""):
+                continue
+            date = r.get("date_time") or r.get("timestamp") or r.get("date", "")
+            brent = r.get("price") or r.get("brent_usd") or r.get("value")
             if brent:
                 prices.append({"date": str(date)[:10], "value": float(brent)})
 

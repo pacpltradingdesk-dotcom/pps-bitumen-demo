@@ -384,14 +384,15 @@ def get_full_trading_context(role: str = "Admin") -> dict:
 
     # ── Market Intelligence Master Signal ────────────────────────────
     try:
-        from market_intelligence_engine import MarketIntelligenceEngine
-        mie = MarketIntelligenceEngine()
-        master = mie.compute_master_signal()
+        from market_intelligence_engine import get_master_signal
+        master = get_master_signal() or {}
         if master:
             ctx["master_signal"] = {
-                "score": master.get("score"),
                 "direction": master.get("market_direction"),
                 "confidence": master.get("confidence"),
+                "demand_outlook": master.get("demand_outlook"),
+                "risk_level": master.get("risk_level"),
+                "action": master.get("action"),
             }
     except Exception:
         pass
@@ -400,11 +401,13 @@ def get_full_trading_context(role: str = "Admin") -> dict:
     try:
         from purchase_advisor_engine import PurchaseAdvisorEngine
         pa = PurchaseAdvisorEngine()
-        advice = pa.get_purchase_advice()
+        advice = pa.compute_urgency_index()
         if advice:
             ctx["purchase_urgency"] = {
-                "score": advice.get("urgency_score"),
-                "action": advice.get("action"),
+                "score": advice.get("urgency_index"),
+                "action": advice.get("recommendation"),
+                "detail": advice.get("recommendation_detail"),
+                "stock": advice.get("stock_recommendation"),
             }
     except Exception:
         pass

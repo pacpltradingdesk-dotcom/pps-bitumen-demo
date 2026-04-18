@@ -19,7 +19,7 @@ def generate_10_yr_historical_runs():
         from database import _get_conn
         conn = _get_conn()
         rows = conn.execute(
-            "SELECT date, price FROM price_history ORDER BY date ASC"
+            "SELECT date_time, price FROM price_history ORDER BY date_time ASC"
         ).fetchall()
         conn.close()
         if rows and len(rows) >= 10:

@@ -17,9 +17,9 @@ def _get_financial_data():
         from database import _get_conn
         conn = _get_conn()
         row = conn.execute(
-            "SELECT COUNT(*), COALESCE(SUM(total_value),0), "
+            "SELECT COUNT(*), COALESCE(SUM(total_value_inr),0), "
             "COALESCE(SUM(CASE WHEN payment_date IS NULL AND delivery_date IS NOT NULL "
-            "THEN total_value ELSE 0 END),0) FROM deals"
+            "THEN total_value_inr ELSE 0 END),0) FROM deals"
         ).fetchone()
         conn.close()
         total_val = float(row[1]) / 10000000  # to Cr

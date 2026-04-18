@@ -16,14 +16,14 @@ def _get_supplier_compliance():
         from database import _get_conn
         conn = _get_conn()
         rows = conn.execute(
-            "SELECT name, gstin, gst_status, category FROM suppliers "
+            "SELECT name, gstin, is_active, category FROM suppliers "
             "WHERE gstin IS NOT NULL AND gstin != '' LIMIT 20"
         ).fetchall()
         conn.close()
         if rows and len(rows) >= 3:
             result = []
             for r in rows:
-                status = r[2] or "Active"
+                status = "Active" if (r[2] or 0) else "Inactive"
                 is_psu = "iocl" in (r[0] or "").lower() or "bpcl" in (r[0] or "").lower() or "hpcl" in (r[0] or "").lower()
                 risk = 5 if is_psu else (15 if status == "Active" else 60)
                 result.append({

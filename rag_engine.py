@@ -161,9 +161,11 @@ def _load_documents() -> list[dict]:
     try:
         crude = _load_json(BASE / "tbl_crude_prices.json")
         if isinstance(crude, list) and crude:
-            latest = crude[-1] if crude else {}
-            brent = latest.get("brent_usd", "N/A")
-            wti = latest.get("wti_usd", "N/A")
+            brent_rows = [r for r in crude if str(r.get("benchmark", "")).upper() == "BRENT"]
+            wti_rows = [r for r in crude if str(r.get("benchmark", "")).upper() == "WTI"]
+            brent = f"{brent_rows[-1]['price']:.2f}" if brent_rows else "N/A"
+            wti = f"{wti_rows[-1]['price']:.2f}" if wti_rows else "N/A"
+            latest = brent_rows[-1] if brent_rows else (wti_rows[-1] if wti_rows else {})
             text = f"Latest crude oil prices: Brent ${brent}/bbl, WTI ${wti}/bbl"
             docs.append({"text": text, "source": "crude_prices", "metadata": latest})
     except Exception:
@@ -173,10 +175,11 @@ def _load_documents() -> list[dict]:
     try:
         fx = _load_json(BASE / "tbl_fx_rates.json")
         if isinstance(fx, list) and fx:
-            latest = fx[-1] if fx else {}
-            usd_inr = latest.get("USD_INR", latest.get("usd_inr", "N/A"))
-            text = f"Latest FX rate: USD/INR = {usd_inr}"
-            docs.append({"text": text, "source": "fx_rates", "metadata": latest})
+            usd_inr_rows = [r for r in fx if str(r.get("pair", "")) == "USD/INR"]
+            if usd_inr_rows:
+                latest = usd_inr_rows[-1]
+                text = f"Latest FX rate: USD/INR = {latest.get('rate', 'N/A')}"
+                docs.append({"text": text, "source": "fx_rates", "metadata": latest})
     except Exception:
         pass
 
@@ -185,8 +188,11 @@ def _load_documents() -> list[dict]:
         from database import _get_conn
         conn = _get_conn()
         rows = conn.execute(
-            "SELECT customer_name, city, grade, quantity_mt, status, created_at "
-            "FROM deals ORDER BY created_at DESC LIMIT 100"
+            "SELECT COALESCE(c.name,'Unknown') AS customer_name, "
+            "COALESCE(c.city,'') AS city, "
+            "d.grade, d.quantity_mt, d.status, d.created_at "
+            "FROM deals d LEFT JOIN customers c ON c.id = d.customer_id "
+            "ORDER BY d.created_at DESC LIMIT 100"
         ).fetchall()
         cols = [d[0] for d in conn.description]
         conn.close()

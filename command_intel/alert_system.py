@@ -33,9 +33,10 @@ def _get_overdue_alerts(now):
         from database import _get_conn
         conn = _get_conn()
         rows = conn.execute(
-            "SELECT customer_name, total_value, delivery_date, invoice_number "
-            "FROM deals WHERE payment_date IS NULL AND delivery_date IS NOT NULL "
-            "ORDER BY delivery_date ASC LIMIT 5"
+            "SELECT COALESCE(c.name,'Unknown'), d.total_value_inr, d.delivery_date, d.deal_number "
+            "FROM deals d LEFT JOIN customers c ON c.id = d.customer_id "
+            "WHERE d.payment_date IS NULL AND d.delivery_date IS NOT NULL "
+            "ORDER BY d.delivery_date ASC LIMIT 5"
         ).fetchall()
         conn.close()
         if rows:

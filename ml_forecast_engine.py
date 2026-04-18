@@ -160,13 +160,15 @@ def forecast_crude_price(days_ahead: int = 90) -> dict:
 
 
 def _build_crude_df(records: list) -> Optional[pd.DataFrame]:
-    """Build a Prophet-compatible DataFrame from crude price records."""
+    """Build a Prophet-compatible DataFrame from crude price records (Brent only)."""
     if not records:
         return None
     rows = []
     for r in records:
-        ts = r.get("timestamp") or r.get("date") or r.get("created_at", "")
-        price = r.get("brent_usd") or r.get("price") or r.get("value")
+        if str(r.get("benchmark", "")).upper() not in ("BRENT", ""):
+            continue
+        ts = r.get("date_time") or r.get("timestamp") or r.get("date", "")
+        price = r.get("price") or r.get("brent_usd") or r.get("value")
         if ts and price:
             try:
                 dt = pd.to_datetime(str(ts)[:19])

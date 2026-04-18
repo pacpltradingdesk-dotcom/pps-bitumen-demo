@@ -170,8 +170,8 @@ def _run_summarizer() -> dict:
             from ai_fallback_engine import ask_with_fallback
             processed = 0
             for article in recent[:5]:
-                title = article.get("title", "")
-                desc = article.get("description", article.get("summary", ""))
+                title = article.get("headline", article.get("title", ""))
+                desc = article.get("summary", article.get("description", ""))
                 if not title:
                     continue
                 prompt = (
@@ -209,7 +209,7 @@ def _run_extractor() -> dict:
 
         count = 0
         for article in data[-5:]:
-            title = article.get("title", "")
+            title = article.get("headline", article.get("title", ""))
             if title and not article.get("entities"):
                 entities = extract_entities(title)
                 if entities:

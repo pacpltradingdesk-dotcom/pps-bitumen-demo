@@ -58,9 +58,10 @@ def _collect_price_data() -> str:
     try:
         data = json.loads((BASE / "tbl_crude_prices.json").read_text(encoding="utf-8"))
         if isinstance(data, list) and data:
-            latest = data[-1]
-            brent = latest.get("brent_usd", "N/A")
-            wti = latest.get("wti_usd", "N/A")
+            brent_rows = [r for r in data if str(r.get("benchmark", "")).upper() == "BRENT"]
+            wti_rows = [r for r in data if str(r.get("benchmark", "")).upper() == "WTI"]
+            brent = f"{brent_rows[-1]['price']:.2f}" if brent_rows else "N/A"
+            wti = f"{wti_rows[-1]['price']:.2f}" if wti_rows else "N/A"
             return f"Crude prices: Brent ${brent}/bbl, WTI ${wti}/bbl"
     except Exception:
         pass
@@ -71,9 +72,9 @@ def _collect_fx_data() -> str:
     try:
         data = json.loads((BASE / "tbl_fx_rates.json").read_text(encoding="utf-8"))
         if isinstance(data, list) and data:
-            latest = data[-1]
-            usd_inr = latest.get("USD_INR", latest.get("usd_inr", "N/A"))
-            return f"FX Rate: USD/INR = {usd_inr}"
+            usd_inr_rows = [r for r in data if str(r.get("pair", "")) == "USD/INR"]
+            if usd_inr_rows:
+                return f"FX Rate: USD/INR = {usd_inr_rows[-1].get('rate', 'N/A')}"
     except Exception:
         pass
     return "FX data unavailable"

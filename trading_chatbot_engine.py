@@ -869,13 +869,17 @@ class TradingChatbot:
         if intent == "pricing":
             crude = _load_json(BASE / "tbl_crude_prices.json")
             if isinstance(crude, list) and crude:
-                latest = crude[-1]
-                lines.append(f"Latest Brent: ${latest.get('brent_usd', 'N/A')}/bbl")
-                lines.append(f"Latest WTI: ${latest.get('wti_usd', 'N/A')}/bbl")
+                brent_rows = [r for r in crude if str(r.get("benchmark", "")).upper() == "BRENT"]
+                wti_rows = [r for r in crude if str(r.get("benchmark", "")).upper() == "WTI"]
+                if brent_rows:
+                    lines.append(f"Latest Brent: ${brent_rows[-1].get('price', 'N/A'):.2f}/bbl")
+                if wti_rows:
+                    lines.append(f"Latest WTI: ${wti_rows[-1].get('price', 'N/A'):.2f}/bbl")
             fx = _load_json(BASE / "tbl_fx_rates.json")
             if isinstance(fx, list) and fx:
-                latest_fx = fx[-1]
-                lines.append(f"USD/INR: {latest_fx.get('USD_INR', latest_fx.get('usd_inr', 'N/A'))}")
+                usd_inr_rows = [r for r in fx if str(r.get("pair", "")) == "USD/INR"]
+                if usd_inr_rows:
+                    lines.append(f"USD/INR: {usd_inr_rows[-1].get('rate', 'N/A')}")
 
         elif intent == "buy_advice":
             if _purchase_advisor:

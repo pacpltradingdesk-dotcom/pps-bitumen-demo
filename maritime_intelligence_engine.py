@@ -423,7 +423,7 @@ class PortCongestionMonitor:
             score = 0
             recent = news[-50:] if len(news) > 50 else news
             for article in recent:
-                title = str(article.get("title", "")).lower()
+                title = str(article.get("headline", article.get("title", ""))).lower()
                 text = str(article.get("summary", article.get("description", ""))).lower()
                 combined = title + " " + text
 
@@ -766,10 +766,11 @@ class MultiModalMonitor:
             disruptions = []
             if news:
                 for article in news[-30:]:
-                    text = str(article.get("title", "")).lower()
+                    title = article.get("headline", article.get("title", ""))
+                    text = str(title).lower()
                     for kw in road_keywords:
                         if kw in text:
-                            disruptions.append(article.get("title", "")[:80])
+                            disruptions.append(str(title)[:80])
                             road_risk += 10
                             break
 
@@ -805,10 +806,11 @@ class MultiModalMonitor:
             disruptions = []
             if news:
                 for article in news[-30:]:
-                    text = str(article.get("title", "")).lower()
+                    title = article.get("headline", article.get("title", ""))
+                    text = str(title).lower()
                     for kw in rail_keywords:
                         if kw in text:
-                            disruptions.append(article.get("title", "")[:80])
+                            disruptions.append(str(title)[:80])
                             rail_risk += 12
                             break
 
