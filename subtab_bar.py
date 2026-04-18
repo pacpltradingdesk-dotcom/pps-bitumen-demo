@@ -199,130 +199,13 @@ def render_sidebar_features(module: str) -> str:
                         last_group = sub_group
                     _render_tab_button(tab, i, "adv")
 
-        # ── Active Customer Picker ─────────────────────────────────────
+        # ── Tutorial button ────────────────────────────────────────────
         st.markdown('<div style="margin-top:20px;"></div>', unsafe_allow_html=True)
-        try:
-            from navigation_engine import render_customer_picker_sidebar
-            render_customer_picker_sidebar()
-        except Exception:
-            pass
-
-        # ── Quick Find + Tutorial buttons ──────────────────────────────
-        st.markdown('<div style="margin-top:18px;"></div>', unsafe_allow_html=True)
-        try:
-            from command_palette import (render_command_palette_button,
-                                         render_command_palette,
-                                         inject_ctrl_k_listener)
-            render_command_palette_button()
-            render_command_palette()  # renders only if _show_cmd_palette is True
-            inject_ctrl_k_listener()
-        except Exception as _e_cp:
-            st.caption(f"Quick Find unavailable: {_e_cp}")
-
         if st.button("📖 Tutorial", key="_sidebar_tutorial_btn",
                      use_container_width=True, help="Guided tour phir se shuru karo"):
             st.session_state["_show_tutorial"] = True
             st.session_state["_tour_step"] = 0
             st.rerun()
-
-        # ── Quick Actions (functional popover actions) ─────────────────
-        st.markdown('<div style="margin-top:32px; margin-bottom:12px; font-size:0.65rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em; border-bottom:1px solid #E5E7EB; padding-bottom:8px;">QUICK ACTIONS</div>', unsafe_allow_html=True)
-
-        page_name = current_page.split(" ", 1)[-1] if " " in current_page else current_page
-
-        # Row 1: PDF, Print, Excel
-        r1 = st.columns(3)
-        with r1[0]:
-            with st.popover("📄", use_container_width=True, help="Export PDF"):
-                st.markdown(f"**Export: {page_name}**")
-                st.caption("Generate PDF of current page")
-                if st.button("Generate PDF", key="_qa_pdf_go", type="primary", use_container_width=True):
-                    try:
-                        from pdf_export_engine import PDFExportEngine
-                        eng = PDFExportEngine()
-                        eng.page_title = page_name
-                        pdf = eng.build()
-                        if pdf:
-                            st.download_button("Download", data=pdf,
-                                file_name=f"PPS_{page_name.replace(' ','_')}.pdf",
-                                mime="application/pdf", key="_qa_pdf_dl")
-                    except Exception:
-                        st.info("Use Ctrl+P in browser to print as PDF")
-        with r1[1]:
-            with st.popover("🖨️", use_container_width=True, help="Print"):
-                st.markdown("**Print Current Page**")
-                st.caption("Opens browser print dialog")
-                st.markdown("""
-<script>function ppsPrint(){window.print()}</script>
-<button onclick="ppsPrint()" style="background: var(--text-blue);color:white;border:none;
-padding:8px 16px;border-radius:6px;cursor:pointer;width:100%;font-weight:600;box-shadow:var(--shadow-sm); transition: var(--transition);">
-🖨️ Print Now</button>
-""", unsafe_allow_html=True)
-        with r1[2]:
-            with st.popover("📊", use_container_width=True, help="Export Excel"):
-                st.markdown(f"**Export: {page_name}**")
-                st.caption("Download data as Excel/CSV")
-                # Real action: jump to Reports / Export page where bulk
-                # exports actually happen, instead of just showing a tip.
-                if st.button("Open Export Reports", key="_qa_csv_go",
-                             type="primary", use_container_width=True):
-                    st.session_state["_nav_goto"] = "📤 Reports"
-                    st.rerun()
-                st.caption("Or hover any data table on the page and click ↓ to export inline.")
-
-        # Row 2: Share, WA, TG
-        r2 = st.columns(3)
-        with r2[0]:
-            with st.popover("🔗", use_container_width=True, help="Share"):
-                st.markdown(f"**Share: {page_name}**")
-                msg = f"🏛️ PPS ANANTAM — {page_name}\nCheck the latest data on PPS Bitumen Dashboard"
-                st.code(msg, language=None)
-                st.caption("Copy the text above and share")
-        with r2[1]:
-            with st.popover("📱", use_container_width=True, help="WhatsApp"):
-                st.markdown(f"**WhatsApp Share**")
-                wa_msg = f"🏛️ PPS ANANTAM — {page_name}\nLatest update from PPS Bitumen Dashboard"
-                try:
-                    from components.message_preview import render_msg_preview
-                    render_msg_preview(wa_msg, channel="whatsapp")
-                except Exception:
-                    pass
-                with st.expander("✏️ Edit message", expanded=False):
-                    st.text_area("Message", value=wa_msg, key="_qa_wa_msg", height=100)
-                phone = st.text_input("Phone (with +91)", placeholder="+919876543210", key="_qa_wa_ph")
-                if st.button("Send via WA", key="_qa_wa_send", type="primary", use_container_width=True):
-                    if phone:
-                        try:
-                            from database import _insert_row, _now_ist
-                            _insert_row("whatsapp_queue", {
-                                "to_number": phone, "message_type": "session",
-                                "session_text": wa_msg, "status": "queued",
-                                "created_at": _now_ist()
-                            })
-                            st.success("Queued for sending!")
-                        except Exception:
-                            st.info(f"Open WhatsApp: wa.me/{phone}")
-                    else:
-                        st.warning("Enter phone number")
-        with r2[2]:
-            with st.popover("✈️", use_container_width=True, help="Telegram"):
-                st.markdown(f"**Telegram Share**")
-                tg_msg = f"🏛️ PPS ANANTAM — {page_name}\nLatest update from PPS Bitumen Dashboard"
-                try:
-                    from components.message_preview import render_msg_preview
-                    render_msg_preview(tg_msg, channel="telegram")
-                except Exception:
-                    pass
-                with st.expander("✏️ Edit message", expanded=False):
-                    st.text_area("Message", value=tg_msg, key="_qa_tg_msg", height=100)
-                if st.button("Send to All Chats", key="_qa_tg_send", type="primary", use_container_width=True):
-                    try:
-                        from telegram_engine import broadcast_message
-                        results = broadcast_message(tg_msg)
-                        sent = sum(1 for r in results if r.get("ok"))
-                        st.success(f"Sent to {sent} chat(s)!")
-                    except Exception:
-                        st.info("Configure Telegram bot in System > Telegram Dashboard first")
 
         # ── Sticky Notes (News + Market) ──────────────────────────────────
         st.markdown('<div style="height:24px;"></div>', unsafe_allow_html=True)
@@ -409,21 +292,42 @@ def _render_sticky_notes():
             unsafe_allow_html=True,
         )
 
-    # ── NEWS HEADLINES ──────────────────────────────────────────────────
+    # ── NEWS HEADLINES — major only (impact_score >= 70) ───────────────
     news_items = []
     try:
-        news_path = _ROOT / "tbl_news_feed.json"
-        if news_path.exists():
-            with open(news_path, "r", encoding="utf-8") as f:
-                all_news = json.load(f)
+        # Prefer articles.json (has impact_score) — filter to "major" news
+        articles_path = _ROOT / "news_data" / "articles.json"
+        if articles_path.exists():
+            with open(articles_path, "r", encoding="utf-8") as f:
+                all_articles = json.load(f)
+            major = [a for a in all_articles if (a.get("impact_score") or 0) >= 70]
+            major.sort(key=lambda a: a.get("published_at_ist", a.get("fetched_at_ist", "")),
+                       reverse=True)
             seen = set()
-            for n in reversed(all_news):
-                h = n.get("headline", "")
+            for a in major:
+                h = a.get("headline", "")
                 if h and h[:60] not in seen:
                     seen.add(h[:60])
-                    news_items.append(n)
+                    news_items.append({
+                        "headline": h,
+                        "publisher": a.get("source_name", a.get("publisher", "")),
+                    })
                 if len(news_items) >= 3:
                     break
+        # Fallback to tbl_news_feed.json if articles.json absent / empty
+        if not news_items:
+            news_path = _ROOT / "tbl_news_feed.json"
+            if news_path.exists():
+                with open(news_path, "r", encoding="utf-8") as f:
+                    all_news = json.load(f)
+                seen = set()
+                for n in reversed(all_news):
+                    h = n.get("headline", "")
+                    if h and h[:60] not in seen:
+                        seen.add(h[:60])
+                        news_items.append(n)
+                    if len(news_items) >= 3:
+                        break
     except Exception:
         pass
 
