@@ -819,7 +819,7 @@ border-top:3px solid {r_color};">
 
     # Share button
     try:
-        from share_button import render_share_button
+        from legacy_share_popover import render_share_button
         render_share_button(
             section_id="maritime_daily_summary",
             section_title="Maritime Logistics Daily Summary",

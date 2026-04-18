@@ -474,7 +474,7 @@ def _render_share_panel(sk: str, page_name: str, get_ctx_fn):
                 if st.button("📤 Send", type="primary", key=f"{sk}_share_send"):
                     if recipients:
                         try:
-                            from share_button import _execute_send
+                            from legacy_share_popover import _execute_send
                             subject = f"PPS Anantam — {page_name}"
                             _execute_send(ch_key, recipients, edited, subject, page_name)
                             st.success(f"Sent to {len(recipients)} recipient(s)!")

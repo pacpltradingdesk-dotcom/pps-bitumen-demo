@@ -5,7 +5,7 @@ Drop-in share button for any dashboard section.
 Uses st.popover for compact UI within any page.
 
 Usage:
-    from share_button import render_share_button
+    from legacy_share_popover import render_share_button
     render_share_button(
         section_id="price_chart_1",
         section_title="Brent Crude Price Trend",
