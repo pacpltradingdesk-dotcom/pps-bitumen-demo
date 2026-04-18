@@ -113,15 +113,21 @@ def _composite_signal() -> tuple[str, int] | None:
 
 
 def _alerts_count() -> int | None:
-    try:
-        data = json.loads((_ROOT / "alerts.json").read_text(encoding="utf-8"))
+    """Count active alerts — SRE + market, matching what command_center shows."""
+    total = 0
+    seen = False
+    for fname in ("sre_alerts.json", "market_alerts.json"):
+        try:
+            data = json.loads((_ROOT / fname).read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        seen = True
         if isinstance(data, list):
-            return sum(1 for a in data if a.get("status") != "dismissed")
-        if isinstance(data, dict):
-            return len(data.get("active", []))
-    except Exception:
-        return None
-    return None
+            total += sum(1 for a in data
+                         if isinstance(a, dict) and a.get("status") != "dismissed")
+        elif isinstance(data, dict):
+            total += len(data.get("active", []))
+    return total if seen else None
 
 
 def _fmt_int(n: int | None) -> str:
