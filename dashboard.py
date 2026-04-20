@@ -830,9 +830,6 @@ PAGE_DISPATCH = {
     "📤 Share Center": lambda: _safe_render(
         lambda: __import__("pages.sharing.share_center", fromlist=["render"]).render(),
         "Share Center"),
-    "✈️ Telegram Dashboard": lambda: _safe_render(
-        lambda: __import__("pages.sharing.telegram_dashboard", fromlist=["render"]).render(),
-        "Telegram Dashboard"),
 }
 
 

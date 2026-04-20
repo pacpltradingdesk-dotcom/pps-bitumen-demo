@@ -1,4 +1,4 @@
-"""Shared helpers for sharing sub-pages (share_center, telegram_dashboard)."""
+"""Shared helpers for sharing sub-pages (share_center)."""
 from __future__ import annotations
 import json
 from pathlib import Path

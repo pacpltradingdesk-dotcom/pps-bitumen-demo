@@ -290,7 +290,7 @@ def _step5_commit():
         if st.button("Open Contacts Directory"):
             try:
                 from navigation_engine import navigate_to
-                navigate_to("contacts_directory_dashboard")
+                navigate_to("📱 Contacts Directory")
             except Exception:
                 pass
     with c2:

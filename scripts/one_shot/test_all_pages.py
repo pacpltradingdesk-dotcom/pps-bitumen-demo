@@ -25,7 +25,6 @@ MODULES = [
     ("pages.intelligence.telegram_analyzer", "Telegram Analyzer"),
     ("pages.logistics.ecosystem", "Ecosystem"),
     ("pages.sharing.share_center", "Share Center"),
-    ("pages.sharing.telegram_dashboard", "Telegram Dashboard"),
     ("pages.system.settings_page", "Settings"),
     ("pages.system.sync_status", "Sync Status"),
     ("pages.system.knowledge_base", "Knowledge Base"),

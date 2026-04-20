@@ -92,7 +92,7 @@ MODULE_NAV: dict[str, dict] = {
         "icon": "📤", "label": "Sharing",
         "tabs": [
             {"label": "Share Center", "page": "📤 Share Center"},
-            {"label": "Telegram", "page": "✈️ Telegram Dashboard"},
+            {"label": "Telegram Analyzer", "page": "📡 Telegram Analyzer"},
             {"label": "Rate Broadcast", "page": "📡 Rate Broadcast"},
             {"label": "Comm Tracking", "page": "📊 Comm Tracking"},
             {"label": "Client Showcase", "page": "🌐 Client Showcase"},

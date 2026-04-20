@@ -357,8 +357,8 @@ NEXT_STEPS: dict[str, list[dict]] = {
     "📤 Share Center": [
         {"label": "Schedule Broadcast", "page": "📡 Rate Broadcast",
          "icon": "📡", "helper": "To 25K contacts"},
-        {"label": "Telegram Channels", "page": "✈️ Telegram Dashboard",
-         "icon": "✈️", "helper": "Bot-driven broadcast"},
+        {"label": "Telegram Analyzer", "page": "📡 Telegram Analyzer",
+         "icon": "📡", "helper": "Channel intel + broadcast"},
         {"label": "Track Delivery", "page": "📊 Comm Tracking",
          "icon": "📊", "helper": "Who received"},
     ],
@@ -409,8 +409,8 @@ NEXT_STEPS: dict[str, list[dict]] = {
          "icon": "📰", "helper": "Cross-reference"},
         {"label": "Competitor Intel", "page": "🕵️ Competitor Intelligence",
          "icon": "🕵️", "helper": "Other sources"},
-        {"label": "Telegram Dashboard", "page": "✈️ Telegram Dashboard",
-         "icon": "✈️", "helper": "Bot management"},
+        {"label": "Telegram Analyzer", "page": "📡 Telegram Analyzer",
+         "icon": "📡", "helper": "Channel intel"},
     ],
     "🏗️ NHAI Tenders": [
         {"label": "Road Budget & Demand", "page": "🛣️ Road Budget & Demand",
@@ -563,15 +563,6 @@ NEXT_STEPS: dict[str, list[dict]] = {
          "icon": "🔗", "helper": "Data sources"},
     ],
 
-    # ── Sharing (remaining) ─────────────────────────────────────────────
-    "✈️ Telegram Dashboard": [
-        {"label": "Share Center", "page": "📤 Share Center",
-         "icon": "📤", "helper": "Cross-channel"},
-        {"label": "Telegram Analyzer", "page": "📡 Telegram Analyzer",
-         "icon": "📡", "helper": "Inbound intel"},
-        {"label": "Comm Tracking", "page": "📊 Comm Tracking",
-         "icon": "📊", "helper": "Delivery logs"},
-    ],
     "📊 Comm Tracking": [
         {"label": "Communication Hub", "page": "💬 Communication Hub",
          "icon": "💬", "helper": "Send more"},
