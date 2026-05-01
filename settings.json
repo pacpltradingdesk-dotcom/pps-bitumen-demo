@@ -87,7 +87,7 @@
   "infra_demand_enabled": true,
   "gdelt_sync_interval_min": 120,
   "infra_backfill_months": 24,
-  "rbac_enabled": false,
+  "rbac_enabled": true,
   "rbac_default_role": "viewer",
   "rbac_session_timeout_min": 1440,
   "action_bar_enabled": true,
