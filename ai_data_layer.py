@@ -68,9 +68,9 @@ def get_price_snapshot() -> dict:
             "VG30_HPCL_Mumbai_basic_per_MT":        p.get("HPCL Mumbai",          48100),
             "VG30_HPCL_Ghaziabad_basic_per_MT":     p.get("HPCL Bhatinda",        46390),
             "VG30_CPCL_Chennai_basic_per_MT":       p.get("CPCL Chennai",         47800),
-            # Drum
-            "DRUM_Mumbai_VG30_per_MT":              p.get("DRUM_MUMBAI_VG30",     57500),
-            "DRUM_Kandla_VG30_per_MT":              p.get("DRUM_KANDLA_VG30",     55800),
+            # Drum — fallbacks aligned with calculation_engine.py canonical map
+            "DRUM_Mumbai_VG30_per_MT":              p.get("DRUM_MUMBAI_VG30",     37000),
+            "DRUM_Kandla_VG30_per_MT":              p.get("DRUM_KANDLA_VG30",     35500),
             # Logistics
             "bulk_transport_per_km_per_MT":         p.get("BULK_RATE_PER_KM",       2.5),
             "drum_transport_per_km_per_MT":         p.get("DRUM_RATE_PER_KM",       6.0),

@@ -67,12 +67,14 @@ SERVICE_PARTY_FILE = "service_providers.json" # Logistics & Services
 
 # ============ GENERIC IO FUNCTIONS ============
 
-def load_json_file(filepath, default_data=[]):
+def load_json_file(filepath, default_data=None):
+    if default_data is None:
+        default_data = []
     if os.path.exists(filepath):
         try:
             with open(filepath, 'r') as f:
                 return json.load(f)
-        except:
+        except Exception:
             return default_data
     return default_data
 

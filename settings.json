@@ -314,7 +314,7 @@
   "test_whatsapp": "919969562424",
   "default_broadcast_phone": "+91 9969562424",
   "default_broadcast_email": "princepshah20@gmail.com",
-  "openai_api_key": "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",
+  "openai_api_key": "",
   "ai_provider": "openai",
   "ai_default_provider": "openai",
   "ai_primary_provider": "openai",

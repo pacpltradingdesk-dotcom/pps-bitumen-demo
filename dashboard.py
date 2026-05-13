@@ -838,6 +838,19 @@ PAGE_DISPATCH = {
 # ═══════════════════════════════════════════════════════════════════════════════
 
 handler = PAGE_DISPATCH.get(selected_page)
+# RBAC enforcement: block dispatch if current role lacks access to this page.
+# Sidebar already hides restricted links, but session_state can be manipulated.
+try:
+    from role_engine import check_page_access, get_current_role
+    from nav_config import PAGE_ROLE_MAP
+    if handler and not check_page_access(selected_page):
+        required = PAGE_ROLE_MAP.get(selected_page, "viewer")
+        st.error(f"🔒 Access denied — '{selected_page}' requires '{required}' role. Current: '{get_current_role()}'.")
+        st.info("Contact your admin if you need access, or pick a page from your sidebar.")
+        st.stop()
+except ImportError:
+    pass
+
 if handler:
     handler()
     # Central hook: render contextual Next Step cards after EVERY page.
