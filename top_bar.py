@@ -4,9 +4,18 @@ White pill-shaped branded header with logo + Streamlit button navigation.
 """
 import streamlit as st
 import base64
-from nav_config import MODULE_NAV, TOPBAR_MODULES, OVERFLOW_MODULES
+from nav_config import MODULE_NAV, TOPBAR_MODULES, OVERFLOW_MODULES, MODULE_ROLE_MAP
 import json
 from pathlib import Path
+
+
+def _allowed(mod_key: str) -> bool:
+    """True if current user's role can access this module."""
+    try:
+        from role_engine import check_role
+        return check_role(MODULE_ROLE_MAP.get(mod_key, "viewer"))
+    except Exception:
+        return True
 
 _ROOT = Path(__file__).parent
 
@@ -112,13 +121,26 @@ def render_top_bar() -> None:
         }
     }
     </style>""", unsafe_allow_html=True)
-    num_modules = len(TOPBAR_MODULES)
-    if OVERFLOW_MODULES:
-        cols = st.columns(num_modules + 1)  # +1 for More
-    else:
-        cols = st.columns(num_modules)
+    # RBAC: filter modules user can access
+    visible_topbar = [m for m in TOPBAR_MODULES if _allowed(m)]
+    visible_overflow = [m for m in OVERFLOW_MODULES if _allowed(m)]
 
-    for i, mod_key in enumerate(TOPBAR_MODULES):
+    # If active module is now hidden for this role, switch to first allowed
+    if current_module not in visible_topbar + visible_overflow and visible_topbar:
+        fallback = visible_topbar[0]
+        st.session_state["_active_module"] = fallback
+        st.session_state["selected_page"] = MODULE_NAV[fallback]["tabs"][0]["page"]
+        current_module = fallback
+
+    num_modules = len(visible_topbar)
+    if visible_overflow:
+        cols = st.columns(num_modules + 1)  # +1 for More
+    elif num_modules:
+        cols = st.columns(num_modules)
+    else:
+        cols = []
+
+    for i, mod_key in enumerate(visible_topbar):
         mod = MODULE_NAV.get(mod_key, {})
         is_active = (mod_key == current_module)
         with cols[i]:
@@ -132,8 +154,8 @@ def render_top_bar() -> None:
                 st.session_state["selected_page"] = mod["tabs"][0]["page"]
                 st.rerun()
 
-    # More button (only if overflow modules exist)
-    if OVERFLOW_MODULES:
+    # More button (only if user has access to any overflow module)
+    if visible_overflow:
         with cols[num_modules]:
             more_active = current_module in OVERFLOW_MODULES
             if st.button(
@@ -145,11 +167,11 @@ def render_top_bar() -> None:
                 st.session_state["_more_open"] = not st.session_state.get("_more_open", False)
                 st.rerun()
 
-        # Overflow row (only when More is clicked)
+        # Overflow row (only when More is clicked) — filtered by role
         if st.session_state.get("_more_open", False):
             st.markdown('<div style="height: 8px;"></div>', unsafe_allow_html=True)
-            ov_cols = st.columns(len(OVERFLOW_MODULES))
-            for j, mod_key in enumerate(OVERFLOW_MODULES):
+            ov_cols = st.columns(len(visible_overflow))
+            for j, mod_key in enumerate(visible_overflow):
                 mod = MODULE_NAV.get(mod_key, {})
                 with ov_cols[j]:
                     if st.button(

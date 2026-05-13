@@ -63,13 +63,22 @@ def render_sidebar_features(module: str) -> str:
     if not mod:
         return "🎯 Command Center"
 
-    tabs = mod["tabs"]
+    # RBAC: filter out tabs the current user cannot access
+    try:
+        from role_engine import check_page_access
+        tabs = [t for t in mod["tabs"] if check_page_access(t["page"])]
+    except Exception:
+        tabs = mod["tabs"]
+    if not tabs:
+        return "🎯 Command Center"
+
     current_page = st.session_state.get("selected_page", tabs[0]["page"])
 
-    # Ensure current_page belongs to this module, otherwise default to first feature
+    # Ensure current_page belongs to this module + is accessible
     module_pages = [t["page"] for t in tabs]
     if current_page not in module_pages:
         current_page = tabs[0]["page"]
+        st.session_state["selected_page"] = current_page
 
     with st.sidebar:
         # ── Active Tour (floating tooltip — rendered near actual button) ──
