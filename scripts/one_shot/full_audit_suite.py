@@ -47,7 +47,7 @@ class TestBitumenSystem(unittest.TestCase):
                     with open(db, 'r') as f:
                         json.load(f)
                     print(f"✅ DB Verified: {db}")
-                except:
+                except Exception:
                     self.fail(f"❌ CORRUPT DB: {db}")
 
     # =================================================================
