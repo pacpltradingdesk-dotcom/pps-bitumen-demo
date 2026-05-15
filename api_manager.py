@@ -9,6 +9,7 @@ All times in IST (Asia/Kolkata) | Format: DD-MM-YYYY HH:MM:SS
 Security: No API keys stored in frontend. Config-driven. Keys via environment only.
 """
 
+import os
 import json
 import time
 import threading
@@ -68,8 +69,9 @@ def _load_json(path: Path, default):
 
 def _save_json(path: Path, data):
     with _lock:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+        tmp = path.with_suffix('.tmp')
+        tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding='utf-8')
+        os.replace(tmp, path)
 
 def _append_record(path: Path, record: dict, max_records: int = 500):
     """Append one record to a JSON list file, keeping only max_records."""

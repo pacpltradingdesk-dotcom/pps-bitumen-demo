@@ -15,7 +15,7 @@ def load_sos_data():
         try:
             with open(SOS_FILE, 'r') as f:
                 return json.load(f)
-        except:
+        except Exception:
             return []
     return []
 

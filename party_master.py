@@ -79,8 +79,11 @@ def load_json_file(filepath, default_data=None):
     return default_data
 
 def save_json_file(filepath, data):
-    with open(filepath, 'w') as f:
-        json.dump(data, f, indent=2)
+    from pathlib import Path
+    p = Path(filepath) if not isinstance(filepath, Path) else filepath
+    tmp = p.with_suffix('.tmp')
+    tmp.write_text(json.dumps(data, indent=2), encoding='utf-8')
+    os.replace(tmp, p)
 
 # ============ SPECIFIC LOAD/SAVE FUNCTIONS ============
 

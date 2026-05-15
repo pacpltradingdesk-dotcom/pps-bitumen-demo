@@ -30,6 +30,7 @@ DB Schema equivalent:
 
 from __future__ import annotations
 
+import os
 import datetime
 import hashlib
 import json
@@ -527,7 +528,9 @@ def _load_json(path: Path, default) -> list:
 def _save_json(path: Path, data: list, max_items: int = 5000):
     if len(data) > max_items:
         data = data[-max_items:]
-    path.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+    tmp = path.with_suffix('.tmp')
+    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding='utf-8')
+    os.replace(tmp, path)
 
 def load_articles() -> list[dict]:
     articles = _load_json(ARTICLES_FILE, [])

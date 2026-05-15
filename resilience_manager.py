@@ -16,6 +16,7 @@ Zero external dependencies (no Redis, Celery, Postgres).
 
 from __future__ import annotations
 
+import os
 import json
 import time
 import threading
@@ -48,8 +49,9 @@ def _load_json(path: Path, default=None):
 def _save_json(path: Path, data):
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False, default=str)
+        tmp = path.with_suffix('.tmp')
+        tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False, default=str), encoding='utf-8')
+        os.replace(tmp, path)
     except Exception:
         pass
 

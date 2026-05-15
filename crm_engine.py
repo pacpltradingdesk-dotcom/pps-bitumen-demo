@@ -10,6 +10,7 @@ v3.0 changes:
   - Activities still in JSON (lightweight, append-only)
 """
 
+import os
 import json
 import datetime
 import uuid
@@ -74,9 +75,11 @@ def _load_json(filepath, default=None):
     return default
 
 
-def _save_json(filepath, data):
-    with open(filepath, 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=2, ensure_ascii=False, default=str)
+def _save_json(path, data):
+    p = Path(path) if not isinstance(path, Path) else path
+    tmp = p.with_suffix('.tmp')
+    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False, default=str), encoding='utf-8')
+    os.replace(tmp, p)
 
 
 def get_activities(): return _load_json(ACTIVITIES_FILE)

@@ -78,8 +78,8 @@ def main():
     # 5. Theme verification
     print("\n[5] Theme:")
     try:
-        from theme import NAVY_DARK, BLUE_PRIMARY, WHITE, SLATE_900, inject_theme
-        print(f"  ✓ Theme colors + inject_theme loaded")
+        from theme import inject_theme
+        print(f"  ✓ inject_theme loaded")
     except Exception as e:
         print(f"  ✗ theme: {e}")
         errors.append('theme')

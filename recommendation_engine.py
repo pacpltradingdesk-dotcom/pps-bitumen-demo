@@ -24,6 +24,7 @@ Storage:
 """
 from __future__ import annotations
 
+import os
 import json
 import logging
 import datetime
@@ -95,8 +96,9 @@ def _load_json(path: Path, default: Any = None) -> Any:
 
 def _save_json(path: Path, data: Any) -> None:
     try:
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False, default=str)
+        tmp = path.with_suffix('.tmp')
+        tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False, default=str), encoding='utf-8')
+        os.replace(tmp, path)
     except (IOError, OSError) as exc:
         LOG.warning("Failed to save %s: %s", path.name, exc)
 

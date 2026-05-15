@@ -1144,7 +1144,7 @@ def _tab_bitumen_demand():
     disp.columns    = ["Contractor","Project","State","Type","km","Low MT","Base MT","High MT","Grade","Method","Conf%"]
     def color_conf(val):
         try: return f"color:{CONFIDENCE_COLOR(int(val))}"
-        except: return ""
+        except Exception: return ""
     st.dataframe(disp.style.applymap(color_conf, subset=["Conf%"]), use_container_width=True, hide_index=True)
 
     st.markdown("---")

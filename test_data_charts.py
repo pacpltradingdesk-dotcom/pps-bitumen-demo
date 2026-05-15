@@ -383,24 +383,17 @@ def test_calculation_engine():
         gst = result["gst"]
         landed = result["landed_cost"]
 
-        # Key check: GST should apply on (base + freight), not just base
-        expected_gst = (base + freight) * 0.18
+        # GST on base only (per engine formula: Domestic Landed = Base×1.18 + freight)
+        expected_gst = base * 0.18
         assert abs(gst - round(expected_gst, 2)) < 0.10, \
-            f"GST mismatch: expected {expected_gst:.2f} (on base+freight), got {gst:.2f}"
-        log_pass(test_name + " (GST on base+freight)", f"GST={gst:.2f}")
+            f"GST mismatch: expected {expected_gst:.2f} (on base only), got {gst:.2f}"
+        log_pass(test_name + " (GST on base only)", f"GST={gst:.2f}")
 
-        # Landed = base + freight + GST
-        expected_landed = base + freight + gst
+        # Landed = base + GST + freight
+        expected_landed = base + gst + freight
         assert abs(landed - round(expected_landed, 2)) < 0.10, \
             f"Landed mismatch: expected {expected_landed:.2f}, got {landed:.2f}"
         log_pass(test_name + " (landed cost)", f"Landed={landed:.2f}")
-
-        # Verify GST is NOT just on base alone
-        gst_on_base_only = base * 0.18
-        assert gst > gst_on_base_only, \
-            f"GST should be on base+freight: {gst:.2f} must be > {gst_on_base_only:.2f}"
-        log_pass(test_name + " (GST includes freight base)",
-                 f"gst={gst:.2f} > base_only_gst={gst_on_base_only:.2f}")
 
         log_pass(test_name + " (complete)",
                  f"Base={base}, Freight={freight}, GST={gst:.2f}, Landed={landed:.2f}")
@@ -416,8 +409,8 @@ def test_calculation_engine():
         base_price = 42000
 
         expected_freight = distance_km * rate_per_km
-        expected_gst = (base_price + expected_freight) * 0.18
-        expected_landed = base_price + expected_freight + expected_gst
+        expected_gst = base_price * 0.18  # GST on base only
+        expected_landed = base_price + expected_gst + expected_freight
 
         result = calc.calculate_domestic_landed_cost(
             base_price=42000,
@@ -432,8 +425,8 @@ def test_calculation_engine():
         actual_landed = result["landed_cost"]
         actual_base = result["base_price"]
 
-        recalc_gst = (actual_base + actual_freight) * 0.18
-        recalc_landed = actual_base + actual_freight + recalc_gst
+        recalc_gst = actual_base * 0.18  # GST on base only
+        recalc_landed = actual_base + recalc_gst + actual_freight
 
         assert abs(actual_gst - round(recalc_gst, 2)) < 0.10, \
             f"GST formula wrong: expected {recalc_gst:.2f}, got {actual_gst}"

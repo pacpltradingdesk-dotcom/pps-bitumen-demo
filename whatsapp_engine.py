@@ -6,7 +6,7 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(__file__)))
     try:
         from india_localization import format_inr, format_inr_short, format_date, format_datetime_ist, get_financial_year, get_fy_quarter
-    except:
+    except Exception:
         pass
 """
 PPS Anantam — Auto WhatsApp Engine v1.0 (360dialog)

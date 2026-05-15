@@ -460,12 +460,12 @@ document.getElementById('btnR').onclick=function(e){{e.stopPropagation();if(froz
             color = "#EF4444" if (is_up and invert) or (not is_up and not invert) else "#10B981"
             arrow = "▲" if is_up else "▼"
             return f'<span style="font-size:0.6rem;color:{color};font-weight:700;">{arrow} {prefix}{abs(diff):.2f}{suffix} ({abs(pct):.1f}%)</span>'
-        except: return ""
+        except Exception: return ""
 
     brent_chg = _change_badge(brent_val, prev_brent, "$")
     wti_chg = _change_badge(wti_val, prev_wti, "$")
     try: usdinr_val = float(str(usdinr).replace(",","")); usdinr_chg = _change_badge(usdinr_val, prev_usdinr, "₹", invert=True)
-    except: usdinr_val = 0; usdinr_chg = ""
+    except Exception: usdinr_val = 0; usdinr_chg = ""
     vg30_chg = _change_badge(vg30_k, prev_vg30, "₹")
 
     # Urgency bar width
@@ -760,7 +760,7 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
             all_scores = []
             for sig in signal_items:
                 try: all_scores.append(float(sig.get("score", 50)))
-                except: pass
+                except Exception: pass
             composite = sum(all_scores) / len(all_scores) if all_scores else 50
             comp_color = "#10B981" if composite > 60 else "#EF4444" if composite < 40 else "#F59E0B"
             comp_label = "BULLISH" if composite > 60 else "BEARISH" if composite < 40 else "NEUTRAL"
@@ -789,7 +789,7 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
             for sig in signal_items[:12]:
                 score = sig.get("score", 50)
                 try: score = float(score)
-                except: score = 50
+                except Exception: score = 50
                 color = "#10B981" if score > 60 else "#EF4444" if score < 40 else "#F59E0B"
                 bar_width = min(max(score, 5), 100)
                 direction = "Bullish ▲" if score > 60 else "Bearish ▼" if score < 40 else "Neutral ●"
@@ -922,7 +922,7 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
     last_sync = "Never"
     if isinstance(sync_logs, list) and sync_logs:
         try: last_sync = sync_logs[-1].get("timestamp", sync_logs[-1].get("date", "Unknown"))[:16]
-        except: pass
+        except Exception: pass
     elif isinstance(sync_logs, dict):
         last_sync = sync_logs.get("last_sync", sync_logs.get("timestamp", "Unknown"))
         if isinstance(last_sync, str) and len(last_sync) > 16: last_sync = last_sync[:16]

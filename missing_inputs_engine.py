@@ -10,6 +10,7 @@ Priority Levels:
   Low    — Enhances reporting and analytics
 """
 
+import os
 import json
 import datetime
 from pathlib import Path
@@ -45,8 +46,10 @@ def _load_json(path, default=None):
 
 
 def _save_json(path, data):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False, default=str)
+    p = Path(path) if not isinstance(path, Path) else path
+    tmp = p.with_suffix('.tmp')
+    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False, default=str), encoding='utf-8')
+    os.replace(tmp, p)
 
 
 # ─── Field Definitions ───────────────────────────────────────────────────────

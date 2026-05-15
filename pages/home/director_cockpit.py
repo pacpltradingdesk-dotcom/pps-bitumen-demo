@@ -26,13 +26,13 @@ def _get_market_prices():
         if isinstance(c, dict) and c.get("benchmark") and c.get("price"):
             nm = str(c["benchmark"]).upper()
             try: pv = float(str(c["price"]).replace("$","").replace(",",""))
-            except: continue
+            except Exception: continue
             if "BRENT" in nm: p["brent"] = pv
             elif "WTI" in nm: p["wti"] = pv
     for r in hub.get("frankfurter_fx", {}).get("data", []):
         if isinstance(r, dict) and "INR" in r.get("pair","").upper():
             try: p["usd_inr"] = round(float(r.get("rate", 83.5)), 2)
-            except: pass
+            except Exception: pass
             break
     lp = _load_json("live_prices.json")
     p["vg30"] = lp.get("DRUM_KANDLA_VG30", lp.get("DRUM_MUMBAI_VG30", 35500))
@@ -50,32 +50,32 @@ def _get_ai_signal():
         elif c < 40: l, cl = "SELL", "#EF4444"
         else: l, cl = "HOLD", "#F59E0B"
         return {"label": l, "confidence": c, "color": cl, "direction": d, "action": a}
-    except: return {"label":"HOLD","confidence":50,"color":"#F59E0B","direction":"SIDEWAYS","action":"Monitor market"}
+    except Exception: return {"label":"HOLD","confidence":50,"color":"#F59E0B","direction":"SIDEWAYS","action":"Monitor market"}
 
 def _get_alerts(n=3):
     try:
         from database import get_alerts
         a = get_alerts(status="new", limit=n)
         return a if a else []
-    except: return []
+    except Exception: return []
 
 def _get_hot_leads():
     try:
         from crm_engine import get_due_tasks
         return get_due_tasks("Overdue") + get_due_tasks("Today")
-    except: return []
+    except Exception: return []
 
 def _find_sources(city, grade, lt, n=3):
     try:
         from calculation_engine import get_engine
         return get_engine().find_best_sources(city, grade=grade, load_type=lt, top_n=n)
-    except: return []
+    except Exception: return []
 
 def _get_offer_tiers(lc):
     try:
         from calculation_engine import get_engine
         return get_engine().generate_offer_prices(lc)
-    except: return {"aggressive":{"price":lc+500,"margin":500},"balanced":{"price":lc+1000,"margin":1000},"premium":{"price":lc+1500,"margin":1500}}
+    except Exception: return {"aggressive":{"price":lc+500,"margin":500},"balanced":{"price":lc+1000,"margin":1000},"premium":{"price":lc+1500,"margin":1500}}
 
 def _gen_wa_msg(cust, city, grade, qty, price, src=""):
     try:
@@ -86,7 +86,7 @@ def _gen_wa_msg(cust, city, grade, qty, price, src=""):
         # Defensive: strip any lone surrogates so downstream UTF-8 encoding
         # (Streamlit response, PDF export) doesn't raise.
         return "".join(c for c in msg if not 0xD800 <= ord(c) <= 0xDFFF)
-    except: return f"Dear {cust},\n\nPPS Anantams - Rate Offer\nGrade: {grade} | Qty: {qty} MT\nPrice: Rs.{price:,.0f}/MT\nCity: {city}\n\n100% Advance | 24hr Validity\nPrince P Shah | +91 7795242424"
+    except Exception: return f"Dear {cust},\n\nPPS Anantams - Rate Offer\nGrade: {grade} | Qty: {qty} MT\nPrice: Rs.{price:,.0f}/MT\nCity: {city}\n\n100% Advance | 24hr Validity\nPrince P Shah | +91 7795242424"
 
 
 from components.message_preview import render_msg_preview as _render_msg_preview
@@ -95,14 +95,14 @@ def _log_crm(cust, ch, content):
     try:
         from database import log_communication
         log_communication({"customer_id":cust,"channel":ch,"direction":"outbound","subject":f"Quote via {ch}","content":content[:500],"template_used":"cockpit","sent_at":datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),"status":"sent"})
-    except: pass
+    except Exception: pass
 
 def _make_followup(cust, days=3):
     try:
         from crm_engine import add_task
         d = (datetime.datetime.now()+datetime.timedelta(days=days)).strftime("%d-%m-%Y %H:%M")
         add_task(cust, "Call", d, priority="High", note="Follow-up on Cockpit quote")
-    except: pass
+    except Exception: pass
 
 
 # ─── Premium CSS Design System ──────────────────────────────────────────────
@@ -527,25 +527,25 @@ def _step5():
     with s1:
         if st.button("WhatsApp", type="primary", key="sw", use_container_width=True):
             try: _log_crm(cu,"WhatsApp",msg)
-            except: pass
+            except Exception: pass
             try: _make_followup(cu)
-            except: pass
+            except Exception: pass
             st.session_state["_ck_snt"] = "WhatsApp"
             st.rerun()
     with s2:
         if st.button("Email", key="se", use_container_width=True):
             try: _log_crm(cu,"Email",msg)
-            except: pass
+            except Exception: pass
             try: _make_followup(cu)
-            except: pass
+            except Exception: pass
             st.session_state["_ck_snt"] = "Email"
             st.rerun()
     with s3:
         if st.button("Telegram", key="st", use_container_width=True):
             try: _log_crm(cu,"Telegram",msg)
-            except: pass
+            except Exception: pass
             try: _make_followup(cu)
-            except: pass
+            except Exception: pass
             st.session_state["_ck_snt"] = "Telegram"
             st.rerun()
     with s4:
@@ -561,9 +561,9 @@ def _step5():
             except Exception:
                 pass
             try: _log_crm(cu,"PDF",msg)
-            except: pass
+            except Exception: pass
             try: _make_followup(cu)
-            except: pass
+            except Exception: pass
             st.session_state["_ck_snt"] = "PDF"
             st.rerun()
     with s5:
@@ -576,7 +576,7 @@ def _step5():
             except Exception:
                 pass
             try: _log_crm(cu,"Share Link",msg)
-            except: pass
+            except Exception: pass
             st.session_state["_ck_snt"] = "Share Link"
             st.rerun()
 

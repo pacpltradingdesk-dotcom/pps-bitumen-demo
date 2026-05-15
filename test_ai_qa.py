@@ -2,7 +2,8 @@
 AI Integration QA Test Suite
 Tests all AI/ML features in the PPS Anantam Bitumen Dashboard
 """
-import sys, json, time, os
+import sys, json, time, os, io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -177,18 +178,18 @@ except Exception as e:
 section("2E: MARKET INTELLIGENCE (10-Signal Composite)")
 
 try:
-    from market_intelligence_engine import compute_master_signal, get_signal_breakdown
+    from market_intelligence_engine import get_master_signal, compute_all_signals
 
     t0 = time.time()
-    master = compute_master_signal()
+    master = get_master_signal()
     elapsed = (time.time() - t0) * 1000
     print(f"  Master Signal: direction={master.get('market_direction','?')} "
-          f"confidence={master.get('confidence',0)}% score={master.get('score',0)} ({elapsed:.0f}ms)")
+          f"confidence={master.get('confidence',0)}% score={master.get('weighted_score',0)} ({elapsed:.0f}ms)")
     print(f"  Action: {master.get('recommended_action','?')}")
     print(f"  Demand: {master.get('demand_outlook','?')}")
     print(f"  Risk: {master.get('risk_level','?')}")
 
-    breakdown = get_signal_breakdown()
+    breakdown = compute_all_signals()
     if isinstance(breakdown, dict):
         print(f"  Signal Breakdown ({len(breakdown)} signals):")
         for sig_name, sig_data in list(breakdown.items())[:9]:
@@ -237,15 +238,18 @@ except Exception as e:
 section("2G: ANOMALY DETECTION (IsolationForest/Z-Score)")
 
 try:
-    from anomaly_engine import detect_anomalies, get_anomaly_status
+    from anomaly_engine import detect_price_anomalies, get_anomaly_status
 
     status = get_anomaly_status()
     print(f"  Engine: method={status.get('method','?')} sklearn={status.get('sklearn_available','?')}")
 
     import numpy as np
-    test_data = list(np.random.normal(75, 2, 50)) + [120.0, 30.0]
+    from datetime import date, timedelta
+    base_date = date(2024, 1, 1)
+    raw_prices = list(np.random.normal(75, 2, 50)) + [120.0, 30.0]
+    test_data = [{"date": str(base_date + timedelta(days=i)), "value": float(v)} for i, v in enumerate(raw_prices)]
     t0 = time.time()
-    anomalies = detect_anomalies(test_data)
+    anomalies = detect_price_anomalies(test_data)
     elapsed = (time.time() - t0) * 1000
     if isinstance(anomalies, dict):
         print(f"  Detection: found={anomalies.get('count',0)} method={anomalies.get('method','?')} ({elapsed:.0f}ms)")
@@ -266,7 +270,7 @@ except Exception as e:
 section("2H: NLP EXTRACTION (spaCy/Regex NER)")
 
 try:
-    from nlp_extraction_engine import extract_entities, analyze_news_text, get_nlp_status
+    from nlp_extraction_engine import extract_entities, analyze_sentiment, get_nlp_status
 
     status = get_nlp_status()
     print(f"  Engine: {status.get('active_engine','?')} spacy={status.get('spacy_ready','?')} transformers={status.get('transformers_ready','?')}")
@@ -279,7 +283,7 @@ try:
           f"work_types={entities.get('work_types',[])} engine={entities.get('engine','?')} ({elapsed:.0f}ms)")
 
     t0 = time.time()
-    analysis = analyze_news_text(test_text)
+    analysis = analyze_sentiment(test_text)
     elapsed = (time.time() - t0) * 1000
     print(f"  Analysis: sentiment={analysis.get('sentiment','?')} score={analysis.get('sentiment_score',0):.3f} ({elapsed:.0f}ms)")
 
@@ -295,23 +299,27 @@ except Exception as e:
 section("2I: AI FALLBACK ENGINE (Ollama/HF/GPT4All/OpenAI/Claude)")
 
 try:
-    from ai_fallback_engine import get_active_model_name, auto_detect_providers, test_provider_health
+    from ai_fallback_engine import get_active_model_name, get_provider_status, get_provider_health
 
     active = get_active_model_name()
     print(f"  Active Model: {active}")
 
-    providers = auto_detect_providers()
-    print(f"  Detected Providers: {len(providers)}")
-    for p in providers:
-        if isinstance(p, dict):
-            print(f"    {p.get('id','?')}: status={p.get('status','?')} model={p.get('model','?')}")
-        else:
-            print(f"    {p}")
+    providers = get_provider_status()
+    if isinstance(providers, dict):
+        print(f"  Detected Providers: {len(providers)}")
+        for pid, pdata in list(providers.items())[:5]:
+            if isinstance(pdata, dict):
+                print(f"    {pid}: status={pdata.get('status','?')} model={pdata.get('model','?')}")
+    elif isinstance(providers, list):
+        print(f"  Detected Providers: {len(providers)}")
+        for p in providers:
+            if isinstance(p, dict):
+                print(f"    {p.get('id','?')}: status={p.get('status','?')}")
 
-    # Test Ollama health
+    # Test provider health
     for pid in ["ollama", "huggingface", "gpt4all"]:
         try:
-            h = test_provider_health(pid)
+            h = get_provider_health(pid)
             if isinstance(h, dict):
                 print(f"  {pid}: available={h.get('available',False)} latency={h.get('latency_ms','?')}ms")
             else:
@@ -331,9 +339,10 @@ except Exception as e:
 section("2J: AI LEARNING ENGINE (Continuous Learning)")
 
 try:
-    from ai_learning_engine import get_learned_weights, daily_learn
+    from ai_learning_engine import AILearningEngine
 
-    weights = get_learned_weights()
+    engine = AILearningEngine()
+    weights = engine.get_learned_weights()
     print(f"  Learned Weights:")
     if isinstance(weights, dict):
         for k, v in weights.items():
@@ -341,7 +350,7 @@ try:
                 print(f"    {k}: {v:.4f}")
 
     t0 = time.time()
-    result = daily_learn()
+    result = engine.daily_learn()
     elapsed = (time.time() - t0) * 1000
     print(f"  Daily Learn: status={result.get('status','?')} adjustments={result.get('adjustments',0)} ({elapsed:.0f}ms)")
 

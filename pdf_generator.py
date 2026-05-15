@@ -34,7 +34,7 @@ def get_next_quote_number():
     with open(counter_file, "r") as f:
         try:
             current = int(f.read().strip())
-        except:
+        except Exception:
             current = 100
             
     next_current = current + 1

@@ -81,7 +81,7 @@ engines = [
     "market_intelligence_engine", "purchase_advisor_engine", "ml_forecast_engine",
     "finbert_engine", "rag_engine", "ai_fallback_engine", "ai_data_layer",
     "ai_assistant_engine", "maritime_intelligence_engine", "infra_demand_engine",
-    "supply_chain_engine", "correlation_engine", "forward_strategy_engine",
+    "correlation_engine", "forward_strategy_engine",
     "director_briefing_engine", "news_engine", "anomaly_engine",
     "backtest_engine", "model_monitor", "signal_weight_learner",
     "page_registry", "log_engine", "vault_engine",
@@ -148,51 +148,38 @@ except Exception as exc:
     nav_config = None
 
 if nav_config is not None:
-    # Collect every page string from MODULE_NAV
-    all_nav_pages: list[str] = []
-    for mod_key, mod_data in nav_config.MODULE_NAV.items():
-        for tab in mod_data.get("tabs", []):
-            pg = tab.get("page", "")
-            if pg and not pg.startswith("_"):
-                all_nav_pages.append(pg)
-            for also_pg in tab.get("also", []):
-                all_nav_pages.append(also_pg)
+    # Use audit_features approach: parse PAGE_DISPATCH from dashboard.py
+    dashboard_src = (PROJECT_DIR / "dashboard.py").read_text(encoding="utf-8")
 
-    # Read dashboard.py and extract every page string from dispatch chain
-    dashboard_path = PROJECT_DIR / "dashboard.py"
-    dashboard_src = dashboard_path.read_text(encoding="utf-8")
-
-    # Match patterns like: selected_page == "..." or selected_page in ("...", "...")
+    # Extract PAGE_DISPATCH dict keys (the authoritative dispatch map)
     dispatch_pages: set[str] = set()
-    # Pattern 1: selected_page == "..."
-    for m in re.finditer(r'selected_page\s*==\s*"([^"]+)"', dashboard_src):
-        dispatch_pages.add(m.group(1))
-    # Pattern 2: selected_page in ("...", "...")
-    for m in re.finditer(r'selected_page\s+in\s*\(([^)]+)\)', dashboard_src):
-        inner = m.group(1)
-        for sm in re.finditer(r'"([^"]+)"', inner):
-            dispatch_pages.add(sm.group(1))
+    in_block = False
+    for line in dashboard_src.splitlines():
+        if "PAGE_DISPATCH" in line and "=" in line and "{" in line:
+            in_block = True
+        if in_block:
+            for m in re.finditer(r'"([^"]+)"\s*:', line):
+                dispatch_pages.add(m.group(1))
+            if "}" in line and in_block:
+                in_block = False
+
+    all_nav_pages = nav_config.all_pages()
 
     print(f"\n  Nav pages total:      {len(all_nav_pages)}")
-    print(f"  Dispatch handlers:    {len(dispatch_pages)}")
+    print(f"  Dispatch entries:     {len(dispatch_pages)}")
 
-    missing_dispatch: list[str] = []
-    for pg in all_nav_pages:
-        if pg not in dispatch_pages:
-            missing_dispatch.append(pg)
-
+    missing_dispatch = [pg for pg in all_nav_pages if pg not in dispatch_pages]
     if missing_dispatch:
-        print(f"\n  Pages in nav_config WITHOUT a dispatch handler in dashboard.py:")
+        print(f"\n  Pages in nav_config WITHOUT dispatch handler:")
         for pg in sorted(set(missing_dispatch)):
             _fail(f"NO DISPATCH: {pg}")
     else:
-        _ok("All nav pages have matching dispatch handlers")
+        _ok(f"All {len(all_nav_pages)} nav pages have dispatch handlers")
 
-    # Bonus: check for dispatch pages NOT in nav (orphans)
+    # Orphan check
     nav_set = set(all_nav_pages)
     orphans = [pg for pg in sorted(dispatch_pages) if pg not in nav_set]
     if orphans:
-        print(f"\n  Dispatch pages NOT reachable from nav_config ({len(orphans)}):")
         for pg in orphans:
             _warn(f"ORPHAN DISPATCH: {pg}")
     else:

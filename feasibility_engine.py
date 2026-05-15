@@ -6,7 +6,7 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(__file__)))
     try:
         from india_localization import format_inr, format_inr_short, format_date, format_datetime_ist, get_financial_year, get_fy_quarter
-    except:
+    except Exception:
         pass
 # Feasibility Assessment Engine - Updated
 # Includes: PSU Refineries, Import Bulk, Local Decanters, and Drum Pricing
@@ -70,7 +70,7 @@ def get_live_prices():
             with open(PRICE_CONFIG_FILE, 'r') as f:
                 saved = json.load(f)
                 default_prices.update(saved)
-        except:
+        except Exception:
             pass
     
     return default_prices
