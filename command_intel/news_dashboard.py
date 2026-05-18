@@ -454,13 +454,15 @@ def _render_card(a: dict, idx: int, region_key: str):
     # Tags (max 3 visible, coloured)
     tag_html = ""
     if tags:
+        import html as _html_mod
         parts = []
         for t in tags[:3]:
             color = TAG_COLORS.get(t, "#64748B")
+            safe_tag = _html_mod.escape(t)
             parts.append(
                 f'<span style="background:{color};color:#fff;padding:1px 7px;'
                 f'border-radius:10px;font-size:0.62rem;margin:0 3px 3px 0;'
-                f'display:inline-block;font-weight:600;">{t}</span>'
+                f'display:inline-block;font-weight:600;">{safe_tag}</span>'
             )
         more = f'<span style="color:#94A3B8;font-size:0.62rem;">+{len(tags)-3}</span>' if len(tags) > 3 else ""
         tag_html = f'<div style="margin-top:auto;padding-top:6px;">{"".join(parts)}{more}</div>'
@@ -634,7 +636,8 @@ def _render_source_health():
             error_str = s.get("error", "")
             error_html = f' <span style="color:#e63946;font-size:0.8em">— {error_str[:80]}</span>' if error_str else ""
 
-            count_str = f"  {s.get('count',0)} articles" if s.get("count", 0) > 0 else ""
+            _cnt = s.get("count", 0)
+            count_str = f"  {_cnt} article{'s' if _cnt != 1 else ''}" if _cnt > 0 else ""
             last_str  = s.get("last_fetch", "") or "Never"
 
             st.markdown(
@@ -659,7 +662,7 @@ def _render_source_health():
             with st.spinner("Fetching all sources..."):
                 result = ne.run_fetch_cycle()
             total_added = sum(result.values())
-            st.success(f"Fetch complete — {total_added} new articles added")
+            st.success(f"Fetch complete — {total_added} new article{'s' if total_added != 1 else ''} added")
             st.rerun()
     with c2:
         st.caption("Triggers an immediate fetch cycle across all enabled sources (normally auto every 10 min).")
@@ -782,8 +785,11 @@ def _render_settings():
 
     if st.button("🗑 Clear ALL Articles (reset to demo data)", type="secondary"):
         import os
-        if ne.ARTICLES_FILE.exists():
-            os.remove(str(ne.ARTICLES_FILE))
+        from pathlib import Path as _Path
+        _target = _Path(str(ne.ARTICLES_FILE)).resolve()
+        _expected_dir = _Path(os.path.dirname(os.path.abspath(__file__))).parent.resolve()
+        if _target.exists() and str(_target).startswith(str(_expected_dir)):
+            os.remove(str(_target))
         st.success("Articles cleared — demo data will reload on next fetch.")
         st.rerun()
 

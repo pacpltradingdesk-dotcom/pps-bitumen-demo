@@ -400,7 +400,10 @@ def _render_bugs():
     st.markdown("---")
 
     if not bugs:
-        st.success("✅ No bugs matching filter. System is clean.")
+        if len(all_bugs) == 0:
+            st.success("🟢 No open bugs. System is clean.")
+        else:
+            st.success("✅ No bugs matching current filter.")
         return
 
     for bug in bugs:
@@ -666,12 +669,13 @@ Each test is safe — it does not corrupt real data. Results are logged to the a
         results = _run_all_tests()
         _display_test_results(results)
     else:
-        st.caption("Click 'Run All Tests' to execute the full test matrix")
-
-        # Show last results if cached
+        # Show last results if cached, otherwise prompt user
         if st.session_state.get("_sre_last_test_results"):
+            st.caption("Click 'Run All Tests' to re-run the full test matrix")
             st.markdown("**Last test run results:**")
             _display_test_results(st.session_state["_sre_last_test_results"])
+        else:
+            st.info("No test results yet. Run the test suite from System Control.")
 
 
 def _run_all_tests() -> list:

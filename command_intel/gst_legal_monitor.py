@@ -40,7 +40,7 @@ def _get_supplier_compliance():
                     "category": r[3] or ("PSU Refinery" if is_psu else "Private")
                 })
             return result
-    except Exception:
+    except Exception as _e:
         pass
     # Fallback defaults
     return [
@@ -205,13 +205,27 @@ font-weight:700; font-size:0.7rem; color:#475569; text-transform:uppercase;">
 """, unsafe_allow_html=True)
     
     for s in suppliers:
+        # Clamp risk_score to 0-100
+        s["risk_score"] = min(max(int(s.get("risk_score", 0)), 0), 100)
         risk_color = "#ef4444" if s["risk_score"] >= 70 else ("#f59e0b" if s["risk_score"] >= 30 else "#22c55e")
-        status_color = "#ef4444" if s["gst_status"] == "Suspended" else "#22c55e"
+        _known_statuses = {"Active", "Inactive", "Suspended"}
+        _gst_status_raw = s.get("gst_status", "")
+        _status_is_unknown = _gst_status_raw not in _known_statuses or not _gst_status_raw
+        if _gst_status_raw == "Suspended":
+            status_color = "#ef4444"
+        elif _gst_status_raw == "Active":
+            status_color = "#22c55e"
+        elif _gst_status_raw == "Inactive":
+            status_color = "#f59e0b"
+        else:
+            status_color = "#94a3b8"
+        _status_display = (f"⚠️ {_gst_status_raw or 'Unknown'}" if _status_is_unknown
+                           else _gst_status_raw)
         inv_icon = "🔴" if s["investigation"] else "⚪"
-        
+
         def _check(val):
             return "✅" if val else "❌"
-        
+
         st.markdown(f"""
 <div style="display:flex; padding:8px 12px; border-bottom:1px solid #e2e8f0; align-items:center;
 font-size:0.78rem; background:{'#fef2f2' if s['risk_score'] >= 70 else 'white'};">
@@ -221,7 +235,7 @@ font-size:0.78rem; background:{'#fef2f2' if s['risk_score'] >= 70 else 'white'};
 </div>
 <div style="flex:1; color:#64748b; font-size:0.7rem;">{s['gstin']}</div>
 <div style="flex:0.7; text-align:center;">
-<span style="color:{status_color}; font-weight:600; font-size:0.7rem;">{s['gst_status']}</span>
+<span style="color:{status_color}; font-weight:600; font-size:0.7rem;">{_status_display}</span>
 </div>
 <div style="flex:0.5; text-align:center;">{inv_icon}</div>
 <div style="flex:0.5; text-align:center;">{_check(s['einvoice'])}</div>

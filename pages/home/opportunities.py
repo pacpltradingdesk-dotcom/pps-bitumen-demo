@@ -56,7 +56,7 @@ def render():
 </div>
 """, unsafe_allow_html=True)
 
-    st.info("Auto-discovers profitable opportunities from market changes. Scan runs daily + on price changes.")
+    st.info(f"Auto-discovers profitable opportunities. Last scan: {_today_str}. Click below to refresh.")
     try:
         from opportunity_engine import OpportunityEngine, get_all_opportunities, mark_opportunity_status
         import json as _opp_json
@@ -96,7 +96,7 @@ def render():
                         if _opp.get("call_script"):
                             with st.expander("Call Script"):
                                 st.code(_opp["call_script"], language=None)
-                        if st.button(f"Mark Contacted", key=f"opp_contact_{_oi}"):
+                        if st.button(f"Mark Contacted", key=f"opp_act_{hash(str(_opp.get('title','')))}_{_oi}"):
                             # Find real index in full opportunity list
                             _all_opps_list = get_all_opportunities()
                             for _real_idx, _real_opp in enumerate(_all_opps_list):
@@ -178,7 +178,11 @@ def render():
                 _opp_df = pd.DataFrame(_all_opps)
                 _cols_to_show = ["type", "title", "priority", "status", "savings_per_mt", "created_at"]
                 _display_cols = [c for c in _cols_to_show if c in _opp_df.columns]
-                st.dataframe(_opp_df[_display_cols], use_container_width=True, hide_index=True)
+                st.dataframe(
+                    _opp_df[_display_cols] if _display_cols else _opp_df,
+                    use_container_width=True,
+                    hide_index=True,
+                )
             else:
                 render_empty_state(
                     key="opp_history",

@@ -17,7 +17,7 @@ except ImportError:
     _sys.path.append(_os.path.dirname(_os.path.dirname(__file__)))
     try:
         from india_localization import format_inr, format_inr_short, format_date, format_datetime_ist, get_financial_year, get_fy_quarter
-    except Exception:
+    except Exception as _e:
         pass
 
 import datetime
@@ -29,7 +29,14 @@ def render_crm_automation():
     """Main entry point for the CRM Automation dashboard page."""
 
     st.header("🤖 CRM Automation & Outreach")
-    st.caption("Manage 24K contacts, daily rotation, festival broadcasts, price alerts, and AI auto-reply.")
+    # Dynamic contact count in caption
+    try:
+        from database import get_contacts_count as _gcc
+        _total = _gcc().get("total", 0)
+        _count_label = f"{_total:,}" if _total else "0"
+    except Exception as _e:
+        _count_label = "24K"
+    st.caption(f"Manage {_count_label} contacts, daily rotation, festival broadcasts, price alerts, and AI auto-reply.")
 
     tabs = st.tabs([
         "👥 Contacts",
@@ -210,7 +217,7 @@ def _render_rotation_tab():
         import pandas as pd
         df = pd.DataFrame(history)
         st.dataframe(df, use_container_width=True, hide_index=True)
-    except Exception:
+    except Exception as _e:
         st.info("No rotation history available yet.")
 
 
@@ -239,15 +246,30 @@ def _render_festival_tab():
             col1, col2, col3 = st.columns([3, 2, 2])
             col1.write(f"**{fname}**")
             col2.write(f"📅 {fdate}")
+            _confirm_key = f"_confirm_broadcast_{fname}"
             if col3.button(f"Send Broadcast", key=f"fest_{fname}"):
-                with st.spinner(f"Broadcasting {fname}..."):
-                    result = trigger_manual_festival_broadcast(fname, fdate)
-                    if result.get("status") == "completed":
-                        r = result.get("result", {})
-                        st.success(f"Broadcast sent: WA={r.get('sent_whatsapp',0)} "
-                                   f"Email={r.get('sent_email',0)} Failed={r.get('failed',0)}")
-                    else:
-                        st.warning(result.get("message", "No contacts found"))
+                if not st.session_state.get(_confirm_key):
+                    st.session_state[_confirm_key] = True
+                    st.rerun()
+                else:
+                    st.session_state[_confirm_key] = False
+                    with st.spinner(f"Broadcasting {fname}..."):
+                        result = trigger_manual_festival_broadcast(fname, fdate)
+                        if result.get("status") == "completed":
+                            r = result.get("result", {})
+                            st.success(f"Broadcast sent: WA={r.get('sent_whatsapp',0)} "
+                                       f"Email={r.get('sent_email',0)} Failed={r.get('failed',0)}")
+                        else:
+                            st.warning(result.get("message", "No contacts found"))
+            if st.session_state.get(_confirm_key):
+                # Load contact count for confirmation message
+                try:
+                    from database import get_contacts_count as _gcc2
+                    _bc = _gcc2().get("whatsapp_opted_in", _gcc2().get("total", 0))
+                except Exception as _e:
+                    _bc = "all"
+                st.warning(f"This will send the **{fname}** broadcast to {_bc} contacts. "
+                           f"Click 'Send Broadcast' again to confirm.")
     else:
         st.info("No festivals in the next 30 days.")
 
@@ -266,7 +288,7 @@ def _render_festival_tab():
             st.dataframe(df[display_cols], use_container_width=True, hide_index=True)
         else:
             st.info("No broadcast history yet.")
-    except Exception:
+    except Exception as _e:
         st.info("Festival broadcast table not initialized yet.")
 
 
@@ -328,7 +350,7 @@ def _render_price_tab():
             st.dataframe(df[display_cols], use_container_width=True, hide_index=True)
         else:
             st.info("No price change history yet.")
-    except Exception:
+    except Exception as _e:
         st.info("Price update log not initialized yet.")
 
 
@@ -673,7 +695,7 @@ def _get_categories() -> list[str]:
             "Decanter Unit", "Commission Agent",
             "Truck Transporter", "Tanker Transporter",
         ])
-    except Exception:
+    except Exception as _e:
         return []
 
 
@@ -725,7 +747,7 @@ def _render_ai_providers_tab():
             )
             if s.get("last_error"):
                 st.caption(f"  Last error: {s['last_error'][:80]}")
-    except Exception:
+    except Exception as _e:
         st.info("AI provider status unavailable.")
 
     st.divider()

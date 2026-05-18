@@ -219,7 +219,7 @@ def generate_forecast_calendar() -> pd.DataFrame:
         ml_result = forecast_crude_price(days_ahead=730)
         if ml_result and ml_result.get("model") != "heuristic" and ml_result.get("predicted"):
             ml_forecast = ml_result
-    except Exception:
+    except Exception as _e:
         pass
 
     rng = np.random.default_rng(seed=int(datetime.date.today().strftime("%Y%m")))
@@ -475,6 +475,13 @@ def _render_future_view(df: pd.DataFrame):
     st.markdown("---")
     st.markdown("### 📅 Next 24 Months — Revision Calendar with Remarks")
 
+    # ── Empty-state guard: all predicted values None/zero ────────────────────
+    _forecast_vals = df.get("Predicted (₹/MT)", pd.Series(dtype=float)) if hasattr(df, "get") else df["Predicted (₹/MT)"]
+    _all_empty = _forecast_vals.isnull().all() or (_forecast_vals == 0).all()
+    if _all_empty:
+        st.info("Forecast data not available. Run the ML engine to generate predictions.")
+        return
+
     # ── Filter / options row ─────────────────────────────────────────────────
     fc1, fc2, fc3 = st.columns([1, 1, 2])
     with fc1:
@@ -650,6 +657,11 @@ def _render_past_performance(df_past: pd.DataFrame):
         st.warning("Plotly not installed. `pip install plotly` to enable charts.")
         return
 
+    # Empty-state guard: no past history to compare
+    if df_view.empty:
+        st.info("No past predictions to compare yet.")
+        return
+
     chart_tab1, chart_tab2, chart_tab3 = st.tabs([
         "📈 Predicted vs Actual", "📊 Error Magnitude", "🎯 Rolling Accuracy"
     ])
@@ -700,7 +712,7 @@ def _render_past_performance(df_past: pd.DataFrame):
             height=420,
             hovermode="x unified",
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
         st.caption("Green line = actual published price. Gold dotted = model prediction. Shaded band = ±₹800 PASS tolerance.")
 
     # ── Chart 2: Error bar chart ──────────────────────────────────────────────
@@ -730,7 +742,7 @@ def _render_past_performance(df_past: pd.DataFrame):
             font=dict(family="Inter, Segoe UI, sans-serif", size=12),
             height=380,
         )
-        st.plotly_chart(fig2, use_container_width=True)
+        st.plotly_chart(fig2, use_container_width=True, config={"displayModeBar": False})
         st.caption("Green bars = PASS (within ±₹800). Red bars = FAIL. Dashed lines = PASS/FAIL boundary.")
 
     # ── Chart 3: Rolling 6-month accuracy ────────────────────────────────────
@@ -767,7 +779,7 @@ def _render_past_performance(df_past: pd.DataFrame):
             font=dict(family="Inter, Segoe UI, sans-serif", size=12),
             height=380,
         )
-        st.plotly_chart(fig3, use_container_width=True)
+        st.plotly_chart(fig3, use_container_width=True, config={"displayModeBar": False})
         st.caption(
             "Rolling window = 12 revisions (~6 months). "
             "Dashed green line = 80% target accuracy."

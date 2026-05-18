@@ -38,7 +38,7 @@ def generate_10_yr_historical_runs():
                 try:
                     d = datetime.datetime.strptime(r[0], "%Y-%m-%d").date()
                     date_str = format_date(d)
-                except Exception:
+                except Exception as _e:
                     date_str = r[0]
                 data.append({
                     "Revision Date": date_str,
@@ -50,7 +50,7 @@ def generate_10_yr_historical_runs():
                     "Notes": note
                 })
             return pd.DataFrame(data).iloc[::-1]
-    except Exception:
+    except Exception as _e:
         pass
 
     # Fallback: deterministic seasonal model (no np.random)
@@ -107,17 +107,20 @@ def render():
     selected_loc = cc2.selectbox("Location", ["Mumbai (Default)", "Gujarat", "Chennai", "Delhi"])
     
     df = generate_10_yr_historical_runs()
-    
+
     # Conditional formatting in streamlit
     def style_status(val):
         color = '#22c55e' if val == 'PASS' else '#ef4444'
         return f'color: {color}; font-weight: bold'
-        
+
     st.markdown("#### Database Extract:")
-    
-    # Format currency for display
-    df_disp = df.copy()
-    for col in ['Actual Price (₹/MT)', 'Predicted Price (₹/MT)', 'Error (₹/MT)']:
-        df_disp[col] = df_disp[col].apply(lambda x: format_inr(x, include_symbol=True) if not isinstance(x, str) else x)
-        
-    st.dataframe(df_disp.style.applymap(style_status, subset=['Status']), use_container_width=True, hide_index=True)
+
+    if df.empty:
+        st.info("No prediction history yet. Predictions are logged here after the forecast engine runs.")
+    else:
+        # Format currency for display
+        df_disp = df.copy()
+        for col in ['Actual Price (₹/MT)', 'Predicted Price (₹/MT)', 'Error (₹/MT)']:
+            df_disp[col] = df_disp[col].apply(lambda x: format_inr(x, include_symbol=True) if not isinstance(x, str) else x)
+
+        st.dataframe(df_disp.style.applymap(style_status, subset=['Status']), use_container_width=True, hide_index=True)

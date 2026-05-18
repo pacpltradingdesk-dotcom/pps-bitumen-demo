@@ -28,7 +28,7 @@ def _generate_decisions():
         crude_sig = signals.get("crude_market", {})
         currency_sig = signals.get("currency", {})
         has_signals = bool(master.get("status") == "OK")
-    except Exception:
+    except Exception as _e:
         pass
 
     # Helper: derive confidence from signal data (replaces np.random.normal)
@@ -173,9 +173,13 @@ AI-Powered Recommendations • Confidence-Scored Decisions
 """, unsafe_allow_html=True)
     
     decisions = _generate_decisions()
-    
+
+    if not decisions:
+        st.info("No strategy recommendations available. Run market analysis first.")
+        return
+
     # --- SUMMARY ---
-    avg_confidence = np.mean([d["confidence"] for d in decisions])
+    avg_confidence = np.mean([min(max(d["confidence"], 0), 100) for d in decisions])
     urgent = sum(1 for d in decisions if "YES" in d["recommendation"] or "IMPORT NOW" in d["recommendation"])
     
     st.markdown(f"""
@@ -202,6 +206,7 @@ display:flex; justify-content:space-around; margin-bottom:20px;">
     
     # --- DECISION CARDS ---
     for d in decisions:
+        d["confidence"] = min(max(d["confidence"], 0), 100)
         conf_color = "#22c55e" if d["confidence"] >= 75 else ("#f59e0b" if d["confidence"] >= 55 else "#ef4444")
         
         with st.expander(f"{d['icon']} {d['question']} → **{d['recommendation']}** ({d['confidence']}% confidence)"):

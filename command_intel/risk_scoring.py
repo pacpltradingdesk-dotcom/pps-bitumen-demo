@@ -79,6 +79,7 @@ def _calculate_risk_scores():
         prices = [float(r.get("price", 0)) for r in crude_data if r.get("price")]
         if prices:
             std = float(np.std(prices[-14:])) if len(prices) >= 14 else float(np.std(prices))
+            std = max(std, 0.001)  # guard against zero-std (flat prices)
             market_risk = min(90, max(10, int(std * 3 + (15 if not is_peak else 0))))
         else:
             market_risk = 45
@@ -96,28 +97,38 @@ def _calculate_risk_scores():
     compliance_risk = 30
     legal_exposure = 25
 
+    # Clamp all individual scores to valid 0-100 range before storing
+    market_risk = min(max(round(market_risk), 0), 100)
+    supply_risk = min(max(round(supply_risk), 0), 100)
+    financial_risk = min(max(round(financial_risk), 0), 100)
+    compliance_risk = min(max(round(compliance_risk), 0), 100)
+    legal_exposure = min(max(round(legal_exposure), 0), 100)
+    margin_safety = min(max(round(margin_safety), 0), 100)
+
     scores = {
-        "market_risk": round(market_risk),
-        "supply_risk": round(supply_risk),
-        "financial_risk": round(financial_risk),
-        "compliance_risk": round(compliance_risk),
-        "legal_exposure": round(legal_exposure),
-        "margin_safety": round(margin_safety),
+        "market_risk": market_risk,
+        "supply_risk": supply_risk,
+        "financial_risk": financial_risk,
+        "compliance_risk": compliance_risk,
+        "legal_exposure": legal_exposure,
+        "margin_safety": margin_safety,
     }
 
     # Overall Health Score (weighted inverse of risks + margin safety)
+    # Use clamped values so health_score cannot go negative or above 100
     weights = [0.20, 0.15, 0.20, 0.15, 0.10, 0.20]
     risk_values = [market_risk, supply_risk, financial_risk,
                    compliance_risk, legal_exposure, 100 - margin_safety]
     weighted_risk = sum(w * r for w, r in zip(weights, risk_values))
     health_score = round(100 - weighted_risk)
-    scores["health_score"] = max(10, min(95, health_score))
+    scores["health_score"] = min(max(health_score, 0), 100)
 
     return scores
 
 
 def _risk_gauge(label, score, is_safety=False):
     """Generate HTML for a risk gauge."""
+    score = min(max(int(score), 0), 100)  # clamp to valid SVG range
     if is_safety:
         color = "#22c55e" if score >= 60 else ("#f59e0b" if score >= 40 else "#ef4444")
         level = "Strong" if score >= 60 else ("Adequate" if score >= 40 else "Weak")
@@ -171,7 +182,7 @@ Multi-Dimensional Risk Analysis • Business Health Score
     scores = _calculate_risk_scores()
     
     # --- OVERALL HEALTH SCORE (HERO) ---
-    hs = scores["health_score"]
+    hs = min(max(int(scores["health_score"]), 0), 100)  # clamp for SVG safety
     hs_color = "#22c55e" if hs >= 70 else ("#f59e0b" if hs >= 50 else "#ef4444")
     hs_label = "EXCELLENT" if hs >= 80 else ("GOOD" if hs >= 70 else ("FAIR" if hs >= 50 else ("AT RISK" if hs >= 30 else "CRITICAL")))
     

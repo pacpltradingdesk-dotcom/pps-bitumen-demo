@@ -333,7 +333,11 @@ def render():
             serv_cat_filter = st.multiselect("Filter Service Type", SERVICE_CATEGORIES, default=["Transporter - Bulk"])
         with sf_2:
             serv_cities = sorted(list(set([s.get('city', '') for s in services if s.get('city')])))
-            serv_city_filter = st.multiselect("Filter Hub/City", serv_cities)
+            if not serv_cities:
+                st.warning("No options available.")
+                serv_city_filter = []
+            else:
+                serv_city_filter = st.multiselect("Filter Hub/City", serv_cities)
         with sf_3:
              serv_sort = st.radio("Sort", ["A-Z", "Z-A"], horizontal=True, key="serv_sort")
 
@@ -559,9 +563,13 @@ def render():
             st.markdown("### 📤 Export Party Data")
 
             if st.button("📤 Export Purchase Parties"):
-                purchase_df = pd.DataFrame(load_suppliers())
-                st.session_state["_eco_export_purchase"] = purchase_df.to_csv(index=False)
-                st.rerun()
+                _purchase_data = load_suppliers()
+                if not _purchase_data:
+                    st.warning("No purchase parties to export.")
+                else:
+                    purchase_df = pd.DataFrame(_purchase_data)
+                    st.session_state["_eco_export_purchase"] = purchase_df.to_csv(index=False)
+                    st.rerun()
 
             if st.session_state.get("_eco_export_purchase"):
                 st.download_button(

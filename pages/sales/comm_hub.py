@@ -32,7 +32,7 @@ def render():
         _ctx_cust   = get_context("customer_name", "") or ""
         _ctx_city_v = get_context("customer_city", "") or ""
         _ctx_grade  = get_context("customer_grade", "VG30") or "VG30"
-    except Exception:
+    except Exception as _e:
         pass
 
     try:
@@ -106,7 +106,7 @@ def render():
                             from components.message_preview import render_msg_preview
                             render_msg_preview(_msg, channel="whatsapp",
                                                 sender=f"PPS Anantam → {_comm_cust}")
-                        except Exception:
+                        except Exception as _e:
                             pass
                         with st.expander("✏️ Edit WhatsApp message", expanded=False):
                             st.text_area("📱 WhatsApp Message (copy & send):", _msg,
@@ -170,16 +170,18 @@ def render():
                 from components.autosuggest import customer_picker, city_picker
                 _fu_cust = customer_picker(key="fu_cust", label="Customer")
                 _fu_city = city_picker(key="fu_city", label="City")
-            except Exception:
+            except Exception as _e:
                 _fu_cust = st.text_input("Customer", key="fu_cust")
                 _fu_city = st.text_input("City", key="fu_city")
             _fu_price = st.number_input("Offer Price", min_value=20000, value=42000, step=500, key="fu_price")
             if st.button("Generate Sequence", key="fu_gen"):
-                if _fu_cust:
-                    _seq = _comm.generate_followup_sequence(_fu_cust, _fu_city, _fu_price)
-                    for _s in _seq:
-                        _day_label = f"Day {_s['day']}" if _s['day'] > 0 else "Today"
-                        st.markdown(f"**{_day_label}** — {_s['channel']}: {_s['action']}")
+                if not _fu_cust:
+                    st.warning("Please enter a customer name.")
+                    st.stop()
+                _seq = _comm.generate_followup_sequence(_fu_cust, _fu_city, _fu_price)
+                for _s in _seq:
+                    _day_label = f"Day {_s['day']}" if _s['day'] > 0 else "Today"
+                    st.markdown(f"**{_day_label}** — {_s['channel']}: {_s['action']}")
 
         with _comm_tabs[2]:
             st.subheader("Recent Communications")
@@ -205,5 +207,5 @@ def render():
         from navigation_engine import render_next_step_cards
         render_next_step_cards("💬 Communication Hub")
         st.session_state["_ns_rendered_inline"] = True
-    except Exception:
+    except Exception as _e:
         pass

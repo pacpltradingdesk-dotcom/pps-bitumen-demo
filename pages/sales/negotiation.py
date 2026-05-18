@@ -146,8 +146,8 @@ def render():
                     _objs = _brief.get("objection_handling", [])
                     if _objs:
                         st.markdown("**Top Objections & Responses:**")
-                        for _obj in _objs:
-                            with st.expander(f"{_obj['objection']}"):
+                        for _idx, _obj in enumerate(_objs):
+                            with st.expander(f"{_obj['objection']}", key=f"obj_exp_{_idx}"):
                                 st.markdown(f"**Quick Reply:** {_obj['short_reply']}")
                                 st.markdown(f"**Detailed:** {_obj['detailed_reply']}")
                                 st.caption(f"Confidence: {_obj['confidence_booster']}")
@@ -159,12 +159,13 @@ def render():
                         st.success(f'"{_cs["recommended"]["script"]}"')
                 else:
                     st.warning("Please enter customer name and city.")
+                    st.stop()
 
         with _neg_tabs[1]:
             st.subheader("Complete Objection Library")
             _obj_lib = get_full_objection_library()
-            for _ok, _ov in _obj_lib.items():
-                with st.expander(f"{_ov['objection']}"):
+            for _lib_idx, (_ok, _ov) in enumerate(_obj_lib.items()):
+                with st.expander(f"{_ov['objection']}", key=f"obj_lib_exp_{_lib_idx}"):
                     st.markdown(f"**Quick Reply:** {_ov['short_reply']}")
                     st.markdown(f"**Detailed:** {_ov['detailed_reply']}")
                     st.caption(f"Confidence Booster: {_ov['confidence_booster']}")

@@ -46,7 +46,7 @@ def _load_contractors():
                     "status": "Active"
                 })
             return contractors
-    except Exception:
+    except Exception as _e:
         pass
     return list(_HARDCODED_CONTRACTORS)
 
@@ -60,7 +60,7 @@ def _get_demand_factors():
     try:
         from settings_engine import get as _sg
         _election_years = _sg("election_years", [2024, 2029, 2034])
-    except Exception:
+    except Exception as _e:
         _election_years = [2024, 2029, 2034]
     election_year = datetime.date.today().year in _election_years
     
@@ -124,7 +124,8 @@ Consumption Modeling • Payment Intelligence • Demand Forecasting
     # --- SUMMARY METRICS ---
     total_monthly = sum(c["consumption_mt_month"] for c in CONTRACTORS)
     total_pending = sum(c["pending_payment_cr"] for c in CONTRACTORS)
-    avg_reliability = np.mean([c["payment_reliability"] for c in CONTRACTORS])
+    avg_reliability = (np.mean([c["payment_reliability"] for c in CONTRACTORS])
+                       if CONTRACTORS else 0.0)
     active = sum(1 for c in CONTRACTORS if c["status"] == "Active")
     
     m1, m2, m3, m4 = st.columns(4)
@@ -184,36 +185,40 @@ min-height:120px;">
     for c in filtered:
         # Reliability color
         rel_color = "#22c55e" if c["payment_reliability"] >= 90 else ("#f59e0b" if c["payment_reliability"] >= 80 else "#ef4444")
-        
+
         with st.expander(f"{'🟢' if c['status']=='Active' else '🔵'} {c['name']} — {c['consumption_mt_month']:,} MT/month | ⭐ {c['payment_reliability']}%"):
             cc1, cc2, cc3 = st.columns(3)
-            
+
             with cc1:
                 st.markdown("**📋 Project Details**")
                 st.caption(f"🏗️ {c['project']}")
                 st.caption(f"📍 {c['location']}")
                 st.caption(f"📅 {c['timeline']}")
                 st.caption(f"🧪 Grade: {c['grade']} | Type: {c['type']}")
-            
+
             with cc2:
                 st.markdown("**📊 Consumption**")
                 st.metric("Monthly Volume", f"{c['consumption_mt_month']:,} MT")
                 st.caption(f"Total Orders: {c['total_orders']}")
                 yearly = c["consumption_mt_month"] * 12
                 st.caption(f"Annual Estimate: {yearly:,} MT")
-            
+
             with cc3:
                 st.markdown("**💰 Payment Profile**")
                 st.metric("Reliability Score", f"{c['payment_reliability']}%")
                 st.caption(f"Credit Days: {c['credit_days']}")
                 st.caption(f"Pending: {c['pending_payment_cr']} Cr")
-                
+
                 # Risk badge
                 if c["credit_days"] > 15 and c["payment_reliability"] < 90:
                     st.warning("⚠️ Credit Risk — Monitor closely")
                 elif c["credit_days"] == 0:
                     st.success("✅ Advance Payment — No Risk")
-    
+
+    if not CONTRACTORS:
+        st.info("No contractor profiles found. Add customers in the CRM to populate this section.")
+    st.caption("📊 Demo data — connect to live CRM for real profiles.")
+
     # --- SEASONAL DEMAND HEATMAP ---
     st.markdown("---")
     st.markdown("### 📅 Seasonal Demand Pattern")

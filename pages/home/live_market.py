@@ -5,6 +5,7 @@ Extracted from dashboard.py inline Home page block.
 
 import datetime as _dt
 import json as _json
+import os as _os
 
 import streamlit as st
 
@@ -108,18 +109,21 @@ def render(mkt: dict, _CONFIDENCE_OK: bool = False, render_data_health_card=None
             _chart_prices = [float(r.get("Predicted (₹/MT)", r.get("Predicted", 48500)))
                              for _, r in _chart_rows.iterrows()]
         else:
-            _pred, _lo, _hi, _rdate, _status = 48500, 48100, 48900, "01-04-2026", "Pending"
+            _pred, _lo, _hi, _rdate, _status = 48500, 48100, 48900, "01-04-2026 *(offline)*", "Pending"
             _chart_dates  = ["01-04-2026", "16-04-2026", "01-05-2026", "16-05-2026", "01-06-2026", "16-06-2026"]
             _chart_prices = [48500, 48800, 49100, 48700, 49200, 49600]
     except Exception:
-        _pred, _lo, _hi, _rdate, _status = 48500, 48100, 48900, "01-04-2026", "Pending"
+        _pred, _lo, _hi, _rdate, _status = 48500, 48100, 48900, "01-04-2026 *(offline)*", "Pending"
         _chart_dates  = ["01-04-2026", "16-04-2026", "01-05-2026", "16-05-2026", "01-06-2026", "16-06-2026"]
         _chart_prices = [48500, 48800, 49100, 48700, 49200, 49600]
 
     # CRM tasks
     try:
-        with open("crm_tasks.json", encoding="utf-8") as _f:
-            _crm_tasks = _json.load(_f)
+        if _os.path.exists("crm_tasks.json"):
+            with open("crm_tasks.json", encoding="utf-8") as _f:
+                _crm_tasks = _json.load(_f)
+        else:
+            _crm_tasks = []
         _task_count   = len(_crm_tasks)
         _high_pri     = sum(1 for t in _crm_tasks if t.get("priority") == "High")
     except Exception:
@@ -336,7 +340,7 @@ def render(mkt: dict, _CONFIDENCE_OK: bool = False, render_data_health_card=None
                 _bname = _b.get("customer_name", "Unknown")[:28]
                 _bcity = _b.get("customer_city", "")
                 _bpri = _b.get("priority", "P2")
-                _pri_clr = "#dc2626" if _bpri == "P0" else "#d97706" if _bpri == "P1" else "#3b82f6"
+                _pri_clr = {"P0": "#dc2626", "P1": "#d97706", "P2": "#3b82f6"}.get(_bpri, "#94A3B8")
                 _buy_html += f"""
 <div style="display:flex;justify-content:space-between;align-items:center;
             padding:5px 10px;border-bottom:1px solid #f1f5f9;font-size:0.78rem;">

@@ -61,6 +61,8 @@ def render():
         remarks = get_city_remarks(cal_city)
         if remarks:
             st.warning(f"📋 **Weather Note:** {remarks}")
+        else:
+            st.info(f"📋 **City Tips:** No specific weather notes for {cal_city}. Plan visits based on the season status shown.")
 
     st.markdown("---")
 

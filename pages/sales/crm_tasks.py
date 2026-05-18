@@ -48,9 +48,12 @@ def render():
             if st.button("🔄 Refresh"):
                 st.rerun()
 
-        current_tasks = crm.get_due_tasks("Today")
         if task_view == "Overdue":
             current_tasks = crm.get_due_tasks("Overdue")
+        elif task_view == "Upcoming":
+            current_tasks = crm.get_due_tasks("Upcoming")
+        else:
+            current_tasks = tasks_today
 
         if not current_tasks:
             render_empty_state(
@@ -66,22 +69,28 @@ def render():
             for t in current_tasks:
                 with st.container():
                     c1, c2, c3, c4 = st.columns([2, 2, 2, 1])
+                    _t_client   = t.get('client', '—')
+                    _t_note     = t.get('note', '')
+                    _t_type     = t.get('type', '—')
+                    _t_due_date = t.get('due_date', '—')
+                    _t_priority = t.get('priority', 'Low')
+                    _t_id       = t.get('id', '')
                     with c1:
-                        st.markdown(f"**{t['client']}**")
-                        st.caption(f"📌 {t['note']}")
+                        st.markdown(f"**{_t_client}**")
+                        st.caption(f"📌 {_t_note}")
                     with c2:
-                        st.write(f"**{t['type']}**")
-                        st.caption(f"Due: {t['due_date']}")
+                        st.write(f"**{_t_type}**")
+                        st.caption(f"Due: {_t_due_date}")
                     with c3:
-                        if t['priority'] == 'High':
+                        if _t_priority == 'High':
                             st.error("High Priority")
-                        elif t['priority'] == 'Medium':
+                        elif _t_priority == 'Medium':
                             st.warning("Medium")
                         else:
                             st.info("Low")
                     with c4:
-                        if st.button("✅ Done", key=f"done_{t['id']}"):
-                            crm.complete_task(t['id'], "Marked done from Dashboard")
+                        if st.button("✅ Done", key=f"done_{_t_id}"):
+                            crm.complete_task(_t_id, "Marked done from Dashboard")
                             st.success("Task Closed!")
                             st.rerun()
                     st.markdown("---")

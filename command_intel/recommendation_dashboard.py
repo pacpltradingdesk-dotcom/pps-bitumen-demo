@@ -135,7 +135,7 @@ def _render_todays_recs(st) -> None:
     for rec in recs:
         action = str(rec.get("action", "HOLD")).upper()
         style = _ACTION_STYLES.get(action, {"bg": _GOLD, "icon": action})
-        confidence = rec.get("confidence", 0)
+        confidence = min(max(rec.get("confidence", 0), 0), 100)
         reason = rec.get("reason", rec.get("natural_language", ""))
         risk = rec.get("risk_assessment", rec.get("risk", ""))
         alt_action = rec.get("alternative_action", "")
@@ -325,7 +325,7 @@ def _render_demand_forecast(st) -> None:
                 entry = fc if isinstance(fc, dict) else {"state": state}
                 entry.setdefault("state", state)
                 demand_data.append(entry)
-        except Exception:
+        except Exception as _e:
             demand_data.append({"state": state, "forecast": "N/A", "trend": "N/A"})
 
     if not demand_data:
@@ -434,7 +434,9 @@ def _render_track_record(st) -> None:
 
     # Recent evaluations
     history = accuracy.get("recent_evaluations", accuracy.get("history", []))
-    if history:
+    if not history:
+        st.info("No track record yet. Predictions will appear here once the forecast engine has run.")
+    else:
         with st.expander(f"Recent Evaluations ({len(history)})", expanded=False):
             if _PANDAS:
                 df_hist = pd.DataFrame(history[:20])

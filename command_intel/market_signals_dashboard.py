@@ -79,8 +79,11 @@ def render():
 
     # ── Refresh button ───────────────────────────────────────────────────
     if st.button("🔄 Refresh Signals", key="_mkt_refresh"):
-        engine._signals_cache = None
-        engine._cache_ts = 0
+        try:
+            engine._signals_cache = None
+            engine._cache_ts = 0
+        except Exception:
+            pass
         st.rerun()
 
 
@@ -169,7 +172,9 @@ def _render_signal_card(col, sig: dict, label: str, key_field: str, icon: str) -
     elif sig_id == "search":
         detail = f"Score: {sig.get('interest_score', '—')} | {sig.get('signal_strength', '—')}"
     elif sig_id == "ports":
-        detail = f"Vol: {sig.get('total_volume_mt', '—'):,} MT" if isinstance(sig.get("total_volume_mt"), (int, float)) else ""
+        vol = sig.get("total_volume_mt")
+        vol_str = f"{vol:,} MT" if isinstance(vol, (int, float)) else "—"
+        detail = f"Vol: {vol_str}"
 
     with col:
         st.markdown(f"""

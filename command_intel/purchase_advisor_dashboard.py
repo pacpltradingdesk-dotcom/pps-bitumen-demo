@@ -42,7 +42,7 @@ AI-Powered Procurement Urgency • 6-Signal Intelligence
         st.error(f"Purchase Advisor Engine unavailable: {e}")
         return
 
-    urgency = result["urgency_index"]
+    urgency = min(max(result["urgency_index"], 0), 100)
     rec = result["recommendation"]
     rec_detail = result["recommendation_detail"]
     rec_color = result["recommendation_color"]
@@ -118,6 +118,10 @@ padding:15px 20px; margin-bottom:15px;">
     # ── Sub-Signal Gauges (2×3 grid) ─────────────────────────────────────────
     st.markdown("### 📊 Signal Breakdown")
 
+    if not sub:
+        st.info("Signal data not yet available.")
+        return
+
     signal_labels = {
         "price_trend": ("Price Trend", "🛢️", "Crude/bitumen price direction"),
         "demand_season": ("Demand Season", "📅", "Seasonal construction demand"),
@@ -134,7 +138,7 @@ padding:15px 20px; margin-bottom:15px;">
 
     for i, key in enumerate(signal_keys):
         label, icon, desc = signal_labels[key]
-        score = sub[key]
+        score = min(max(sub[key], 0), 100)
         weight = result["weights"].get(key, 0)
         w_pct = int(weight * 100)
 
@@ -194,7 +198,7 @@ padding:15px 20px; margin-bottom:15px;">
                 template="plotly_white",
             )
             st.plotly_chart(fig, use_container_width=True)
-        except Exception:
+        except Exception as _e:
             st.caption("Install plotly for trend chart visualization.")
     else:
         st.caption("📊 Historical trend will appear after 2+ advisor runs.")

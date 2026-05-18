@@ -257,6 +257,8 @@ def _render_chat_tab(role: str, api_key: str | None, deep_mode: bool) -> None:
         )
 
     # ── Display existing chat history ─────────────────────────────────────────
+    if not st.session_state["ai_chat_history"]:
+        st.info("Start a conversation by typing below.")
     for msg in st.session_state["ai_chat_history"]:
         _role_ui = msg.get("role")
         with st.chat_message(_role_ui):
@@ -292,7 +294,7 @@ def _render_chat_tab(role: str, api_key: str | None, deep_mode: bool) -> None:
                 file_name=f"AI_Chat_{ts_str}.xlsx",
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             )
-        except Exception:
+        except Exception as _e:
             pass
 
 
@@ -707,7 +709,7 @@ def render() -> None:
             from ai_fallback_engine import get_provider_status
             _free_statuses = get_provider_status()
             _free_available = any(p["ready"] and p.get("cost") == "FREE" for p in _free_statuses)
-        except Exception:
+        except Exception as _e:
             pass
 
         if _free_available:

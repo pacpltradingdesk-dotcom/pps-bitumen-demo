@@ -111,6 +111,10 @@ def render():
             selected_city = st.selectbox("\U0001f3d9\ufe0f Select City", city_options,
                                           index=_city_default, key="city_select")
 
+            if selected_city != st.session_state.get("_prev_city"):
+                st.session_state.pop("_calc_result", None)
+                st.session_state["_prev_city"] = selected_city
+
             if selected_city and selected_state == "All States":
                 detected_state = get_state_by_city(selected_city)
 
@@ -303,7 +307,11 @@ def render():
                 st.markdown("---")
                 st.markdown("**\U0001f4cb Select Price for Quote:**")
                 option_labels = [opt['label'] for opt in price_options]
-                selected_label = st.radio("Choose option for PDF", option_labels, key="pdf_price_select", label_visibility="collapsed")
+                if not option_labels:
+                    st.info("No pricing options available for this route.")
+                    selected_label = None
+                else:
+                    selected_label = st.radio("Choose option for PDF", option_labels, key="pdf_price_select", label_visibility="collapsed")
 
                 # Find selected option
                 for opt in price_options:
@@ -330,10 +338,13 @@ def render():
                     'all_options': None,
                     'assessment': assessment
                 }
+                st.session_state["_calc_result"] = result
             else:
                 # Fallback to original optimizer
                 if optimizer:
                     result = optimizer.calculate_best_price(selected_city, load_type, product_grade=product_grade)
+                    if result:
+                        st.session_state["_calc_result"] = result
 
                     if result:
                          st.caption(f"Ranking for {load_type} | {product_grade}")
@@ -364,8 +375,12 @@ def render():
     with col_right:
         st.markdown("### \U0001f4dd Landing Cost Information")
 
+        # Retrieve persisted result so panel survives reruns without re-clicking Calculate
+        if 'result' not in locals() or not result:
+            result = st.session_state.get("_calc_result")
+
         # Display details only if a calculation has been performed and result is available
-        if selected_city and calc_btn and 'result' in locals() and result:
+        if selected_city and result:
             # Get best option from result
             best_opt = result.get('best_option', {})
             assessment = result.get('assessment', {})
@@ -433,6 +448,8 @@ def render():
             # We keep the legacy function for now but add a generic call to the new system if needed.
             # For this interaction, we will stick to the existing visual flow but using the new robust engine is possible.
 
+            _formal_pdf_generated = False
+
             # --- NEW: GENERATE FORMAL QUOTE (Via new System) ---
             if st.button("\U0001f680 Generate & Save Formal Quote (SQL DB)"):
                 try:
@@ -494,6 +511,7 @@ def render():
                         pdf_result = generate_pdf(new_quote, pdf_path)
 
                         st.success(f"\u2705 Quote Saved to DB (ID: {new_quote.id}) and PDF Generated!")
+                        _formal_pdf_generated = True
 
                         # Download Button
                         if pdf_result and os.path.exists(pdf_path):
@@ -505,54 +523,55 @@ def render():
                 except Exception as e:
                     st.error(f"System Error: {e}")
 
-            # Legacy PDF Logic (Kept for fallback)
-            pdf_filename = f"Quote_{selected_city}_{product_grade}.pdf"
-            client_name_for_pdf = selected_client_name if selected_client_name else "Valued Customer"
+            # Legacy PDF Logic (Kept for fallback \u2014 skipped if formal PDF already generated this run)
+            if not _formal_pdf_generated:
+                pdf_filename = f"Quote_{selected_city}_{product_grade}.pdf"
+                client_name_for_pdf = selected_client_name if selected_client_name else "Valued Customer"
 
-            # Generate quote number only once per PDF download
-            if 'current_quote_no' not in st.session_state:
-                st.session_state.current_quote_no = get_next_quote_number()
-            quote_no = st.session_state.current_quote_no
+                # Generate quote number only once per PDF download
+                if 'current_quote_no' not in st.session_state:
+                    st.session_state.current_quote_no = get_next_quote_number()
+                quote_no = st.session_state.current_quote_no
 
-            # Generate the file
-            _legacy_pdf_result = create_price_pdf(client_name_for_pdf, product_name, source_name, final_cost, filename=pdf_filename, quote_no=quote_no)
+                # Generate the file
+                _legacy_pdf_result = create_price_pdf(client_name_for_pdf, product_name, source_name, final_cost, filename=pdf_filename, quote_no=quote_no)
 
-            # Read Bytes for Download
-            if _legacy_pdf_result and os.path.exists(pdf_filename):
-                with open(pdf_filename, "rb") as f:
-                    st.download_button(
-                        label="\U0001f4c4 Download Official Quote PDF",
-                        data=f,
-                        file_name=pdf_filename,
-                        mime="application/pdf",
-                        use_container_width=True
+                # Read Bytes for Download
+                if _legacy_pdf_result and os.path.exists(pdf_filename):
+                    with open(pdf_filename, "rb") as f:
+                        st.download_button(
+                            label="\U0001f4c4 Download Official Quote PDF",
+                            data=f,
+                            file_name=pdf_filename,
+                            mime="application/pdf",
+                            use_container_width=True
+                        )
+                else:
+                    st.warning("Quote PDF could not be generated.")
+
+                # Premium PDF (new branded version)
+                try:
+                    from share_formatter import build_quote_pdf
+                    _premium_pdf = build_quote_pdf(
+                        client_name_for_pdf or (selected_client_name or "Customer"),
+                        selected_city or "",
+                        product_name or "VG30",
+                        100,
+                        float(final_cost or 0),
+                        source=source_name or "",
+                        quote_no=quote_no,
                     )
-            else:
-                st.warning("Quote PDF could not be generated.")
-
-            # Premium PDF (new branded version)
-            try:
-                from share_formatter import build_quote_pdf
-                _premium_pdf = build_quote_pdf(
-                    client_name_for_pdf or (selected_client_name or "Customer"),
-                    selected_city or "",
-                    product_name or "VG30",
-                    100,
-                    float(final_cost or 0),
-                    source=source_name or "",
-                    quote_no=quote_no,
-                )
-                if _premium_pdf:
-                    st.download_button(
-                        label="✨ Download Premium Branded PDF",
-                        data=_premium_pdf,
-                        file_name=f"PPS_Premium_Quote_{quote_no}.pdf",
-                        mime="application/pdf",
-                        use_container_width=True,
-                        key="dl_premium_price_pdf",
-                    )
-            except Exception:
-                pass
+                    if _premium_pdf:
+                        st.download_button(
+                            label="✨ Download Premium Branded PDF",
+                            data=_premium_pdf,
+                            file_name=f"PPS_Premium_Quote_{quote_no}.pdf",
+                            mime="application/pdf",
+                            use_container_width=True,
+                            key="dl_premium_price_pdf",
+                        )
+                except Exception:
+                    pass
 
             # WHATSAPP INTEGRATION
             wa_message = f"""*PPS Anantams Price Offer* \U0001f69b

@@ -66,16 +66,16 @@ def render():
         return
 
     with tab_all:
-        _render_alerts(get_alerts(status="new", limit=50), "all")
+        _render_alerts(get_alerts(status="new", limit=50), "all", severity=None)
 
     with tab_p0:
-        _render_alerts(get_alerts(status="new", priority="P0", limit=20), "p0")
+        _render_alerts(get_alerts(status="new", priority="P0", limit=20), "p0", severity="P0")
 
     with tab_p1:
-        _render_alerts(get_alerts(status="new", priority="P1", limit=30), "p1")
+        _render_alerts(get_alerts(status="new", priority="P1", limit=30), "p1", severity="P1")
 
     with tab_p2:
-        _render_alerts(get_alerts(status="new", priority="P2", limit=30), "p2")
+        _render_alerts(get_alerts(status="new", priority="P2", limit=30), "p2", severity="P2")
 
     with tab_history:
         st.markdown("##### Resolved Alerts")
@@ -96,10 +96,13 @@ def render():
             st.info("No alert history yet")
 
 
-def _render_alerts(alerts: list, tab_key: str):
+def _render_alerts(alerts: list, tab_key: str, severity: str = None):
     """Render a list of alerts with action buttons."""
     if not alerts:
-        st.info("No alerts in this category")
+        if severity:
+            st.info(f"No {severity} alerts. All clear.")
+        else:
+            st.info("No alerts in this category")
         return
 
     from database import update_alert_status
@@ -107,6 +110,7 @@ def _render_alerts(alerts: list, tab_key: str):
     priority_colors = {"P0": "#b85c38", "P1": "#c9a84c", "P2": "#1e3a5f"}
 
     for i, alert in enumerate(alerts):
+        alert_id = alert.get("id", i)
         priority = alert.get("priority", "P2")
         color = priority_colors.get(priority, "#1e3a5f")
 
@@ -132,22 +136,22 @@ def _render_alerts(alerts: list, tab_key: str):
         if rec:
             st.caption(f"Recommended: {rec}")
 
-        # Action buttons
+        # Action buttons — keys include alert_id for uniqueness
         bcol1, bcol2, bcol3 = st.columns(3)
         with bcol1:
-            if st.button("Mark Acted", key=f"act_{tab_key}_{alert.get('id', i)}",
+            if st.button("Mark Acted", key=f"alert_act_{alert_id}",
                           use_container_width=True):
                 update_alert_status(alert["id"], "acted", acted_at=_now())
                 st.rerun()
         with bcol2:
-            if st.button("Snooze 4h", key=f"snz_{tab_key}_{alert.get('id', i)}",
+            if st.button("Snooze 4h", key=f"alert_snz_{alert_id}",
                           use_container_width=True):
                 snooze_until = (datetime.datetime.now(IST) + datetime.timedelta(hours=4)
                                 ).strftime("%Y-%m-%d %H:%M:%S")
                 update_alert_status(alert["id"], "snoozed", snoozed_until=snooze_until)
                 st.rerun()
         with bcol3:
-            if st.button("Dismiss", key=f"dis_{tab_key}_{alert.get('id', i)}",
+            if st.button("Dismiss", key=f"alert_dis_{alert_id}",
                           use_container_width=True):
                 update_alert_status(alert["id"], "expired")
                 st.rerun()
@@ -203,7 +207,7 @@ def run_alert_scan() -> int:
                                f"Brent moved {change:+.1f}%",
                                f"Brent at ${latest:.2f}/bbl",
                                "Monitor closely, may need price adjustment")
-    except Exception:
+    except Exception as _e:
         pass
 
     # 2. FX movement
@@ -221,7 +225,7 @@ def run_alert_scan() -> int:
                                f"INR {direction} {abs(fx_change):.1f}% against USD",
                                f"USD/INR now at {latest_fx:.2f}. Import costs affected.",
                                "Review international procurement pricing")
-    except Exception:
+    except Exception as _e:
         pass
 
     # 3. Payment overdue
@@ -252,7 +256,7 @@ def run_alert_scan() -> int:
                                f"Payment due: {d.get('deal_number', 'N/A')} ({delta} days)",
                                f"Outstanding: Rs {outstanding:,.0f}",
                                "Follow up on payment")
-    except Exception:
+    except Exception as _e:
         pass
 
     # 4. Customer relationship decay
@@ -265,7 +269,7 @@ def run_alert_scan() -> int:
                            f"Customer dormant: {c.get('name', 'Unknown')}",
                            f"No activity for 90+ days in {c.get('city', 'unknown city')}",
                            "Consider reactivation offer")
-    except Exception:
+    except Exception as _e:
         pass
 
     # 5. Low margin deals
@@ -278,7 +282,7 @@ def run_alert_scan() -> int:
                            f"Low margin deal: {d.get('deal_number', 'N/A')} (Rs{margin:.0f}/MT)",
                            "Margin below minimum threshold",
                            "Review deal pricing or renegotiate")
-    except Exception:
+    except Exception as _e:
         pass
 
     # 6. Weather impact
@@ -292,7 +296,7 @@ def run_alert_scan() -> int:
                            f"Heavy rain forecast: {city} ({rain}mm)",
                            "Construction activity may slow, affecting demand",
                            "Adjust delivery schedules for affected areas")
-    except Exception:
+    except Exception as _e:
         pass
 
     # 7. Escalation: P1 alerts older than 24h become P0
@@ -314,7 +318,7 @@ def run_alert_scan() -> int:
                 })
                 update_alert_status(a["id"], "expired")
                 count += 1
-    except Exception:
+    except Exception as _e:
         pass
 
     return count
@@ -334,5 +338,5 @@ def get_p0_alert_banner() -> str:
           <strong>ALERT ({len(p0)}):</strong> {titles}
         </div>
         """
-    except Exception:
+    except Exception as _e:
         return ""

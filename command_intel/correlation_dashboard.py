@@ -87,9 +87,10 @@ def _render_kpi_bar(results: Dict) -> None:
     r_squared  = results.get("r_squared", 0.0)
     n_obs      = results.get("n_obs", 0)
 
+    import math as _math
     best_lag_label = f"{best_lag}m" if best_lag is not None else "N/A"
     signal         = _corr_signal(best_r) if best_r else "—"
-    r_sq_label     = f"{r_squared:.2f}" if r_squared else "N/A"
+    r_sq_label     = f"{r_squared:.2f}" if (r_squared and not _math.isnan(r_squared)) else "N/A"
     strength       = _corr_strength(best_r) if best_r else "N/A"
 
     c1, c2, c3, c4 = st.columns(4)
@@ -201,7 +202,7 @@ def _render_correlation_tab(results: Dict) -> None:
         try:
             styled = df_corr[display_cols].rename(columns=rename_map).style.format(fmt, na_rep="—")
             st.dataframe(styled, use_container_width=True, hide_index=True)
-        except Exception:
+        except Exception as _e:
             st.dataframe(df_corr[display_cols].rename(columns=rename_map), use_container_width=True, hide_index=True)
 
     # interpretation
@@ -219,7 +220,7 @@ def _render_correlation_tab(results: Dict) -> None:
                 f"Interpretation: highway completions {best_l} month(s) earlier {'positively' if best_r > 0 else 'negatively'} "
                 f"correlate with bitumen import demand."
             )
-        except Exception:
+        except Exception as _e:
             pass
 
 
@@ -253,7 +254,7 @@ def _render_regression_tab(results: Dict) -> None:
                             st.markdown("##### OLS Regression Coefficients (last run)")
                             st.dataframe(df_coeff, use_container_width=True, hide_index=True)
                             return
-            except Exception:
+            except Exception as _e:
                 pass
 
         st.info("No regression data yet.  Click **▶ Run Analysis** in the Correlation tab.")
@@ -268,8 +269,10 @@ def _render_regression_tab(results: Dict) -> None:
     r_sq = reg.get("r_squared", eff_results.get("r_squared", None))
     lag  = eff_results.get("best_lag", "?")
     n    = eff_results.get("n_obs", "?")
+    import math as _math
     c1, c2, c3 = st.columns(3)
-    c1.metric("R²",         f"{r_sq:.3f}" if r_sq is not None else "N/A",
+    _r_sq_display = "N/A" if (r_sq is None or (isinstance(r_sq, float) and _math.isnan(r_sq))) else f"{r_sq:.3f}"
+    c1.metric("R²",         _r_sq_display,
               help="Proportion of variance in demand explained by the model")
     c2.metric("Best Lag",   f"{lag}m",    help="Highway KM lag used in regression")
     c3.metric("Observations", str(n),     help="Number of monthly data points")
@@ -318,7 +321,7 @@ def _render_regression_tab(results: Dict) -> None:
 
     # model interpretation prose
     st.markdown("##### Model Interpretation")
-    if r_sq is not None:
+    if r_sq is not None and not (isinstance(r_sq, float) and _math.isnan(r_sq)):
         if r_sq >= 0.60:
             label = "Good fit — model explains most variance."
         elif r_sq >= 0.30:
@@ -385,7 +388,7 @@ def _render_insights_tab(results: Dict) -> None:
     # sort newest first (by date_ist if available)
     try:
         insights = sorted(insights, key=lambda x: x.get("date_ist",""), reverse=True)
-    except Exception:
+    except Exception as _e:
         pass
 
     st.markdown(f"**{len(insights)} insight(s)** found.")
@@ -458,7 +461,7 @@ def _render_alert_logic(results: Dict) -> None:
                 f"✅ **Aligned Signal**: Both highway KM (+{km_delta:,.0f} km) and "
                 f"demand (+{dem_delta:,.0f} MT) are rising — consistent with model prediction."
             )
-    except Exception:
+    except Exception as _e:
         pass
 
 
@@ -487,7 +490,7 @@ def render() -> None:
                     "n_obs":       best.get("n_obs", 0),
                     "corr_results": corr_stored,
                 }
-            except Exception:
+            except Exception as _e:
                 pass
 
     # KPI bar

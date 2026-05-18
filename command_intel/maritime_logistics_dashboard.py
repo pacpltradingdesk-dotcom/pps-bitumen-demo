@@ -29,7 +29,7 @@ def render():
     try:
         from ui_badges import display_badge
         display_badge("maritime")
-    except Exception:
+    except Exception as _e:
         pass
 
     _render_header()
@@ -119,7 +119,7 @@ def _render_priority_ports_panel():
     try:
         from settings_engine import get as gs
         priority_names = gs("maritime_priority_ports", ["Mundra", "Kandla", "Mumbai"])
-    except Exception:
+    except Exception as _e:
         priority_names = ["Mundra", "Kandla", "Mumbai"]
 
     ports_data = PortCongestionMonitor.compute_all_ports()
@@ -200,12 +200,12 @@ def _render_vessel_tracking(intel: dict):
     port_congestion = intel.get("port_congestion", [])
 
     if not vessels:
-        st.info("No vessel data available. Click Refresh to generate.")
+        st.info("No vessel data available. Market data will appear after the next sync.")
         return
 
     # Build map
     fig = _build_vessel_map(vessels, port_congestion)
-    st.plotly_chart(fig, use_container_width=True, key="_maritime_vessel_map")
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False}, key="_maritime_vessel_map")
 
     # Vessel table — container FIRST
     st.markdown("### 📋 Active Vessels")
@@ -397,7 +397,7 @@ def _build_vessel_map(vessels: list, port_congestion: list):
         from settings_engine import get as gs
         center_lat = gs("maritime_map_center_lat", 18.0)
         center_lon = gs("maritime_map_center_lon", 68.0)
-    except Exception:
+    except Exception as _e:
         center_lat, center_lon = 18.0, 68.0
 
     fig.update_geos(
@@ -495,7 +495,7 @@ def _render_port_activity(intel: dict):
                       annotation_text="Critical", annotation_position="top right")
         fig.add_hline(y=35, line_dash="dash", line_color="#f59e0b",
                       annotation_text="High", annotation_position="top right")
-        st.plotly_chart(fig, use_container_width=True, key="_maritime_port_bar")
+        st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False}, key="_maritime_port_bar")
     except ImportError:
         st.warning("Plotly required for charts.")
 
@@ -545,7 +545,7 @@ def _render_shipment_routes(intel: dict):
 
     # Route map (reuse vessel map but focused on routes)
     fig = _build_route_map(route_risks, vessels)
-    st.plotly_chart(fig, use_container_width=True, key="_maritime_route_map")
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False}, key="_maritime_route_map")
 
     # Route cards — container FIRST
     st.markdown("### 📋 Route Risk Analysis")
@@ -824,5 +824,5 @@ border-top:3px solid {r_color};">
             section_id="maritime_daily_summary",
             section_title="Maritime Logistics Daily Summary",
         )
-    except Exception:
+    except Exception as _e:
         pass

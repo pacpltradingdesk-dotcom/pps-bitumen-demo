@@ -109,7 +109,7 @@ def _render_heatmap():
 
     scores = ide.get_heatmap_data()
     if not scores:
-        st.info("No data yet. Run a backfill or live update first.")
+        st.info("No infrastructure demand data available.")
         return
 
     # Grid layout: 4 columns
@@ -403,6 +403,10 @@ def _render_settings():
         st.markdown("")
         st.markdown("")
         if st.button("🚀 Start Backfill", key="btn_backfill", type="primary"):
+            st.warning(
+                f"This will bulk-write up to {months} month(s) of GDELT data into the database. "
+                "Existing records may be updated. Proceeding..."
+            )
             progress = st.progress(0, text="Starting backfill...")
             status_text = st.empty()
 
@@ -477,5 +481,5 @@ def _render_settings():
             HubCatalog.update_field("data_gov_in_highways", "key_value", new_key)
             HubCatalog.update_field("data_gov_in_highways", "status", "Live" if new_key else "Disabled")
             st.success("API key saved!")
-    except Exception:
+    except Exception as _e:
         st.info("Configure data.gov.in key in API Hub settings.")

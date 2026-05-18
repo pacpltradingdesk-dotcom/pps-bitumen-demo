@@ -9,7 +9,7 @@ except ImportError:
     def format_inr(v):
         try:
             return f"{v:,.0f}"
-        except Exception:
+        except Exception as _e:
             return str(v)
 
 import streamlit as st
@@ -37,7 +37,7 @@ def _load_json(filename):
         if fp.exists():
             with open(fp, "r", encoding="utf-8") as f:
                 return json.load(f)
-    except Exception:
+    except Exception as _e:
         pass
     return []
 
@@ -117,7 +117,7 @@ def render():
                 fig.update_layout(height=600, yaxis_title="")
                 st.plotly_chart(fig, use_container_width=True)
         else:
-            st.caption("Run sync to load state-wise data.")
+            st.info("No NHAI project data available.")
 
     # ── Tab 3: Demand Correlation ──
     with tabs[2]:
@@ -135,9 +135,11 @@ def render():
                 st.plotly_chart(fig, use_container_width=True)
 
                 # Correlation coefficient
+                import math as _math
                 corr = hw_df["nhai_km_target"].corr(hw_df["bitumen_demand_mt"])
-                st.metric("Correlation Coefficient", f"{corr:.3f}",
-                          delta="Strong positive" if corr > 0.7 else "Moderate" if corr > 0.4 else "Weak")
+                _corr_display = "N/A" if (corr is None or (isinstance(corr, float) and _math.isnan(corr))) else f"{corr:.3f}"
+                _corr_delta = "N/A" if _corr_display == "N/A" else ("Strong positive" if corr > 0.7 else "Moderate" if corr > 0.4 else "Weak")
+                st.metric("Correlation Coefficient", _corr_display, delta=_corr_delta)
 
                 # Demand factor
                 if "bitumen_per_km_mt" in hw_df.columns:
@@ -171,7 +173,9 @@ def render():
                 completed=("completed_km", "sum"),
                 demand_mt=("bitumen_demand_mt", "sum"),
             ).reset_index()
-            zone_summary["completion_pct"] = (zone_summary["completed"] / zone_summary["total_km"] * 100).round(1)
+            zone_summary["completion_pct"] = zone_summary.apply(
+                lambda r: round(r["completed"] / r["total_km"] * 100, 1) if r["total_km"] else 0.0, axis=1
+            )
 
             st.dataframe(zone_summary, use_container_width=True, hide_index=True)
 

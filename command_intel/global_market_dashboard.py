@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -128,6 +129,8 @@ def _render_crude_markets(st) -> None:
     c1, c2, c3, c4 = st.columns(4)
     if brent_col:
         latest_brent = df[brent_col].dropna().iloc[-1] if not df[brent_col].dropna().empty else None
+        if latest_brent is None or (isinstance(latest_brent, float) and math.isnan(latest_brent)):
+            latest_brent = 0.0
         if latest_brent is not None:
             c1.metric("Brent (Latest)", f"${latest_brent:,.2f}")
             if len(df) >= 2:
@@ -135,6 +138,8 @@ def _render_crude_markets(st) -> None:
                 c2.metric("Brent Change", f"${latest_brent - prev:+,.2f}")
     if wti_col:
         latest_wti = df[wti_col].dropna().iloc[-1] if not df[wti_col].dropna().empty else None
+        if latest_wti is None or (isinstance(latest_wti, float) and math.isnan(latest_wti)):
+            latest_wti = 0.0
         if latest_wti is not None:
             c3.metric("WTI (Latest)", f"${latest_wti:,.2f}")
             if len(df) >= 2:
@@ -166,7 +171,7 @@ def _render_crude_markets(st) -> None:
         if _HELPERS:
             fig = apply_interactive_defaults(fig)
         st.plotly_chart(fig, use_container_width=True,
-                        config=get_chart_config() if _HELPERS else {})
+                        config=get_chart_config() if _HELPERS else {"displayModeBar": False})
     else:
         st.line_chart(df.set_index("date")[[c for c in [brent_col, wti_col] if c]])
 
@@ -287,6 +292,8 @@ def _render_fx_monitor(st) -> None:
 
     # KPI row
     latest_rate = df[rate_col].iloc[-1]
+    if latest_rate is None or (isinstance(latest_rate, float) and math.isnan(latest_rate)):
+        latest_rate = 0.0
     c1, c2, c3 = st.columns(3)
     c1.metric("USD/INR (Latest)", f"{latest_rate:,.2f}")
     if len(df) >= 2:
@@ -315,7 +322,7 @@ def _render_fx_monitor(st) -> None:
         if _HELPERS:
             fig = apply_interactive_defaults(fig, inr_format=True)
         st.plotly_chart(fig, use_container_width=True,
-                        config=get_chart_config() if _HELPERS else {})
+                        config=get_chart_config() if _HELPERS else {"displayModeBar": False})
     else:
         st.line_chart(df.set_index("date")[[rate_col]])
 

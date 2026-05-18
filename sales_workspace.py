@@ -6,7 +6,7 @@ except ImportError:
     sys.path.append(os.path.dirname(os.path.dirname(__file__)))
     try:
         from india_localization import format_inr, format_inr_short, format_date, format_datetime_ist, get_financial_year, get_fy_quarter
-    except Exception:
+    except Exception as _e:
         pass
 
 import streamlit as st
@@ -120,7 +120,7 @@ def render_client_360(client_name):
             try:
                 from navigation_engine import get_context
                 _wa_phone = (get_context("customer_phone", "") or "").lstrip("+")
-            except Exception:
+            except Exception as _e:
                 _wa_phone = ""
             if _wa_phone:
                 st.link_button(
@@ -153,6 +153,9 @@ def render_deal_room():
     col_lead, col_grade = st.columns([2, 1])
     with col_lead:
         custs = [c['name'] for c in load_customers()]
+        if not custs:
+            st.info("No customers found. Add customers in the Contacts Directory first.")
+            return
         selected_client = st.selectbox("Select Customer", ["-- New Inquiry --"] + custs)
     with col_grade:
         grade = st.selectbox("Grade", ["VG30", "VG40", "VG10", "Emulsion"])
@@ -172,6 +175,9 @@ def render_deal_room():
              # Just show top states/cities to filter
              suppliers = load_suppliers()
              supplier_names = [s['name'] for s in suppliers]
+             if not supplier_names:
+                 st.info("No suppliers configured. Add suppliers in the Contacts Directory.")
+                 return
              source = st.selectbox("Source (Refinery/Import)", supplier_names)
         
         with c_dest:
@@ -181,7 +187,7 @@ def render_deal_room():
             try:
                 from components.autosuggest import city_picker as _city_picker
                 dest_city = _city_picker(key="sw_dest_city", default=curr_client.get('city', ''), label="Destination City")
-            except Exception:
+            except Exception as _e:
                 dest_city = st.text_input("Destination City", value=curr_client.get('city', ''))
             
         with c_qty:
@@ -340,7 +346,7 @@ def render_deal_room():
                             why_us=comp_intel.get("our_strength", ""),
                         )
                         st.download_button(
-                            "⬇️ Download PDF Quote",
+                            "⬇️ Download Quote PDF",
                             data=_pdf_bytes,
                             file_name=f"PPS_Quote_{selected_client.replace(' ', '_')}_{datetime.date.today()}.pdf",
                             mime="application/pdf",

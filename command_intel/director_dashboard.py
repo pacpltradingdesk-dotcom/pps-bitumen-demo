@@ -166,7 +166,8 @@ def render():
     with o2:
         direction = price.get("direction", "STABLE")
         confidence = price.get("confidence_pct", 0)
-        arrow = price.get("arrow", "\u25c6")
+        _dir_arrow_map = {"UP": "\u25b2", "DOWN": "\u25bc"}
+        arrow = price.get("arrow") or _dir_arrow_map.get(direction, "\u25ba")
         dir_color = "#b85c38" if direction == "UP" else "#2d6a4f" if direction == "DOWN" else "#c9a84c"
         st.markdown(f"""
         <div style="text-align:center;padding:15px;background:{dir_color}20;
@@ -224,11 +225,11 @@ def render():
         sc1, sc2 = st.columns(2)
         with sc1:
             if brent_data:
-                st.line_chart(brent_data, use_container_width=True, height=150)
+                st.line_chart([x for x in brent_data if x is not None], use_container_width=True, height=150)
                 st.caption("Brent Crude ($/bbl)")
         with sc2:
             if fx_data:
-                st.line_chart(fx_data, use_container_width=True, height=150)
+                st.line_chart([x for x in fx_data if x is not None], use_container_width=True, height=150)
                 st.caption("USD/INR Rate")
 
     # ─── Opportunities ───────────────────────────────────────────────
@@ -239,11 +240,13 @@ def render():
         for opp in opps[:5]:
             priority = opp.get("priority", "P2")
             p_color = "#b85c38" if priority == "P0" else "#c9a84c" if priority == "P1" else "#1e3a5f"
+            _raw_title = opp.get('title', opp.get('description', ''))
+            _title = _raw_title[:77] + "…" if len(_raw_title) > 80 else _raw_title
             st.markdown(f"""
             <div style="padding:8px 12px;margin:4px 0;border-left:3px solid {p_color};
                         background:{p_color}10;border-radius:0 6px 6px 0;">
               <span style="color:{p_color};font-weight:600;">[{priority}]</span>
-              {opp.get('title', opp.get('description', '')[:80])}
+              {_title}
             </div>
             """, unsafe_allow_html=True)
 

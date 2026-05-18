@@ -160,7 +160,11 @@ Iraq → India Port → Tanker → Delivery → Payment Tracking
 """, unsafe_allow_html=True)
     
     shipments = _get_shipment_data()
-    
+
+    if not shipments:
+        st.info("Stage data not available. Sync to refresh.")
+        return
+
     # --- SUMMARY METRICS ---
     total_qty = sum(s["quantity_mt"] for s in shipments)
     in_transit = sum(1 for s in shipments if s["status"] == "in_transit")
@@ -187,7 +191,11 @@ Iraq → India Port → Tanker → Delivery → Payment Tracking
         color, icon = _get_status_color(shipment["status"])
         status_label = shipment["status"].replace("_", " ").title()
         stages = _get_pipeline_stages(shipment)
-        
+
+        if not stages:
+            st.info("Stage data not available. Sync to refresh.")
+            continue
+
         completed_count = sum(1 for s in stages if s[1])
         progress_pct = (completed_count / len(stages)) * 100
         

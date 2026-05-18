@@ -168,9 +168,16 @@ def _render_catalog(cat: dict) -> None:
     )
 
     # Build DataFrame
+    def _mask_key(key: str) -> str:
+        """Mask API key — show first 4 chars + *** (e.g. 'sk-d***')."""
+        if not key or len(key) <= 4:
+            return key
+        return key[:4] + "***"
+
     rows = []
     for cid, v in cat.items():
         status = v.get("status", "Unknown")
+        raw_key = v.get("key_value", "")
         rows.append({
             "connector_id":    cid,
             "API_Name":        v.get("api_name", cid),
@@ -178,7 +185,7 @@ def _render_catalog(cat: dict) -> None:
             "Provider":        v.get("provider", ""),
             "Base_URL":        v.get("base_url", ""),
             "Auth_Type":       v.get("auth_type", "None"),
-            "Key_Value":       v.get("key_value", ""),
+            "Key_Value":       _mask_key(raw_key),
             "Status":          status,
             "Refresh_Freq":    v.get("refresh_frequency", "1h"),
             "Cache_TTL_sec":   v.get("cache_ttl_sec", 3600),
@@ -228,6 +235,20 @@ def _render_catalog(cat: dict) -> None:
         key="catalog_editor",
     )
 
+    # Highlight any ERROR / FAIL / Failing rows
+    bad_rows = df_show[df_show["Status"].isin(["ERROR", "FAIL", "Failing"])]
+    if not bad_rows.empty:
+        for _, br in bad_rows.iterrows():
+            st.markdown(
+                f'<div style="background:#fef2f2;border:1px solid #dc2626;border-left:4px solid #dc2626;'
+                f'border-radius:6px;padding:7px 12px;margin-bottom:4px;font-size:0.8rem;">'
+                f'⚠️ <strong>{br["API_Name"]}</strong> — Status: '
+                f'<span style="color:#dc2626;font-weight:700;">{br["Status"]}</span>'
+                f'{(" · " + br["Last_Error"]) if br["Last_Error"] else ""}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
     if st.button("💾 Save Catalog Changes", type="primary"):
         saved = 0
         for _, row in edited.iterrows():
@@ -235,12 +256,13 @@ def _render_catalog(cat: dict) -> None:
             new_key  = str(row.get("Key_Value", "")).strip()
             new_freq = str(row.get("Refresh_Freq", "1h")).strip()
             new_note = str(row.get("Notes", "")).strip()
-            HubCatalog.update_field(cid, "key_value",          new_key)
+            # Only persist key if user entered a real value (not the masked placeholder)
+            if new_key and not new_key.endswith("***"):
+                HubCatalog.update_field(cid, "key_value", new_key)
+                if HubCatalog.get(cid).get("status") == "Disabled":
+                    HubCatalog.update_field(cid, "status", "Unknown")
             HubCatalog.update_field(cid, "refresh_frequency",  new_freq)
             HubCatalog.update_field(cid, "notes",              new_note)
-            # If key just set for a disabled connector, mark it as Unknown (needs test)
-            if new_key and HubCatalog.get(cid).get("status") == "Disabled":
-                HubCatalog.update_field(cid, "status", "Unknown")
             saved += 1
         st.success(f"Saved changes to {saved} connectors. Click 'Test All APIs' to verify keys.")
         st.rerun()

@@ -490,3 +490,47 @@ def _render_security():
             f'<span style="font-size:0.75em;color:#888;">{note}</span>',
             unsafe_allow_html=True,
         )
+
+    # ── Backup timestamp ──────────────────────────────────────────────────────
+    last_backup_ts = sec.get("last_backup", None)
+    if last_backup_ts:
+        st.caption(f"Last backup: {last_backup_ts}")
+
+    # ── Emergency Controls ────────────────────────────────────────────────────
+    st.markdown("---")
+    st.markdown(
+        f'<div style="background:{_BG_RED};border:1px solid {_RED};border-radius:8px;'
+        f'padding:12px 16px;margin-top:8px;">'
+        f'<span style="color:{_RED};font-weight:700;font-size:0.95rem;">🚨 Emergency Controls</span>'
+        f'<br><span style="font-size:0.77rem;color:#721c24;">'
+        f'Destructive actions — use only when instructed by a system administrator.</span>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    with st.expander("⚠️ Show Emergency Actions"):
+        # Clear Error Logs
+        st.markdown("**🗑️ Clear Error Logs**")
+        st.caption("Deletes all records from the in-memory error log. This cannot be undone.")
+        confirm_clear = st.checkbox("I understand this is irreversible", key="confirm_clear_logs")
+        if confirm_clear:
+            if st.button("Execute: Clear Error Logs", key="exec_clear_logs", type="primary"):
+                try:
+                    from system_control_engine import clear_error_log
+                    clear_error_log()
+                    st.success("Error log cleared.")
+                except Exception as _e:
+                    st.error(f"Failed to clear log: {_e}")
+
+        st.markdown("---")
+
+        # Reset DB / Session State
+        st.markdown("**♻️ Reset Session State**")
+        st.caption("Clears all cached Streamlit session state. Page will reload clean. This cannot be undone.")
+        confirm_reset = st.checkbox("I understand this is irreversible", key="confirm_reset_state")
+        if confirm_reset:
+            if st.button("Execute: Reset Session State", key="exec_reset_state"):
+                for _k in list(st.session_state.keys()):
+                    del st.session_state[_k]
+                st.success("Session state cleared. Reloading…")
+                st.rerun()

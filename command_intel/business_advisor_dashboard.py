@@ -109,7 +109,7 @@ def _render_urgency_gauge(st, urgency_score: float, label: str = "Buy Urgency") 
         number={"suffix": "%", "font": {"size": 28}},
     ))
     fig.update_layout(height=220, margin=dict(l=20, r=20, t=40, b=10))
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
 
 def _render_risk_badge(level: str) -> str:
@@ -136,7 +136,7 @@ def _render_buy_advisory(st) -> None:
             advisory = get_buy_advisory()
         except Exception as exc:
             LOG.error("Buy advisory failed: %s", exc)
-            st.error(f"Failed to load buy advisory: {exc}")
+            st.error(f"Failed to load Buy Advisory from business_advisor_engine: {exc}")
             return
 
     if not advisory:
@@ -247,18 +247,17 @@ def _render_sell_advisory(st) -> None:
             agg = pricing.get("aggressive", pricing.get("tier_1", {}))
             bal = pricing.get("balanced", pricing.get("tier_2", {}))
             prem = pricing.get("premium", pricing.get("tier_3", {}))
-            tier_c1.metric(
-                "Aggressive",
-                f"Rs {agg.get('price', agg) if isinstance(agg, dict) else agg}/MT",
-            )
-            tier_c2.metric(
-                "Balanced",
-                f"Rs {bal.get('price', bal) if isinstance(bal, dict) else bal}/MT",
-            )
-            tier_c3.metric(
-                "Premium",
-                f"Rs {prem.get('price', prem) if isinstance(prem, dict) else prem}/MT",
-            )
+
+            def _tier_label(val):
+                if val is None:
+                    return "N/A"
+                if isinstance(val, dict):
+                    return val.get("price", "N/A")
+                return val
+
+            tier_c1.metric("Aggressive", f"Rs {_tier_label(agg)}/MT")
+            tier_c2.metric("Balanced",   f"Rs {_tier_label(bal)}/MT")
+            tier_c3.metric("Premium",    f"Rs {_tier_label(prem)}/MT")
 
     st.markdown("---")
 

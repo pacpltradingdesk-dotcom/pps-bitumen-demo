@@ -12,7 +12,8 @@ import numpy as np
 
 
 def _get_financial_data():
-    """Load financial summary from deals + DB, fallback to estimates."""
+    """Load financial summary from deals + DB, fallback to estimates.
+    Returns (data_dict, is_fallback) tuple."""
     try:
         from database import _get_conn
         conn = _get_conn()
@@ -37,9 +38,10 @@ def _get_financial_data():
                 "avg_margin_pct": 12.0,
                 "break_even_load_mt": 3200,
                 "cashflow_days": 45,
-            }
+                "_is_fallback": False,
+            }, False
     except Exception:
-        pass
+        pass  # fallback data used below
     # Fallback estimates
     return {
         "total_shipment_value": 74.8,
@@ -52,7 +54,8 @@ def _get_financial_data():
         "avg_margin_pct": 12.0,
         "break_even_load_mt": 3200,
         "cashflow_days": 45,
-    }
+        "_is_fallback": True,
+    }, True
 
 
 def _get_vessel_profitability():
@@ -114,8 +117,8 @@ P&L • Cashflow • Receivables • Scenario Analysis
 </div>
 """, unsafe_allow_html=True)
     
-    data = _get_financial_data()
-    
+    data, _using_fallback = _get_financial_data()
+
     # --- TOP KPI ROW ---
     st.markdown("### 📊 Financial Overview")
     k1, k2, k3, k4 = st.columns(4)
@@ -127,7 +130,7 @@ P&L • Cashflow • Receivables • Scenario Analysis
         st.metric("🔒 Working Capital Blocked", f"{data['working_capital_blocked']:.1f} Cr")
     with k4:
         st.metric("📋 Total Receivable", f"{data['total_receivable']:.1f} Cr")
-    
+
     k5, k6, k7, k8 = st.columns(4)
     with k5:
         st.metric("📈 Monthly Revenue", f"{data['monthly_revenue']:.1f} Cr")
@@ -137,9 +140,12 @@ P&L • Cashflow • Receivables • Scenario Analysis
         st.metric("✅ Monthly Profit", f"{data['monthly_profit']:.1f} Cr", f"{data['avg_margin_pct']:.1f}%")
     with k8:
         st.metric("⚖️ Break-Even Load", f"{data['break_even_load_mt']:,} MT")
+
+    if _using_fallback:
+        st.caption("📊 Using estimated data")
     
     # --- CASHFLOW STRESS INDICATOR ---
-    stress_ratio = data["working_capital_blocked"] / data["monthly_revenue"]
+    stress_ratio = data["working_capital_blocked"] / max(data.get("monthly_revenue", 1), 0.1)
     stress_level = "🟢 Healthy" if stress_ratio < 1.0 else ("🟡 Moderate" if stress_ratio < 1.5 else "🔴 Critical")
     stress_color = "#22c55e" if stress_ratio < 1.0 else ("#f59e0b" if stress_ratio < 1.5 else "#ef4444")
     
@@ -252,7 +258,7 @@ border-top:4px solid {a['color']}; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
 padding:15px; text-align:center; margin-top:5px;">
 <div style="font-size:1.2rem; font-weight:700; color:{impact_color};">{margin_status}</div>
 <div style="font-size:0.75rem; color:#64748b; margin-top:5px;">
-Monthly P&L Impact: {(impact/100 * data['monthly_revenue']):.2f} Cr
+Monthly P&L Impact: {(impact / 100 * max(data.get('monthly_revenue', 0), 0)):.2f} Cr
 </div>
 </div>
 """, unsafe_allow_html=True)

@@ -8,6 +8,9 @@ import streamlit as st
 import datetime
 import json
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+_ist = ZoneInfo("Asia/Kolkata")
 
 from components.empty_state import render_empty_state
 
@@ -21,7 +24,7 @@ def _load_json(filename, default=None):
         if p.exists():
             with open(p, "r", encoding="utf-8") as f:
                 return json.load(f)
-    except Exception:
+    except Exception as _e:
         pass
     return default if default is not None else {}
 
@@ -42,7 +45,7 @@ def _fmt(amount):
         else:
             formatted = s
         return f"\u20b9{formatted}"
-    except Exception:
+    except Exception as _e:
         return str(amount)
 
 
@@ -101,7 +104,8 @@ def render():
         from freshness_guard import ensure_fresh
         _freshness = ensure_fresh(show_spinner=True)
         if _freshness.get("action") == "sync-refresh":
-            _load_json.clear()
+            try: _load_json.clear()
+            except Exception: pass
     except Exception:
         _freshness = {"action": "error"}
 
@@ -128,8 +132,8 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
 </style>
 """, unsafe_allow_html=True)
 
-    now = datetime.datetime.now()
-    today = datetime.date.today()
+    now = datetime.datetime.now(tz=_ist)
+    today = now.date()
     greeting = ("Good Morning" if now.hour < 12
                 else "Good Afternoon" if now.hour < 17
                 else "Good Evening")
@@ -289,8 +293,15 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
     try:
         from database import get_dashboard_stats
         db_stats = get_dashboard_stats()
-    except Exception:
+    except Exception as _e:
         db_stats = {"total_suppliers": 63, "total_customers": 3, "total_deals": 0}
+
+    _db_stats_live = "get_dashboard_stats" in dir()  # False when fallback used
+    try:
+        from database import get_dashboard_stats as _gds_check
+        _db_stats_live = True
+    except Exception:
+        _db_stats_live = False
 
     # ── Top Bar ──
     from top_bar import render_top_bar
@@ -561,19 +572,19 @@ document.getElementById('btnR').onclick=function(e){{e.stopPropagation();if(froz
     # Quick action buttons
     qa1, qa2, qa3, qa4, qa5 = st.columns(5)
     with qa1:
-        if st.button("🧮 Get Quote", use_container_width=True, key="cc_quote"):
+        if st.button("🧮 Get Quote", use_container_width=True, key="qact_cc_quote"):
             _go("💎 One-Click Quote")
     with qa2:
-        if st.button("📡 View Signals", use_container_width=True, key="cc_signals"):
+        if st.button("📡 View Signals", use_container_width=True, key="qact_cc_signals"):
             _go("📡 Market Signals")
     with qa3:
-        if st.button("🎯 CRM Tasks", use_container_width=True, key="cc_crm"):
+        if st.button("🎯 CRM Tasks", use_container_width=True, key="qact_cc_crm"):
             _go("🎯 CRM & Tasks")
     with qa4:
-        if st.button("📝 Manual Price Entry", use_container_width=True, key="cc_manual"):
+        if st.button("📝 Manual Price Entry", use_container_width=True, key="qact_cc_manual"):
             _go("📝 Manual Price Entry")
     with qa5:
-        if st.button("📤 Rate Broadcast", use_container_width=True, key="cc_broadcast"):
+        if st.button("📤 Rate Broadcast", use_container_width=True, key="qact_cc_broadcast"):
             _go("📡 Rate Broadcast")
 
     # Colorful strip below buttons
@@ -878,13 +889,15 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
         _sup, _cus, _deals = (db_stats.get('total_suppliers'),
                               db_stats.get('total_customers'),
                               db_stats.get('total_deals'))
+        _sup_label = f"{_sup} (estimated)" if (_sup and not _db_stats_live) else (_sup if _sup else "—")
+        _cus_label = f"{_cus} (estimated)" if (_cus and not _db_stats_live) else (_cus if _cus else "—")
         stats = [
             ("🏭", "Suppliers",
-                _sup if _sup else "—",
+                _sup_label,
                 "#6366F1",
                 None if _sup else "Import via Wizard"),
             ("👥", "Customers",
-                _cus if _cus else "—",
+                _cus_label,
                 "#8B5CF6",
                 None if _cus else "Add via Import Wizard"),
             ("📋", "Tasks Today", tasks_today, "#F59E0B" if tasks_overdue > 0 else "#10B981", None),

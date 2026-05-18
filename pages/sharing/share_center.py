@@ -59,7 +59,7 @@ def _load_json(filepath, default=None):
             raw = p.read_text(encoding="utf-8").strip()
             if raw:
                 return json.loads(raw)
-    except Exception:
+    except Exception as _e:
         pass
     return default if default is not None else []
 
@@ -236,7 +236,7 @@ def render():
                             success_count += 1
                         else:
                             fail_count += 1
-                    except Exception:
+                    except Exception as _e:
                         fail_count += 1
 
                 if success_count:
@@ -254,7 +254,7 @@ def render():
         schedules = _load_json(_SCHEDULES_FILE, [])
 
         if not schedules:
-            st.info("No scheduled shares found. Use Quick Share or the Share button on any page to schedule.")
+            st.info("No scheduled shares. Use the Quick Share tab to schedule one.")
         else:
             # Build display table
             display_rows = []
@@ -402,7 +402,7 @@ def render():
                     for eh in engine_history:
                         if eh.get("id") not in existing_ids:
                             history.append(eh)
-            except Exception:
+            except Exception as _e:
                 pass
 
         if not history:

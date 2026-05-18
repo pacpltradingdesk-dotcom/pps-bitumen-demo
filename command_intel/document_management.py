@@ -374,34 +374,37 @@ def _po_create_form():
     with col_btn2:
         if st.button("Save as Draft", key="po_draft", use_container_width=True):
             po_number = get_next_doc_number("PO")
-            insert_purchase_order({
-                "po_number": po_number,
-                "deal_id": deal_id,
-                "supplier_id": (supplier.get("id") if (supplier.get("id") or 0) > 0 else None),
-                "supplier_name": supplier.get("name", ""),
-                "supplier_gstin": supplier.get("gstin", ""),
-                "items_json": [{
-                    "product": product, "packing": packing,
-                    "quantity": quantity, "rate": rate, "gst_rate": 18,
-                }],
-                "logistics_json": {
-                    "vehicle_no": vehicle_no, "transporter": transporter,
-                    "loading_point": loading_point, "delivery_point": delivery_point,
+            try:
+                insert_purchase_order({
+                    "po_number": po_number,
+                    "deal_id": deal_id,
+                    "supplier_id": (supplier.get("id") if (supplier.get("id") or 0) > 0 else None),
+                    "supplier_name": supplier.get("name", ""),
+                    "supplier_gstin": supplier.get("gstin", ""),
+                    "items_json": [{
+                        "product": product, "packing": packing,
+                        "quantity": quantity, "rate": rate, "gst_rate": 18,
+                    }],
+                    "logistics_json": {
+                        "vehicle_no": vehicle_no, "transporter": transporter,
+                        "loading_point": loading_point, "delivery_point": delivery_point,
+                        "lr_no": lr_no,
+                    },
+                    "totals_json": {
+                        "subtotal": quantity * rate,
+                        "gst": gst_amount,
+                        "total": total_amount,
+                    },
+                    "notes": notes,
+                    "status": "draft",
+                    "po_date": str(po_date),
+                    "reference_no": reference_no,
                     "lr_no": lr_no,
-                },
-                "totals_json": {
-                    "subtotal": quantity * rate,
-                    "gst": gst_amount,
-                    "total": total_amount,
-                },
-                "notes": notes,
-                "status": "draft",
-                "po_date": str(po_date),
-                "reference_no": reference_no,
-                "lr_no": lr_no,
-                "transporter_id": transporter_id,
-            })
-            st.info(f"Draft PO **{po_number}** saved.")
+                    "transporter_id": transporter_id,
+                })
+                st.info(f"Draft PO **{po_number}** saved.")
+            except Exception as e:
+                st.error(f"Failed to save draft PO: {e}")
 
 
 def _po_list_view():
@@ -720,34 +723,37 @@ def _so_create_form():
     with col_btn2:
         if st.button("Save as Draft", key="so_draft", use_container_width=True):
             so_number = get_next_doc_number("SO")
-            insert_sales_order({
-                "so_number": so_number,
-                "deal_id": deal_id,
-                "customer_id": customer.get("id"),
-                "customer_name": customer.get("name", ""),
-                "customer_gstin": customer.get("gstin", ""),
-                "items_json": [{
-                    "product": product, "packing": packing,
-                    "quantity": quantity, "rate": rate, "gst_rate": 18,
-                }],
-                "logistics_json": {
-                    "vehicle_no": vehicle_no, "transporter": transporter,
-                    "loading_point": loading_point, "delivery_point": delivery_point,
+            try:
+                insert_sales_order({
+                    "so_number": so_number,
+                    "deal_id": deal_id,
+                    "customer_id": customer.get("id"),
+                    "customer_name": customer.get("name", ""),
+                    "customer_gstin": customer.get("gstin", ""),
+                    "items_json": [{
+                        "product": product, "packing": packing,
+                        "quantity": quantity, "rate": rate, "gst_rate": 18,
+                    }],
+                    "logistics_json": {
+                        "vehicle_no": vehicle_no, "transporter": transporter,
+                        "loading_point": loading_point, "delivery_point": delivery_point,
+                        "lr_no": lr_no,
+                    },
+                    "totals_json": {
+                        "subtotal": quantity * rate,
+                        "gst": gst_amount,
+                        "total": total_amount,
+                    },
+                    "notes": notes,
+                    "status": "draft",
+                    "so_date": str(so_date),
+                    "reference_no": reference_no,
                     "lr_no": lr_no,
-                },
-                "totals_json": {
-                    "subtotal": quantity * rate,
-                    "gst": gst_amount,
-                    "total": total_amount,
-                },
-                "notes": notes,
-                "status": "draft",
-                "so_date": str(so_date),
-                "reference_no": reference_no,
-                "lr_no": lr_no,
-                "transporter_id": transporter_id,
-            })
-            st.info(f"Draft SO **{so_number}** saved.")
+                    "transporter_id": transporter_id,
+                })
+                st.info(f"Draft SO **{so_number}** saved.")
+            except Exception as e:
+                st.error(f"Failed to save draft SO: {e}")
 
 
 def _so_list_view():
@@ -1099,7 +1105,8 @@ def _payment_create_form():
                     "transporter_name": transporter_name,
                 })
 
-                st.success(f"Payment Order **{pay_number}** generated!")
+                st.success(f"Payment Order **{pay_number}** generated successfully! "
+                           f"({supplier_name} → {customer_name})")
                 st.download_button(
                     label="Download PDF",
                     data=pdf_bytes,
@@ -1145,34 +1152,40 @@ def _payment_create_form():
 
     with col_btn3:
         if st.button("Send to Accounts Email", key="pay_email", use_container_width=True):
-            try:
-                from communication_engine import generate_email_template
-                email = generate_email_template(
-                    "payment_reminder",
-                    party_name=supplier_name,
-                    amount=_format_inr_display(buy_total),
-                    due_date=str(purchase_due_date),
-                )
-                st.info("Email template generated. Copy and send via your email client:")
-                st.code(email.get("body", "Payment order details attached."), language=None)
-            except Exception:
-                st.info(f"Email template: Payment Order for {supplier_name} — "
-                        f"Amount: {_format_inr_display(buy_total)}, "
-                        f"Due: {purchase_due_date}, Mode: {payment_mode}")
+            if not supplier_name.strip():
+                st.warning("Please enter a Supplier Name before sending the email.")
+            else:
+                try:
+                    from communication_engine import generate_email_template
+                    email = generate_email_template(
+                        "payment_reminder",
+                        party_name=supplier_name,
+                        amount=_format_inr_display(buy_total),
+                        due_date=str(purchase_due_date),
+                    )
+                    st.info("Email template generated. Copy and send via your email client:")
+                    st.code(email.get("body", "Payment order details attached."), language=None)
+                except Exception:
+                    st.info(f"Email template: Payment Order for {supplier_name} — "
+                            f"Amount: {_format_inr_display(buy_total)}, "
+                            f"Due: {purchase_due_date}, Mode: {payment_mode}")
 
     with col_btn4:
         if st.button("Send WhatsApp", key="pay_whatsapp", use_container_width=True):
-            msg = (f"*Payment Order Summary*\n"
-                   f"Supplier: {supplier_name}\n"
-                   f"Purchase: {_format_inr_display(buy_total)}\n"
-                   f"Customer: {customer_name}\n"
-                   f"Sales: {_format_inr_display(sell_total)}\n"
-                   f"Transport: {_format_inr_display(transport_amount)}\n"
-                   f"Net Profit: {_format_inr_display(net_profit)}\n"
-                   f"Mode: {payment_mode}\n"
-                   f"Date: {_now_ist_str()}")
-            st.info("WhatsApp message ready. Copy and send:")
-            st.code(msg, language=None)
+            if not supplier_name.strip() and not customer_name.strip():
+                st.warning("Please enter Supplier and Customer names before sending WhatsApp.")
+            else:
+                msg = (f"*Payment Order Summary*\n"
+                       f"Supplier: {supplier_name}\n"
+                       f"Purchase: {_format_inr_display(buy_total)}\n"
+                       f"Customer: {customer_name}\n"
+                       f"Sales: {_format_inr_display(sell_total)}\n"
+                       f"Transport: {_format_inr_display(transport_amount)}\n"
+                       f"Net Profit: {_format_inr_display(net_profit)}\n"
+                       f"Mode: {payment_mode}\n"
+                       f"Date: {_now_ist_str()}")
+                st.info("WhatsApp message ready. Copy and send:")
+                st.code(msg, language=None)
 
 
 def _payment_list_view():
@@ -1205,7 +1218,11 @@ def _payment_list_view():
             "Date": p.get("created_at", ""),
         })
 
-    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+    df_pays = pd.DataFrame(rows)
+    if df_pays.empty:
+        st.info("No payment orders found. Create one above.")
+    else:
+        st.dataframe(df_pays, use_container_width=True, hide_index=True)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
