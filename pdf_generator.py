@@ -186,10 +186,10 @@ def create_price_pdf(customer_name, product_type, source, price_pmt, filename="Q
 
     try:
         pdf.output(filename)
-        return True
+        return filename
     except Exception as e:
         print(f"PDF Error: {e}")
-        return False
+        return None
 
 if __name__ == "__main__":
     create_price_pdf("Test Client", "Bitumen VG10", "Haldia", 41200)

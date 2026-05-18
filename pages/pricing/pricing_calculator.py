@@ -491,13 +491,16 @@ def render():
 
                         # Generate PDF
                         pdf_path = f"Formal_Quote_{new_quote.quote_number.replace('/','-')}.pdf"
-                        generate_pdf(new_quote, pdf_path)
+                        pdf_result = generate_pdf(new_quote, pdf_path)
 
                         st.success(f"\u2705 Quote Saved to DB (ID: {new_quote.id}) and PDF Generated!")
 
                         # Download Button
-                        with open(pdf_path, "rb") as f:
-                            st.download_button("\U0001f4c4 Download Formal PDF", f, file_name=pdf_path)
+                        if pdf_result and os.path.exists(pdf_path):
+                            with open(pdf_path, "rb") as f:
+                                st.download_button("\U0001f4c4 Download Formal PDF", f, file_name=pdf_path)
+                        else:
+                            st.warning("PDF could not be generated \u2014 quote is saved in DB.")
 
                 except Exception as e:
                     st.error(f"System Error: {e}")
@@ -512,17 +515,20 @@ def render():
             quote_no = st.session_state.current_quote_no
 
             # Generate the file
-            create_price_pdf(client_name_for_pdf, product_name, source_name, final_cost, filename=pdf_filename, quote_no=quote_no)
+            _legacy_pdf_result = create_price_pdf(client_name_for_pdf, product_name, source_name, final_cost, filename=pdf_filename, quote_no=quote_no)
 
             # Read Bytes for Download
-            with open(pdf_filename, "rb") as f:
-                st.download_button(
-                    label="\U0001f4c4 Download Official Quote PDF",
-                    data=f,
-                    file_name=pdf_filename,
-                    mime="application/pdf",
-                    use_container_width=True
-                )
+            if _legacy_pdf_result and os.path.exists(pdf_filename):
+                with open(pdf_filename, "rb") as f:
+                    st.download_button(
+                        label="\U0001f4c4 Download Official Quote PDF",
+                        data=f,
+                        file_name=pdf_filename,
+                        mime="application/pdf",
+                        use_container_width=True
+                    )
+            else:
+                st.warning("Quote PDF could not be generated.")
 
             # Premium PDF (new branded version)
             try:

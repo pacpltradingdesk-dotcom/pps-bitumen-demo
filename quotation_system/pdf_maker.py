@@ -158,5 +158,9 @@ def generate_pdf(quotation, filename):
     elements.append(sig_table)
     
     # Build
-    doc.build(elements)
-    return filename
+    try:
+        doc.build(elements)
+        return filename
+    except Exception as e:
+        print(f"PDF Build Error: {e}")
+        return None

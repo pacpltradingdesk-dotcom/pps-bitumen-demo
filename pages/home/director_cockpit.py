@@ -552,14 +552,18 @@ def _step5():
         if st.button("PDF Quote", key="sp", use_container_width=True):
             try:
                 from pdf_generator import create_price_pdf, get_next_quote_number
+                import os as _os
                 qn = get_next_quote_number()
-                pdf_path = create_price_pdf(cu, gr, src, pr, qty=qt, quote_no=qn, filename=f"Quote_{cu}_{ci}.pdf")
-                if pdf_path:
+                _pdf_fname = f"Quote_{cu}_{ci}.pdf"
+                pdf_path = create_price_pdf(cu, gr, src, pr, qty=qt, quote_no=qn, filename=_pdf_fname)
+                if pdf_path and _os.path.exists(pdf_path):
                     with open(pdf_path, "rb") as pf:
                         st.session_state["_ck_pdf_data"] = pf.read()
-                        st.session_state["_ck_pdf_name"] = f"Quote_{cu}_{ci}.pdf"
-            except Exception:
-                pass
+                        st.session_state["_ck_pdf_name"] = _pdf_fname
+                else:
+                    st.session_state["_ck_pdf_error"] = "PDF generation failed — check server logs."
+            except Exception as _e:
+                st.session_state["_ck_pdf_error"] = str(_e)[:120]
             try: _log_crm(cu,"PDF",msg)
             except Exception: pass
             try: _make_followup(cu)
@@ -589,8 +593,11 @@ def _step5():
     # Show PDF download button if generated
     pdf_data = st.session_state.pop("_ck_pdf_data", None)
     pdf_name = st.session_state.pop("_ck_pdf_name", "Quote.pdf")
+    pdf_error = st.session_state.pop("_ck_pdf_error", None)
     if pdf_data:
         st.download_button("Download PDF", data=pdf_data, file_name=pdf_name, mime="application/pdf", key="sp_dl")
+    elif pdf_error:
+        st.error(f"PDF Error: {pdf_error}")
 
     # ── WhatsApp Deep Link ──
     import urllib.parse
