@@ -652,8 +652,11 @@ def _step5():
                         break
     except Exception:
         pass
+    _phone_found = bool(phone_clean)
     if not phone_clean:
         phone_clean = "917795242424"  # Fallback to PPS owner
+    if not _phone_found:
+        st.caption(f"Phone not found for **{cu}** in contacts — WhatsApp link opens PPS owner number. Add customer phone in CRM to fix.")
     st.markdown(f'<a href="https://wa.me/{phone_clean}?text={wa_encoded}" target="_blank" style="display:inline-block;background:#25D366;color:#fff;padding:8px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.85rem;margin-top:8px;">Open in WhatsApp</a>', unsafe_allow_html=True)
 
     st.markdown("")

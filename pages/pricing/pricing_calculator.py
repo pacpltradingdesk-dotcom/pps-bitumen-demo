@@ -113,6 +113,9 @@ def render():
 
             if selected_city != st.session_state.get("_prev_city"):
                 st.session_state.pop("_calc_result", None)
+                st.session_state.pop("_formal_pdf_bytes", None)
+                st.session_state.pop("_formal_pdf_name", None)
+                st.session_state.pop("current_quote_no", None)
                 st.session_state["_prev_city"] = selected_city
 
             if selected_city and selected_state == "All States":
@@ -552,13 +555,14 @@ def render():
                 # Read Bytes for Download
                 if _legacy_pdf_result and os.path.exists(pdf_filename):
                     with open(pdf_filename, "rb") as f:
-                        st.download_button(
-                            label="\U0001f4c4 Download Official Quote PDF",
-                            data=f,
-                            file_name=pdf_filename,
-                            mime="application/pdf",
-                            use_container_width=True
-                        )
+                        _legacy_pdf_bytes = f.read()
+                    st.download_button(
+                        label="\U0001f4c4 Download Official Quote PDF",
+                        data=_legacy_pdf_bytes,
+                        file_name=pdf_filename,
+                        mime="application/pdf",
+                        use_container_width=True
+                    )
                 else:
                     st.warning("Quote PDF could not be generated.")
 

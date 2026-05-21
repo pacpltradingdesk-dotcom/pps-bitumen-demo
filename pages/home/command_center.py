@@ -347,7 +347,7 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
         f"VG30: {_fmt(vg30_k)}/MT", f"AI: {pa_action} ({pa_urgency}%)",
     ]
     try:
-        # Add Gold, Nifty etc from hub_cache
+        hub_cache = _load_json("hub_cache.json", {})
         for item in hub_cache.get("market_data", {}).get("data", []):
             if isinstance(item, dict) and item.get("label"):
                 global_markets.append(f"{item['label']}: {item.get('value', '—')}")
