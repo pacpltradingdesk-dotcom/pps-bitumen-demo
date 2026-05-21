@@ -538,6 +538,10 @@ def _step5():
             except Exception: pass
             try: _make_followup(cu)
             except Exception: pass
+            import urllib.parse as _up2
+            _subj = _up2.quote(f"Bitumen Rate Offer — {gr} | {qt} MT | Rs.{pr:,.0f}/MT")
+            _body = _up2.quote(msg)
+            st.session_state["_ck_email_link"] = f"mailto:?subject={_subj}&body={_body}"
             st.session_state["_ck_snt"] = "Email"
             st.rerun()
     with s3:
@@ -546,6 +550,9 @@ def _step5():
             except Exception: pass
             try: _make_followup(cu)
             except Exception: pass
+            import urllib.parse as _up3
+            _tg_text = _up3.quote(msg)
+            st.session_state["_ck_tg_link"] = f"https://t.me/share/url?url=https%3A%2F%2Fppsanatams.cloud&text={_tg_text}"
             st.session_state["_ck_snt"] = "Telegram"
             st.rerun()
     with s4:
@@ -576,19 +583,40 @@ def _step5():
                 from shareable_links_engine import create_share_link, generate_share_url
                 token = create_share_link("Quote", content_json={"customer": cu, "city": ci, "grade": gr, "qty": qt, "price": pr, "source": src, "tier": tk}, created_by="cockpit")
                 url = generate_share_url(token)
+                if "localhost" in url or "127.0.0.1" in url:
+                    _pub = os.environ.get("APP_PUBLIC_URL", "https://ppsanatams.cloud")
+                    url = f"{_pub}/?share={token}"
                 st.session_state["_ck_share_url"] = url
-            except Exception:
-                pass
+            except Exception as _se:
+                st.session_state["_ck_share_err"] = str(_se)[:120]
             try: _log_crm(cu,"Share Link",msg)
             except Exception: pass
             st.session_state["_ck_snt"] = "Share Link"
             st.rerun()
 
+    # Show channel-specific action links after send
+    email_link = st.session_state.pop("_ck_email_link", None)
+    if email_link:
+        st.markdown(
+            f'<a href="{email_link}" target="_blank" style="display:inline-block;background:#4F46E5;color:#fff;padding:8px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.85rem;margin-top:4px;">Open Email Client</a>',
+            unsafe_allow_html=True,
+        )
+
+    tg_link = st.session_state.pop("_ck_tg_link", None)
+    if tg_link:
+        st.markdown(
+            f'<a href="{tg_link}" target="_blank" style="display:inline-block;background:#229ED9;color:#fff;padding:8px 20px;border-radius:8px;text-decoration:none;font-weight:700;font-size:0.85rem;margin-top:4px;">Open Telegram Share</a>',
+            unsafe_allow_html=True,
+        )
+
     # Show share link if generated
     share_url = st.session_state.pop("_ck_share_url", None)
+    share_err = st.session_state.pop("_ck_share_err", None)
     if share_url:
         st.code(share_url, language=None)
         st.caption("Copy this link and share anywhere!")
+    elif share_err:
+        st.error(f"Share link error: {share_err}")
 
     # Show PDF download button if generated
     pdf_data = st.session_state.pop("_ck_pdf_data", None)
@@ -628,7 +656,7 @@ def _step5():
         if st.button("\u2190 Back", key="s5b"): st.session_state["_ck"] = 4; st.rerun()
     with b2:
         if st.button("New Quote", type="primary", key="s5r"):
-            for k in ["_ck","_ck_c","_ck_q","_ck_t","_ck_snt","_ck_srcs","_ck_share_url"]: st.session_state.pop(k,None)
+            for k in ["_ck","_ck_c","_ck_q","_ck_t","_ck_snt","_ck_srcs","_ck_share_url","_ck_share_err","_ck_email_link","_ck_tg_link","_ck_pdf_data","_ck_pdf_name","_ck_pdf_error"]: st.session_state.pop(k,None)
             st.rerun()
 
 
