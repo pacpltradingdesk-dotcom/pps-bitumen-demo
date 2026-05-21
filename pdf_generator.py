@@ -1,7 +1,15 @@
 from fpdf import FPDF
 import datetime
 import os
+import unicodedata
 from company_config import COMPANY_PROFILE
+
+
+def _s(text):
+    """Strip characters outside Latin-1 so fpdf's built-in fonts don't crash."""
+    if not isinstance(text, str):
+        text = str(text) if text is not None else ""
+    return "".join(c if ord(c) < 256 else "?" for c in text)
 
 LOGO_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "pps_logo.png")
 
@@ -79,7 +87,7 @@ def create_price_pdf(customer_name, product_type, source, price_pmt, filename="Q
     pdf.set_xy(105, y_start)
     
     pdf.set_font("Arial", 'B', 11)
-    pdf.cell(95, 6, customer_name, "R", 1)
+    pdf.cell(95, 6, _s(customer_name), "R", 1)
     pdf.set_font("Arial", '', 9)
     pdf.set_x(105)
     pdf.cell(95, 5, "(Billing Address to be provided)", "R", 1)
@@ -102,7 +110,7 @@ def create_price_pdf(customer_name, product_type, source, price_pmt, filename="Q
     pdf.set_x(105)
     pdf.set_fill_color(255, 204, 204) # Light red
     pdf.set_font("Arial", 'B', 9)
-    pdf.cell(95, 6, "⚠️ RATE VALID FOR 24 HOURS ONLY", "RB", 1, 'C', 1)
+    pdf.cell(95, 6, "** RATE VALID FOR 24 HOURS ONLY **", "RB", 1, 'C', 1)
     
     pdf.ln(5)
 
@@ -126,7 +134,7 @@ def create_price_pdf(customer_name, product_type, source, price_pmt, filename="Q
     total_amt = base_val + tax_amt
     
     pdf.cell(10, 10, "1", 1, 0, 'C')
-    pdf.cell(80, 10, f"{product_type} (Source: {source})", 1, 0, 'L')
+    pdf.cell(80, 10, _s(f"{product_type} (Source: {source})"), 1, 0, 'L')
     pdf.cell(25, 10, COMPANY_PROFILE['hsn_code'], 1, 0, 'C')
     pdf.cell(25, 10, f"{qty:.3f}", 1, 0, 'C')
     pdf.cell(25, 10, f"{price_pmt:,.2f}", 1, 0, 'R')
@@ -153,8 +161,8 @@ def create_price_pdf(customer_name, product_type, source, price_pmt, filename="Q
     pdf.cell(0, 7, " Why Choose PPS Anantams? (Our Promise)", 1, 1, 'L', 1)
     pdf.set_font("Arial", '', 10)
     for point in why_us_points:
-         pdf.cell(5, 6, chr(149), 0, 0) # Bullet
-         pdf.cell(0, 6, point, 0, 1)
+         pdf.cell(5, 6, chr(149), 0, 0)
+         pdf.cell(0, 6, _s(point), 0, 1)
          
     pdf.ln(5)
 
@@ -182,7 +190,7 @@ def create_price_pdf(customer_name, product_type, source, price_pmt, filename="Q
     pdf.set_font("Arial", '', 8)
     for term in COMPANY_PROFILE['terms']:
         pdf.set_x(110)
-        pdf.multi_cell(80, 4, term, 0, 'L')
+        pdf.multi_cell(80, 4, _s(term), 0, 'L')
 
     try:
         pdf.output(filename)
