@@ -111,16 +111,17 @@ def _save_inquiry(data):
                 tier TEXT, message TEXT, created_at TEXT, status TEXT DEFAULT 'new'
             )
         """)
-        conn.execute(
+        cursor = conn.execute(
             "INSERT INTO inquiries (name, company, phone, email, tier, message, created_at) VALUES (?,?,?,?,?,?,?)",
             (data.get("name"), data.get("company"), data.get("phone"), data.get("email"),
              data.get("tier"), data.get("message"), datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         )
         conn.commit()
+        row_id = cursor.lastrowid
         conn.close()
-        return True
+        return row_id
     except Exception:
-        return False
+        return None
 
 
 def render():
@@ -243,10 +244,10 @@ def render():
                 "email": email, "tier": tier.split(" ")[0], "message": message,
             })
             if saved:
-                st.success("Thank you! We'll contact you within 24 hours.")
+                st.success(f"Inquiry submitted! Reference: **INQ-{saved:04d}** — We'll contact you within 24 hours.")
                 st.balloons()
             else:
-                st.success("Thank you! Please call +91 7795242424 for immediate assistance.")
+                st.warning("Could not save to database — please call **+91 7795242424** directly.")
         else:
             st.warning("Please enter your name and phone number.")
 

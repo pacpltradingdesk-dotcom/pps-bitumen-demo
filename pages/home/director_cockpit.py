@@ -557,6 +557,7 @@ def _step5():
             st.rerun()
     with s4:
         if st.button("PDF Quote", key="sp", use_container_width=True):
+            _pdf_ok = False
             try:
                 from pdf_generator import create_price_pdf, get_next_quote_number
                 import os as _os
@@ -567,6 +568,7 @@ def _step5():
                     with open(pdf_path, "rb") as pf:
                         st.session_state["_ck_pdf_data"] = pf.read()
                         st.session_state["_ck_pdf_name"] = _pdf_fname
+                    _pdf_ok = True
                 else:
                     st.session_state["_ck_pdf_error"] = "PDF generation failed — check server logs."
             except Exception as _e:
@@ -575,10 +577,12 @@ def _step5():
             except Exception: pass
             try: _make_followup(cu)
             except Exception: pass
-            st.session_state["_ck_snt"] = "PDF"
+            if _pdf_ok:
+                st.session_state["_ck_snt"] = "PDF"
             st.rerun()
     with s5:
         if st.button("Share Link", key="sl", use_container_width=True):
+            _sl_ok = False
             try:
                 from shareable_links_engine import create_share_link, generate_share_url
                 token = create_share_link("Quote", content_json={"customer": cu, "city": ci, "grade": gr, "qty": qt, "price": pr, "source": src, "tier": tk}, created_by="cockpit")
@@ -587,11 +591,13 @@ def _step5():
                     _pub = os.environ.get("APP_PUBLIC_URL", "https://ppsanatams.cloud")
                     url = f"{_pub}/?share={token}"
                 st.session_state["_ck_share_url"] = url
+                _sl_ok = True
             except Exception as _se:
                 st.session_state["_ck_share_err"] = str(_se)[:120]
             try: _log_crm(cu,"Share Link",msg)
             except Exception: pass
-            st.session_state["_ck_snt"] = "Share Link"
+            if _sl_ok:
+                st.session_state["_ck_snt"] = "Share Link"
             st.rerun()
 
     # Show channel-specific action links after send

@@ -510,18 +510,31 @@ def render():
                         pdf_path = f"Formal_Quote_{new_quote.quote_number.replace('/','-')}.pdf"
                         pdf_result = generate_pdf(new_quote, pdf_path)
 
-                        st.success(f"\u2705 Quote Saved to DB (ID: {new_quote.id}) and PDF Generated!")
                         _formal_pdf_generated = True
-
-                        # Download Button
                         if pdf_result and os.path.exists(pdf_path):
                             with open(pdf_path, "rb") as f:
-                                st.download_button("\U0001f4c4 Download Formal PDF", f, file_name=pdf_path)
+                                st.session_state["_formal_pdf_bytes"] = f.read()
+                                st.session_state["_formal_pdf_name"] = pdf_path
+                            st.success(f"\u2705 Quote Saved (ID: {new_quote.id}) \u2014 PDF ready to download!")
                         else:
+                            st.success(f"\u2705 Quote Saved to DB (ID: {new_quote.id})")
                             st.warning("PDF could not be generated \u2014 quote is saved in DB.")
 
                 except Exception as e:
                     st.error(f"System Error: {e}")
+
+            # Persistent formal PDF download button (survives reruns)
+            _formal_bytes = st.session_state.get("_formal_pdf_bytes")
+            if _formal_bytes:
+                st.download_button(
+                    "\U0001f4c4 Download Formal PDF",
+                    data=_formal_bytes,
+                    file_name=st.session_state.get("_formal_pdf_name", "Formal_Quote.pdf"),
+                    mime="application/pdf",
+                    key="dl_formal_pdf_persist",
+                    use_container_width=True,
+                )
+                _formal_pdf_generated = True
 
             # Legacy PDF Logic (Kept for fallback \u2014 skipped if formal PDF already generated this run)
             if not _formal_pdf_generated:

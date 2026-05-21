@@ -283,14 +283,27 @@ def render():
                 for i, s in enumerate(schedules)
             ]
             to_delete = st.selectbox("Select schedule to remove", options=sched_labels, key="sched_del_sel")
-            if st.button("\U0001f5d1\ufe0f Delete Selected", key="sched_del_btn"):
-                del_idx = sched_labels.index(to_delete)
-                schedules.pop(del_idx)
-                if _save_json(_SCHEDULES_FILE, schedules):
-                    st.success("Schedule removed.")
+            if not st.session_state.get("_sched_del_confirm"):
+                if st.button("\U0001f5d1\ufe0f Delete Selected", key="sched_del_btn"):
+                    st.session_state["_sched_del_confirm"] = True
                     st.rerun()
-                else:
-                    st.error("Failed to save changes.")
+            else:
+                st.warning(f"Delete **{to_delete}**? This cannot be undone.")
+                dc1, dc2 = st.columns(2)
+                with dc1:
+                    if st.button("Yes, Delete", type="primary", key="sched_del_yes"):
+                        del_idx = sched_labels.index(to_delete)
+                        schedules.pop(del_idx)
+                        st.session_state.pop("_sched_del_confirm", None)
+                        if _save_json(_SCHEDULES_FILE, schedules):
+                            st.success("Schedule removed.")
+                            st.rerun()
+                        else:
+                            st.error("Failed to save changes.")
+                with dc2:
+                    if st.button("Cancel", key="sched_del_no"):
+                        st.session_state.pop("_sched_del_confirm", None)
+                        st.rerun()
 
     # ══════════════════════════════════════════════════════════════════════
     #  TAB 3 — Templates
@@ -327,11 +340,24 @@ def render():
                             st.session_state[f"tpl_editing_{idx}"] = True
 
                     with col_del:
-                        if st.button("\U0001f5d1\ufe0f Delete", key=f"tpl_del_{idx}"):
-                            templates.pop(idx)
-                            _save_json(_TEMPLATES_FILE, templates)
-                            st.success("Template deleted.")
-                            st.rerun()
+                        if not st.session_state.get(f"_tpl_del_confirm_{idx}"):
+                            if st.button("\U0001f5d1\ufe0f Delete", key=f"tpl_del_{idx}"):
+                                st.session_state[f"_tpl_del_confirm_{idx}"] = True
+                                st.rerun()
+                        else:
+                            st.warning("Delete this template?")
+                            tc1, tc2 = st.columns(2)
+                            with tc1:
+                                if st.button("Yes", type="primary", key=f"tpl_del_yes_{idx}"):
+                                    templates.pop(idx)
+                                    _save_json(_TEMPLATES_FILE, templates)
+                                    st.session_state.pop(f"_tpl_del_confirm_{idx}", None)
+                                    st.success("Template deleted.")
+                                    st.rerun()
+                            with tc2:
+                                if st.button("No", key=f"tpl_del_no_{idx}"):
+                                    st.session_state.pop(f"_tpl_del_confirm_{idx}", None)
+                                    st.rerun()
 
                     # Inline edit mode
                     if st.session_state.get(f"tpl_editing_{idx}", False):
@@ -381,6 +407,8 @@ def render():
                 })
                 _save_json(_TEMPLATES_FILE, templates)
                 st.success(f"Template '{new_tpl_name}' saved.")
+                for _k in ["new_tpl_name", "new_tpl_channel", "new_tpl_body"]:
+                    st.session_state.pop(_k, None)
                 st.rerun()
 
     # ══════════════════════════════════════════════════════════════════════
