@@ -8,7 +8,7 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='repla
 
 from playwright.sync_api import sync_playwright
 
-BASE_URL = "http://127.0.0.1:8501"
+BASE_URL = os.environ.get("PPS_TEST_URL", "http://127.0.0.1:8501")
 SS_DIR   = "browser_test_screenshots"
 os.makedirs(SS_DIR, exist_ok=True)
 
@@ -326,13 +326,13 @@ def click_module(page, name, user, pwd):
 
 def click_sidebar(page, label):
     """Click a sidebar page button. Returns True if clicked successfully."""
-    # Use click() with timeout — Playwright waits for element to be visible+actionable
     for text in [f"{label} ✦", label, f"✦ {label}"]:
         try:
             btn = page.locator(f'[data-testid="stSidebar"] button:has-text("{text}")').first
-            btn.click(timeout=5000)   # auto-waits for visible + actionable
-            stl_wait(page, 12000)
-            pause(1)
+            btn.wait_for(state="visible", timeout=10000)
+            btn.click(timeout=10000)
+            stl_wait(page, 15000)
+            pause(1.5)
             return True
         except Exception:
             pass
@@ -477,10 +477,11 @@ def run_user(browser, info):
             kill_tour(page)
             ok2 = click_sidebar(page, pg)
 
-            # Tour may appear after sidebar navigation
+            # Tour may appear after sidebar navigation — extra stl_wait for VPS
             if dismiss_tour(page):
                 L(f"    INFO - tour dismissed after sidebar nav")
-                pause(0.8)
+                stl_wait(page, 5000)
+                pause(1.0)
 
             errs2 = get_errors(page)
             content2 = has_content(page)
@@ -566,16 +567,24 @@ def run_user(browser, info):
     return total, passed, failed
 
 
-def wait_for_app(timeout=30):
+def wait_for_app(timeout=60):
     """Wait until the Streamlit app responds. Returns True if up."""
     import urllib.request as _ur
+    import urllib.error as _ue
+    import ssl as _ssl
     deadline = time.time() + timeout
+    ctx = _ssl.create_default_context()
+    ctx.check_hostname = False
+    ctx.verify_mode = _ssl.CERT_NONE
+    req = _ur.Request(BASE_URL, headers={"User-Agent": "Mozilla/5.0 (PPS-BrowserTest)"})
     while time.time() < deadline:
         try:
-            _ur.urlopen(BASE_URL, timeout=4)
+            _ur.urlopen(req, timeout=8, context=ctx)
             return True
+        except _ue.HTTPError:
+            return True  # Any HTTP response means server is up
         except Exception:
-            time.sleep(2)
+            time.sleep(3)
     return False
 
 
