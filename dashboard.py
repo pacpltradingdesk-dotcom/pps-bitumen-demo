@@ -277,6 +277,19 @@ if "_active_module" not in st.session_state:
     # Migrate from old key if exists
     st.session_state["_active_module"] = st.session_state.get("selected_module", "📊 Price & Info")
 
+# URL query-param module navigation: goto /?_m=Sales jumps straight to that module
+_qm = st.query_params.get("_m")
+if _qm:
+    _mk = next((k for k, v in MODULE_NAV.items() if v.get("label") == _qm), None)
+    if _mk:
+        try:
+            del st.query_params["_m"]
+        except Exception:
+            pass
+        st.session_state["_active_module"] = _mk
+        st.session_state["selected_page"] = MODULE_NAV[_mk]["tabs"][0]["page"]
+        st.rerun()
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # COMMAND CENTER FAST PATH — render clean, skip all nav chrome
