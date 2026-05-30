@@ -307,6 +307,13 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
     from top_bar import render_top_bar
     render_top_bar()
 
+    # ── Global search / command palette ──
+    try:
+        from global_search import render_global_search
+        render_global_search(slot="cc")
+    except Exception:
+        pass
+
     # ═══════════════════════════════════════════════════════════════════════
     # 1. SCROLLING NEWS TICKER
     # ═══════════════════════════════════════════════════════════════════════
@@ -617,6 +624,27 @@ document.getElementById('btnR').onclick=function(e){{e.stopPropagation();if(froz
         news_to_show = [n for n in news_data[:20] if isinstance(n, dict) and n.get("title", n.get("headline", ""))]
     else:
         news_to_show = []
+
+    # Share ALL — bundle this news feed into one message for any channel
+    if news_to_show:
+        try:
+            import news_share
+            _cc_arts = [{
+                "headline":         n.get("title", n.get("headline", "")),
+                "summary":          n.get("summary", n.get("description", n.get("content", ""))) or "",
+                "source_name":      n.get("source", n.get("publisher", "")) or "",
+                "source_url":       n.get("url", n.get("link", "")) or "",
+                "impact_score":     n.get("impact_score", n.get("impact", 0)) or 0,
+                "published_at_ist": str(n.get("published", n.get("date", ""))),
+            } for n in news_to_show]
+            _scol1, _scol2 = st.columns([3, 1])
+            with _scol2:
+                news_share.render_digest_share(
+                    _cc_arts, title="Top Market News",
+                    key_suffix="cc_news", limit=20,
+                )
+        except Exception:
+            pass
 
     if news_to_show:
         import html as html_mod

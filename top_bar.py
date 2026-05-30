@@ -125,12 +125,15 @@ def render_top_bar() -> None:
     visible_topbar = [m for m in TOPBAR_MODULES if _allowed(m)]
     visible_overflow = [m for m in OVERFLOW_MODULES if _allowed(m)]
 
-    # If active module is now hidden for this role, switch to first allowed
+    # If active module is now hidden for this role, switch to first allowed.
+    # Rerun immediately so the rest of the script re-runs with consistent state —
+    # without this, selected_page is swapped mid-render and the page handler
+    # renders a second top bar, causing a duplicate "_tnav_0" key crash.
     if current_module not in visible_topbar + visible_overflow and visible_topbar:
         fallback = visible_topbar[0]
         st.session_state["_active_module"] = fallback
         st.session_state["selected_page"] = MODULE_NAV[fallback]["tabs"][0]["page"]
-        current_module = fallback
+        st.rerun()
 
     num_modules = len(visible_topbar)
     if visible_overflow:

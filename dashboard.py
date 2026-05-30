@@ -335,6 +335,13 @@ if not render_login_form():
 # Top navigation bar (modules)
 render_top_bar()
 
+# Global search / command palette — type any word, jump to any page
+try:
+    from global_search import render_global_search
+    render_global_search(slot="main")
+except Exception:
+    pass
+
 # Sidebar feature list for active module
 _active_module = st.session_state.get("_active_module", "🏠 Home")
 _sidebar_page = render_sidebar_features(_active_module)

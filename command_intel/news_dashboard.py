@@ -410,6 +410,18 @@ def _render_filters(region: str, key_prefix: str) -> dict:
     }
 
 # ══════════════════════════════════════════════════════════════════════════════
+# SHARE — delegate to the reusable news_share module (single source of truth)
+# ══════════════════════════════════════════════════════════════════════════════
+
+import news_share
+
+
+def _render_share_popover(a: dict, idx: int, region_key: str):
+    """Per-article 'Share everywhere' popover (WhatsApp/Telegram/Email/X/LinkedIn)."""
+    news_share.render_article_share(a, key_suffix=f"{region_key}_{idx}_{a.get('article_id','')}")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # SINGLE NEWS CARD
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -520,6 +532,9 @@ def _render_card(a: dict, idx: int, region_key: str):
     with bc4:
         st.link_button("🔗", url, help="Open Source", use_container_width=True)
 
+    # Share everywhere — WhatsApp / Telegram / Email / X / LinkedIn + copy
+    _render_share_popover(a, idx, region_key)
+
 # ══════════════════════════════════════════════════════════════════════════════
 # STATS ROW
 # ══════════════════════════════════════════════════════════════════════════════
@@ -602,7 +617,16 @@ def _render_news_list(region: str, sound_on: bool, key_prefix: str):
         )
         return
 
-    st.caption(f"Showing {len(articles)} article{'s' if len(articles)!=1 else ''}")
+    # Share ALL — bundle the currently-filtered list into one digest message
+    cap_col, share_col = st.columns([3, 1])
+    with cap_col:
+        st.caption(f"Showing {len(articles)} article{'s' if len(articles)!=1 else ''}")
+    with share_col:
+        import news_share
+        news_share.render_digest_share(
+            articles, title=f"{region} News Digest",
+            key_suffix=f"digest_{key_prefix}", limit=15,
+        )
 
     # Render cards in 3-column grid (square-ish tiles)
     for row_start in range(0, len(articles), 3):
