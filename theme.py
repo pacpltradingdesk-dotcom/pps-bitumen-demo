@@ -258,6 +258,8 @@ def inject_theme() -> None:
                 padding-left: 1rem !important;
                 padding-right: 1rem !important;
             }
+            /* 5 fixed cards squish on laptops — drop to 3 across. */
+            .kpi-grid { grid-template-columns: repeat(3, 1fr) !important; }
         }
 
         /* ── Mobile Landscape (≤768px) ── */
@@ -280,6 +282,9 @@ def inject_theme() -> None:
                 flex-wrap: wrap !important;
                 gap: 0.5rem !important;
             }
+
+            /* KPI cards: 2 across on mobile landscape. */
+            .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; }
 
             /* Smaller card padding */
             [data-testid="stVerticalBlock"] > [style*="flex-direction: column;"] > [data-testid="stVerticalBlock"] {
