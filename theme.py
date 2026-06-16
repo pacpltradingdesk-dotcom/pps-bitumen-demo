@@ -232,6 +232,25 @@ def inject_theme() -> None:
 
         /* Viewport meta (injected via JS below) */
 
+        /* ── Metric figures must never clip ("figur pura nahi dikh raha") ──
+           Streamlit st.metric truncates the value with an ellipsis when the
+           column is narrow. On mid widths (5 cards side-by-side, screen not yet
+           small enough to stack) this hides the actual number. Allow wrapping
+           and scale the font with the viewport so it always fits. */
+        [data-testid="stMetricValue"] {
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            font-size: clamp(1.05rem, 1.6vw, 1.6rem) !important;
+            line-height: 1.15 !important;
+        }
+        [data-testid="stMetricValue"] > div { overflow: visible !important; }
+        [data-testid="stMetricLabel"] { white-space: normal !important; }
+        [data-testid="stMetricDelta"] {
+            white-space: normal !important;
+            font-size: clamp(0.62rem, 1vw, 0.8rem) !important;
+        }
+
         /* ── Tablet (≤1024px) ── */
         @media (max-width: 1024px) {
             .block-container {

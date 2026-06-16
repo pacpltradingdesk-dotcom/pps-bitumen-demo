@@ -288,6 +288,14 @@ def generate_forecast_calendar() -> pd.DataFrame:
                     38_000 + (best_match["upper"] - 60) * 450 + (usdinr_now - 84) * 120)
                 used_ml = True
 
+                # Plausibility gate: ARIMA on a wide/transformed series can emit
+                # absurd draws (proxy ~250 -> ₹1.2L predicted, negative CI ->
+                # negative Low Range). A bitumen price outside a realistic band or
+                # an inverted/negative range is not trustworthy — drop ML and let
+                # the calibrated heuristic below compute the figure instead.
+                if not (25_000 <= price <= 90_000 and 0 < low < high):
+                    used_ml = False
+
         # ── Heuristic Path (fallback) ───────────────────────────────
         # Model: Bitumen price = f(Brent, USD/INR, Seasonality, FO Spread)
         # Reference: MEE Multi Energy Enterprises methodology
@@ -313,6 +321,14 @@ def generate_forecast_calendar() -> pd.DataFrame:
             band = 400 + (offset * 50)
             low = price - band
             high = price + band
+
+        # ── Final guardrails: every figure must be a realistic, ordered bitumen
+        # price. Prevents negative "Low Range" and ₹-lakh blowups reaching the UI.
+        price = max(25_000.0, min(90_000.0, float(price)))
+        if not (0 < low < price < high) or (high - low) > price * 0.5:
+            b = 400 + offset * 50
+            low, high = price - b, price + b
+        low = max(0.0, low)
 
         status = "Published" if d <= datetime.date.today() else "Pending"
         conf   = _confidence(offset // 2, brent_stable, fx_stable)
