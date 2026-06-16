@@ -213,40 +213,71 @@ def _render_bitumen_prices(st) -> None:
             LOG.debug("OPEC cache miss: %s", exc)
 
     if opec_data:
+        # opec_monthly arrives as {'data': {'records':[...], 'latest':..}} (or
+        # directly as that data). The real keys are opec_basket_usd / period —
+        # the old code read 'price'/'month'/'change' which never existed -> N/A.
+        node = opec_data.get("data", opec_data) if isinstance(opec_data, dict) else opec_data
+        recs = node.get("records") if isinstance(node, dict) else (node if isinstance(node, list) else [])
+        latest = recs[-1] if isinstance(recs, list) and recs else (node if isinstance(node, dict) else {})
+        if not isinstance(latest, dict):
+            latest = {}
+        basket = latest.get("opec_basket_usd", node.get("latest") if isinstance(node, dict) else None)
+        month = latest.get("period", "N/A")
+        change = "—"
+        if isinstance(recs, list) and len(recs) >= 2:
+            try:
+                change = f"{float(basket) - float(recs[-2].get('opec_basket_usd')):+.2f}"
+            except Exception:
+                change = "—"
         st.markdown("##### OPEC Basket Price")
-        if isinstance(opec_data, dict):
-            c1, c2, c3 = st.columns(3)
-            c1.metric("OPEC Basket", f"${opec_data.get('price', 'N/A')}")
-            c2.metric("Month", str(opec_data.get("month", "N/A")))
-            c3.metric("Change", str(opec_data.get("change", "N/A")))
-        elif isinstance(opec_data, list) and _PANDAS:
-            df_opec = pd.DataFrame(opec_data)
-            st.dataframe(df_opec.tail(12), use_container_width=True, hide_index=True)
+        c1, c2, c3 = st.columns(3)
+        c1.metric("OPEC Basket", f"${basket}" if basket not in (None, "N/A") else "N/A")
+        c2.metric("Month", str(month))
+        c3.metric("Change", str(change))
     else:
         st.info("OPEC basket data not available. Ensure API Hub is synced.")
 
     st.markdown("---")
 
-    # PSU refinery prices
+    # PSU refinery prices — sourced from live_prices.json, the SAME values the
+    # Command Center refinery ticker shows, so refinery prices match on every
+    # page. (Previously this read tbl_refinery_production.json and showed
+    # production VOLUMES under a "Prices" heading.)
     st.markdown("##### PSU Refinery Prices (India)")
     st.markdown(
         "Indian PSU refineries (IOCL, BPCL, HPCL) revise bitumen prices "
         "fortnightly (1st and 16th of each month)."
     )
 
-    refinery_data = _load_json("tbl_refinery_production.json")
-    if refinery_data and _PANDAS:
-        df_ref = pd.DataFrame(refinery_data)
-        price_cols = [c for c in df_ref.columns if "price" in c.lower() or "rate" in c.lower()]
-        if price_cols:
-            st.dataframe(df_ref.tail(20), use_container_width=True, hide_index=True)
-        else:
-            st.dataframe(df_ref.tail(20), use_container_width=True, hide_index=True)
-    elif refinery_data:
-        for row in refinery_data[-10:]:
-            st.write(row)
+    lp = {}
+    try:
+        _lp_path = BASE / "live_prices.json"
+        if _lp_path.exists():
+            lp = json.loads(_lp_path.read_text(encoding="utf-8")) or {}
+    except Exception:
+        lp = {}
+    refineries = [
+        ("IOCL Koyali", "VG30", lp.get("IOCL_KOYALI_VG30", 42000)),
+        ("IOCL Mathura", "VG30", lp.get("IOCL_MATHURA_VG30", 42500)),
+        ("IOCL Haldia", "VG30", lp.get("IOCL_HALDIA_VG30", 41800)),
+        ("BPCL Mumbai", "VG30", lp.get("BPCL_MUMBAI_VG30", 43000)),
+        ("HPCL Mumbai", "VG30", lp.get("HPCL_MUMBAI_VG30", 42900)),
+        ("HPCL Vizag", "VG30", lp.get("HPCL_VIZAG_VG30", 41600)),
+        ("CPCL Chennai", "VG30", lp.get("CPCL_CHENNAI_VG30", 42100)),
+        ("MRPL Mangalore", "VG30", lp.get("MRPL_MANGALORE_VG30", 41900)),
+        ("IOCL Panipat", "VG30", lp.get("IOCL_PANIPAT_VG30", 42200)),
+        ("IOCL Barauni", "VG30", lp.get("IOCL_BARAUNI_VG30", 41500)),
+        ("BPCL Kochi", "VG30", lp.get("BPCL_KOCHI_VG30", 42800)),
+    ]
+    rows = [{"Refinery": n, "Grade": g, "Price (₹/MT)": f"₹{int(p):,}"}
+            for n, g, p in refineries if p]
+    if rows and _PANDAS:
+        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+    elif rows:
+        for r in rows:
+            st.write(r)
     else:
-        st.info("No refinery price data available. Run the API Hub sync.")
+        st.info("No refinery price data available.")
 
     st.caption(f"Last updated: {_ist_now()}")
 

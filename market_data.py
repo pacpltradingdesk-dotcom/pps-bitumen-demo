@@ -34,6 +34,44 @@ def get_unified_prices() -> dict:
         "source": "unknown",
     }
 
+    # ── 0. Canonical time-series files (the SAME data the Global Market
+    # Dashboard charts). Reading the latest point from these makes every page
+    # (Command Center, Live Market, FX Monitor, charts) agree — fixes the
+    # "USD/INR shows 94.72 here but 86.19 there" inconsistency. ────────────
+    _root = _HUB_CACHE_PATH.parent
+    try:
+        crude = json.loads((_root / "tbl_crude_prices.json").read_text(encoding="utf-8"))
+        rows = crude if isinstance(crude, list) else crude.get("data", [])
+        for rec in reversed(rows if isinstance(rows, list) else []):
+            if not isinstance(rec, dict):
+                continue
+            b = str(rec.get("benchmark", "")).lower()
+            p = rec.get("price")
+            if p is None:
+                continue
+            if "brent" in b and out["brent"] is None:
+                out["brent"] = float(p)
+                out["timestamp"] = rec.get("date_time", "")
+            elif "wti" in b and out["wti"] is None:
+                out["wti"] = float(p)
+            if out["brent"] is not None and out["wti"] is not None:
+                break
+    except Exception:
+        pass
+    try:
+        fx = json.loads((_root / "tbl_fx_rates.json").read_text(encoding="utf-8"))
+        rows = fx if isinstance(fx, list) else fx.get("data", [])
+        for rec in reversed(rows if isinstance(rows, list) else []):
+            if isinstance(rec, dict) and "INR" in str(rec.get("pair", "")).upper():
+                r = rec.get("rate")
+                if r:
+                    out["usdinr"] = float(r)
+                    break
+    except Exception:
+        pass
+    if out["brent"] or out["wti"] or out["usdinr"]:
+        out["source"] = "tbl_series"
+
     # ── 1. Try hub_cache.json (authoritative) ────────────────────────────
     try:
         hub = json.loads(_HUB_CACHE_PATH.read_text(encoding="utf-8"))
