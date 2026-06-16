@@ -132,7 +132,11 @@ def render():
             new_note = st.text_area("Notes")
             if st.form_submit_button("Add Task", type="primary", use_container_width=True):
                 try:
-                    crm.add_task(new_client, new_type, str(new_due), new_note, new_priority)
+                    # add_task(client, task_type, due_date_str, priority, note) — use
+                    # keywords so priority/note aren't swapped, and ISO date+time so it
+                    # matches the engine's "%Y-%m-%d %H:%M" comparisons.
+                    crm.add_task(new_client, new_type, new_due.strftime("%Y-%m-%d 17:00"),
+                                 priority=new_priority, note=new_note)
                     st.success("Task added!")
                     st.rerun()
                 except Exception as e:

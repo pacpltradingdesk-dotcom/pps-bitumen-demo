@@ -434,11 +434,18 @@ def _render_card(a: dict, idx: int, region_key: str):
     status   = a.get("status", "new")
     lang     = a.get("language", "en")
     tags     = a.get("tags", []) or []
-    senti    = a.get("sentiment", "neutral")
-    headline = a.get("headline", "—")
-    url      = a.get("source_url", "#")
-    src_name = a.get("source_name", "")
-    pub_time = a.get("published_at_ist", "")
+    # Map to the fields the data actually has (sentiment_score float, publisher,
+    # date_time, url) with fallback to legacy names — previously these read
+    # non-existent keys so source/date/sentiment showed blank.
+    _ss = a.get("sentiment_score")
+    senti    = a.get("sentiment") or (
+        "positive" if isinstance(_ss, (int, float)) and _ss > 0.1
+        else "negative" if isinstance(_ss, (int, float)) and _ss < -0.1
+        else "neutral")
+    headline = a.get("headline") or a.get("title", "—")
+    url      = a.get("source_url") or a.get("url", "#")
+    src_name = a.get("source_name") or a.get("publisher") or a.get("source", "")
+    pub_time = a.get("published_at_ist") or a.get("date_time", "")
     summary  = (a.get("summary", "") or "")[:180]
     art_id   = a.get("article_id", "")
     dup      = a.get("duplicate_count", 1)

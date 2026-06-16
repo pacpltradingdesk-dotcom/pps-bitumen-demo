@@ -160,7 +160,12 @@ Iraq → India Complete Landed Cost Calculator
             gst = st.number_input("GST (%)", value=DEFAULT_PARAMS["gst_pct"], step=1.0)
             
             st.markdown("**💵 Exchange & Volume**")
-            usd_inr = st.number_input("USD/INR Rate", value=DEFAULT_PARAMS["usd_inr"], step=0.25)
+            try:
+                from market_data import get_unified_prices as _gup
+                _live_fx = round(float(_gup().get("usdinr") or DEFAULT_PARAMS["usd_inr"]), 2)
+            except Exception:
+                _live_fx = DEFAULT_PARAMS["usd_inr"]
+            usd_inr = st.number_input("USD/INR Rate", value=_live_fx, step=0.25)
             vessel_qty = st.number_input("Vessel Quantity (MT)", value=DEFAULT_PARAMS["vessel_qty_mt"], step=500.0)
             margin_pct = st.number_input("Target Margin %", value=DEFAULT_PARAMS["target_margin_pct"], step=0.5)
             

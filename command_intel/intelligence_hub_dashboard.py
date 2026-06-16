@@ -219,27 +219,20 @@ def _render_intelligence_overview(st) -> None:
         except Exception as exc:
             LOG.debug("Buy advisory fetch failed: %s", exc)
 
-    # Also load raw data for crude and FX
-    crude_data = _load_json("tbl_crude_prices.json")
-    fx_data = _load_json("tbl_fx_rates.json")
-
-    # Extract latest crude price
+    # Crude + FX from the single source of truth so these match every other
+    # page. The old code searched dict KEYS for "brent"/"usd_inr" but the data
+    # stores them as field VALUES (benchmark/pair), so it always showed N/A.
     latest_crude = "N/A"
-    if crude_data and isinstance(crude_data, list) and crude_data:
-        last = crude_data[-1]
-        brent_col = next((k for k in last if "brent" in k.lower()), None)
-        if brent_col:
-            latest_crude = f"${last[brent_col]}"
-
-    # Extract latest FX rate
     latest_fx = "N/A"
-    if fx_data and isinstance(fx_data, list) and fx_data:
-        last_fx = fx_data[-1]
-        fx_col = next((k for k in last_fx if "usd" in k.lower() and "inr" in k.lower()), None)
-        if fx_col is None:
-            fx_col = next((k for k in last_fx if "rate" in k.lower() or "close" in k.lower()), None)
-        if fx_col:
-            latest_fx = f"{last_fx[fx_col]}"
+    try:
+        from market_data import get_unified_prices
+        _u = get_unified_prices()
+        if _u.get("brent"):
+            latest_crude = f"${_u['brent']:.2f}"
+        if _u.get("usdinr"):
+            latest_fx = f"{_u['usdinr']:.2f}"
+    except Exception:
+        pass
 
     # Market bias
     bias = market_summary.get("market_bias", market_summary.get("market_direction", "N/A"))

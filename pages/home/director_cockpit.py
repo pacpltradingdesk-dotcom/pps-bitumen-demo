@@ -20,26 +20,19 @@ def _load_json(f):
 
 @st.cache_data(ttl=300)
 def _get_market_prices():
-    p = {"brent": 0, "wti": 0, "usd_inr": 0, "vg30": 0}
-    hub = _load_json("hub_cache.json")
-    for c in hub.get("eia_crude", {}).get("data", []):
-        if isinstance(c, dict) and c.get("benchmark") and c.get("price"):
-            nm = str(c["benchmark"]).upper()
-            try: pv = float(str(c["price"]).replace("$","").replace(",",""))
-            except Exception: continue
-            if "BRENT" in nm: p["brent"] = pv
-            elif "WTI" in nm: p["wti"] = pv
-    for r in hub.get("frankfurter_fx", {}).get("data", []):
-        if isinstance(r, dict) and "INR" in r.get("pair","").upper():
-            try: p["usd_inr"] = round(float(r.get("rate", 83.5)), 2)
-            except Exception: pass
-            break
-    lp = _load_json("live_prices.json")
-    p["vg30"] = lp.get("DRUM_KANDLA_VG30", lp.get("DRUM_MUMBAI_VG30", 35500))
-    if not p["brent"]: p["brent"] = 82.50
-    if not p["wti"]: p["wti"] = 78.30
-    if not p["usd_inr"]: p["usd_inr"] = 83.50
-    return p
+    # Single source of truth — same Brent/WTI/USD-INR/VG30 as every other page
+    # (was parsing hub_cache directly and showed a divergent USD/INR).
+    try:
+        from market_data import get_unified_prices
+        u = get_unified_prices()
+        return {
+            "brent": u.get("brent") or 82.50,
+            "wti": u.get("wti") or 78.30,
+            "usd_inr": round(float(u.get("usdinr") or 86.0), 2),
+            "vg30": u.get("vg30") or 35500,
+        }
+    except Exception:
+        return {"brent": 82.50, "wti": 78.30, "usd_inr": 86.0, "vg30": 35500}
 
 def _get_ai_signal():
     try:
