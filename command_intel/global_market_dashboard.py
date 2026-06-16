@@ -95,9 +95,11 @@ def _render_crude_markets(st) -> None:
 
     df = pd.DataFrame(raw)
 
-    # Normalise date column
+    # Normalise date column. `date_time` is the column the API hub actually
+    # writes (e.g. "2026-06-16 15:15:09 IST") — it was missing from this list,
+    # so the tracker showed "No data" even though the file was fresh.
     date_col = None
-    for col in ("date", "ds", "Date", "timestamp", "fetch_date_ist"):
+    for col in ("date", "date_time", "ds", "Date", "timestamp", "fetch_date_ist"):
         if col in df.columns:
             date_col = col
             break
@@ -105,12 +107,25 @@ def _render_crude_markets(st) -> None:
         st.warning("No date column found in crude price data.")
         return
 
-    df["date"] = pd.to_datetime(df[date_col], errors="coerce", dayfirst=True)
+    # Strip trailing timezone text ("... IST") so pandas can parse it.
+    _date_raw = df[date_col].astype(str).str.replace(r"\s*IST$", "", regex=True)
+    df["date"] = pd.to_datetime(_date_raw, errors="coerce", dayfirst=False)
     df = df.dropna(subset=["date"]).sort_values("date")
 
+    # The hub stores crude prices in LONG format (one row per benchmark:
+    # columns benchmark + price). Pivot to WIDE so we get Brent / WTI columns.
+    bench_col = next((c for c in df.columns if c.lower() in ("benchmark", "symbol", "instrument")), None)
+    price_col = next((c for c in df.columns if c.lower() in ("price", "value", "close")), None)
+    if bench_col and price_col:
+        df["_b"] = df[bench_col].astype(str).str.lower()
+        wide = df.pivot_table(index="date", columns="_b", values=price_col, aggfunc="last")
+        wide = wide.rename(columns={c: ("Brent" if "brent" in c else "WTI" if "wti" in c else c)
+                                    for c in wide.columns}).reset_index()
+        df = wide
+
     # Identify price columns
-    brent_col = next((c for c in df.columns if "brent" in c.lower()), None)
-    wti_col = next((c for c in df.columns if "wti" in c.lower()), None)
+    brent_col = next((c for c in df.columns if "brent" in str(c).lower()), None)
+    wti_col = next((c for c in df.columns if "wti" in str(c).lower()), None)
 
     if not brent_col and not wti_col:
         st.warning("No Brent or WTI columns found in crude price data.")
@@ -253,9 +268,16 @@ def _render_fx_monitor(st) -> None:
 
     df = pd.DataFrame(raw)
 
-    # Normalise date column
+    # Keep only USD/INR if a pair column is present (data is long format).
+    pair_col = next((c for c in df.columns if c.lower() in ("pair", "symbol", "benchmark")), None)
+    if pair_col is not None:
+        mask = df[pair_col].astype(str).str.upper().str.replace(" ", "").str.contains("USD/INR")
+        if mask.any():
+            df = df[mask]
+
+    # Normalise date column (`date_time` is what the hub writes — was missing).
     date_col = None
-    for col in ("date", "ds", "Date", "timestamp", "fetch_date_ist"):
+    for col in ("date", "date_time", "ds", "Date", "timestamp", "fetch_date_ist"):
         if col in df.columns:
             date_col = col
             break
@@ -263,7 +285,8 @@ def _render_fx_monitor(st) -> None:
         st.warning("No date column found in FX data.")
         return
 
-    df["date"] = pd.to_datetime(df[date_col], errors="coerce", dayfirst=True)
+    _date_raw = df[date_col].astype(str).str.replace(r"\s*IST$", "", regex=True)
+    df["date"] = pd.to_datetime(_date_raw, errors="coerce", dayfirst=False)
     df = df.dropna(subset=["date"]).sort_values("date")
 
     # Identify rate column
