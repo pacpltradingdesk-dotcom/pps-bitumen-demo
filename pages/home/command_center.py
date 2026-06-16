@@ -467,12 +467,19 @@ document.getElementById('btnR').onclick=function(e){{e.stopPropagation();if(froz
     prev_usdinr = prev_prices.get("usdinr", 0)
     prev_vg30 = prev_prices.get("vg30", vg30_k)
 
+    # A move larger than this vs the previous snapshot means the snapshot is
+    # stale (e.g. months-old reference), not a real daily move. Treat as "no
+    # usable snapshot" so the 7-day fallback / "—" is shown instead of a
+    # misleading figure like "▼ 25%".
+    _STALE_MOVE_PCT = 12.0
+
     def _change_badge(current, previous, prefix="", suffix="", invert=False):
         try:
             c, p = float(current), float(previous)
             if p == 0: return ""
             diff = c - p
             pct = (diff / p) * 100
+            if abs(pct) >= _STALE_MOVE_PCT: return ""  # stale snapshot — suppress
             if abs(pct) < 0.01: return '<span style="font-size:0.6rem;color:#94A3B8;">—</span>'
             is_up = diff > 0
             color = "#EF4444" if (is_up and invert) or (not is_up and not invert) else "#10B981"
