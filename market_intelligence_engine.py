@@ -918,9 +918,16 @@ class MarketIntelligenceEngine:
         high_risks = sum(1 for r in risk_indicators if r == "HIGH")
         risk_level = "HIGH" if high_risks >= 2 else "MEDIUM" if high_risks >= 1 else "LOW"
 
-        # Recommended action
-        if market_direction == "UP" and demand_outlook == "STRONG":
-            action = "Procurement favorable -- buy now before price increase"
+        # Recommended action.
+        # Rule: when the market is heading UP we must NEVER advise waiting for a
+        # lower/dip price — a rising market makes "wait for better rates" wrong
+        # advice (client-reported bug). So every UP case resolves to buy-forward,
+        # and the "wait for lower rates" line is reachable ONLY on a DOWN market.
+        if market_direction == "UP":
+            if demand_outlook == "STRONG":
+                action = "Procurement favorable -- buy now before price increase"
+            else:
+                action = "Prices firming up -- buy now, do not wait for lower rates"
         elif market_direction == "DOWN":
             action = "Prices declining -- wait 3-5 days for better rates"
         elif risk_level == "HIGH":

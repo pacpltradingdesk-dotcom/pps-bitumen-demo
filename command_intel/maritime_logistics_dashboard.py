@@ -211,6 +211,16 @@ def _render_vessel_tracking(intel: dict):
     st.markdown("### 📋 Active Vessels")
     st.caption("Container shipments shown first")
 
+    # Honest demo badge: vessel positions are a route simulation, not a live
+    # AIS feed, so vessel names / IMO numbers are illustrative — not real.
+    if any(v.get("is_simulated") for v in vessels) or intel.get("summary", {}).get("vessel_data_simulated"):
+        st.info(
+            "🧪 **Simulated vessel data** — names, IMO numbers & positions are "
+            "illustrative estimates along known trade routes, not a live AIS feed. "
+            "Live ship tracking coming soon.",
+            icon="ℹ️",
+        )
+
     for v in vessels:
         is_container = v["cargo_type"] == "container"
         badge_color = "#3b82f6" if is_container else "#f59e0b"

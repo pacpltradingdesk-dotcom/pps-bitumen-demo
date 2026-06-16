@@ -486,6 +486,31 @@ document.getElementById('btnR').onclick=function(e){{e.stopPropagation();if(froz
     except Exception: usdinr_val = 0; usdinr_chg = ""
     vg30_chg = _change_badge(vg30_k, prev_vg30, "₹")
 
+    # Movement fallback: when there's no usable previous snapshot the badges
+    # collapse to "—" and the market never looks like it's moving. Fall back to
+    # the real 7-day % change from the unified price feed so up/down is always
+    # visible (client-reported: "market up/down jana chahiye").
+    def _pct_badge(pct, invert=False):
+        try:
+            pct = float(pct)
+            if abs(pct) < 0.01:
+                return '<span style="font-size:0.6rem;color:#94A3B8;">—</span>'
+            is_up = pct > 0
+            color = "#EF4444" if (is_up and invert) or (not is_up and not invert) else "#10B981"
+            arrow = "▲" if is_up else "▼"
+            return (f'<span style="font-size:0.6rem;color:{color};font-weight:700;">'
+                    f'{arrow} {abs(pct):.1f}% (7d)</span>')
+        except Exception:
+            return ""
+
+    def _is_empty_badge(b):
+        return (not b) or ("—" in b)
+
+    if _is_empty_badge(brent_chg):  brent_chg  = _pct_badge(_up.get("brent_chg_pct", 0))
+    if _is_empty_badge(wti_chg):    wti_chg    = _pct_badge(_up.get("wti_chg_pct", 0))
+    if _is_empty_badge(usdinr_chg): usdinr_chg = _pct_badge(_up.get("usdinr_chg_pct", 0), invert=True)
+    if _is_empty_badge(vg30_chg):   vg30_chg   = _pct_badge(_up.get("vg30_chg_pct", 0))
+
     # Urgency bar width
     urg_w = min(max(pa_urgency, 5), 100)
 
@@ -502,12 +527,12 @@ document.getElementById('btnR').onclick=function(e){{e.stopPropagation();if(froz
 <div class="kpi-grid">
 <div class="kpi"><div class="kpi-stripe" style="background:#6366F1;"></div>
 <div class="kpi-label" style="padding-left:8px;">Brent Crude</div>
-<div class="kpi-val" style="padding-left:8px;">${brent}</div>
+<div class="kpi-val" style="padding-left:8px;">${brent}<span style="font-size:0.6rem;color:#94A3B8;margin-left:4px;">/ bbl</span></div>
 <div class="kpi-chg" style="padding-left:8px;">{brent_chg}</div>
 </div>
 <div class="kpi"><div class="kpi-stripe" style="background:#0EA5E9;"></div>
 <div class="kpi-label" style="padding-left:8px;">WTI Crude</div>
-<div class="kpi-val" style="padding-left:8px;">${wti}</div>
+<div class="kpi-val" style="padding-left:8px;">${wti}<span style="font-size:0.6rem;color:#94A3B8;margin-left:4px;">/ bbl</span></div>
 <div class="kpi-chg" style="padding-left:8px;">{wti_chg}</div>
 </div>
 <div class="kpi"><div class="kpi-stripe" style="background:#10B981;"></div>

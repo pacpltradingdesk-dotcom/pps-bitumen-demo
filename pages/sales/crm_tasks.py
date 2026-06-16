@@ -176,17 +176,29 @@ def _render_calendar_tab(crm):
     all_tasks = crm.get_tasks()
     pending_tasks = [t for t in all_tasks if t.get("status") == "Pending"]
 
-    # Parse task due dates into date objects
+    # Parse task due dates into date objects.
+    # Robust across storage formats — previously only "%Y-%m-%d" effectively
+    # worked (the time was stripped before the "%Y-%m-%d %H:%M" format ran), so
+    # tasks saved as dd/mm/yyyy or dd-mm-yyyy were silently dropped and "vanished"
+    # from the calendar (client-reported date / missing-tasks issue).
     task_by_date = {}
     for t in pending_tasks:
-        due_str = t.get("due_date", "") or ""
+        due_str = (t.get("due_date", "") or "").strip()
+        date_part = due_str.split(" ")[0] if " " in due_str else due_str
         parsed_date = None
-        for fmt in ("%Y-%m-%d %H:%M", "%Y-%m-%d", "%Y-%m-%d"):
+        for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d/%m/%Y", "%Y/%m/%d",
+                    "%d %b %Y", "%d %B %Y"):
             try:
-                parsed_date = datetime.datetime.strptime(due_str.split(" ")[0] if " " in due_str else due_str, fmt).date()
+                parsed_date = datetime.datetime.strptime(date_part, fmt).date()
                 break
             except (ValueError, IndexError):
                 continue
+        # Last resort: ISO parse handles full timestamps like 2026-06-16T10:00.
+        if not parsed_date and due_str:
+            try:
+                parsed_date = datetime.date.fromisoformat(due_str[:10])
+            except Exception:
+                parsed_date = None
         if parsed_date:
             task_by_date.setdefault(parsed_date, []).append(t)
 

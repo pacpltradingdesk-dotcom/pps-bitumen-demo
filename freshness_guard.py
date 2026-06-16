@@ -31,6 +31,35 @@ _refresh_lock = threading.Lock()
 _last_refresh_ts = 0.0
 _MIN_INTERVAL_SEC = 120  # Never refresh more than once per 2 min per process
 
+# Hard ceiling on a synchronous refresh so a slow/dead upstream API can never
+# freeze the page forever ("loading… nothing happens, can't click"). On timeout
+# we fall back to whatever cached data exists instead of blocking the UI.
+_REFRESH_TIMEOUT_SEC = 20
+
+
+def _call_with_timeout(fn, timeout_sec: float):
+    """Run `fn()` in a daemon thread, returning its result or a timeout marker.
+
+    The worker thread is daemon, so even if the upstream call never returns it
+    cannot keep the process (or the page) hostage — we just stop waiting.
+    """
+    box: dict = {}
+
+    def _worker():
+        try:
+            box["result"] = fn()
+        except Exception as e:  # noqa: BLE001 — surface as data, never crash the page
+            box["error"] = str(e)
+
+    t = threading.Thread(target=_worker, daemon=True, name="freshness_refresh")
+    t.start()
+    t.join(timeout_sec)
+    if t.is_alive():
+        return {"timeout": True, "waited_sec": timeout_sec}
+    if "error" in box:
+        return {"error": box["error"]}
+    return box.get("result", {})
+
 
 def _age_minutes(path: Path) -> float:
     """Return file age in minutes. Returns infinity if missing."""
@@ -57,14 +86,16 @@ def _do_refresh(reason: str = "") -> dict:
         _last_refresh_ts = now
         try:
             from api_hub_engine import run_all_connectors
-            result = run_all_connectors(force=True)
+            # Bounded so a hung upstream API can't freeze the page.
+            result = _call_with_timeout(
+                lambda: run_all_connectors(force=True), _REFRESH_TIMEOUT_SEC)
         except Exception as e:
             result = {"error": str(e)}
 
         # Also refresh the raw news articles pool (separate from tbl_news_feed)
         try:
             from news_engine import run_fetch_cycle
-            run_fetch_cycle()
+            _call_with_timeout(run_fetch_cycle, _REFRESH_TIMEOUT_SEC)
         except Exception:
             pass
 

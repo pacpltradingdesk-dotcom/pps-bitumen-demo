@@ -35,6 +35,11 @@ BASE = Path(__file__).parent
 TBL_MARITIME_INTEL  = BASE / "tbl_maritime_intel.json"
 TBL_MARITIME_ROUTES = BASE / "tbl_maritime_routes.json"
 
+# Vessel positions are a route simulation, not a live AIS/MarineTraffic feed.
+# The UI uses this to show an honest "Simulated — live tracking coming soon"
+# badge instead of presenting fabricated IMO/positions as real.
+VESSEL_DATA_SIMULATED = True
+
 
 def _now() -> datetime:
     return datetime.now(IST)
@@ -193,10 +198,14 @@ class VesselSimulator:
             else:
                 status = "en_route"
 
-            # Vessel name (deterministic per index + seed)
+            # Vessel IDENTITY is stable (independent of the date seed) so the
+            # same slot keeps the same name + IMO day-to-day. Only the POSITION
+            # varies daily via `seed`. Previously the IMO was date-seeded, which
+            # made the "same" vessel show a different tracking number every day
+            # and looked like wrong/changing data to users.
             prefix = _PREFIXES[i % len(_PREFIXES)]
             name = _NAMES[i % len(_NAMES)]
-            imo = f"IMO{9100000 + (seed + i * 137) % 900000}"
+            imo = f"IMO{9200000 + i * 137}"
 
             vessel = {
                 "vessel_name": f"{prefix} {name}",
@@ -217,6 +226,10 @@ class VesselSimulator:
                 "delay_factor": round(delay_factor, 2),
                 "cargo_mt": rng.choice([3000, 5000, 8000, 10000, 15000, 20000]),
                 "product_grade": rng.choice(["VG-30", "VG-40", "60/70", "80/100"]),
+                # Honest data-source flag: this is a route simulation, NOT a live
+                # AIS feed. UI shows a "simulated / demo" badge based on this.
+                "is_simulated": True,
+                "data_source": "simulated",
             }
             vessels.append(vessel)
 
@@ -936,6 +949,7 @@ def refresh_maritime_intel() -> dict:
             p["port"]: {"score": p["score"], "level": p["level"]}
             for p in port_congestion if p["priority"] == 1
         },
+        "vessel_data_simulated": VESSEL_DATA_SIMULATED,
         "last_updated": _ts(),
     }
 

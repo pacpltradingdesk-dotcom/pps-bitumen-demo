@@ -107,6 +107,16 @@ def render():
             else:
                 city_options = sorted(get_cities_by_state(selected_state))
 
+            # Guard: if a state has no cities mapped, the selectbox would render
+            # empty/disabled and the user sees "no option". Fall back to the full
+            # city list so a selection is always possible, and tell them why.
+            if not city_options:
+                st.warning(
+                    f"'{selected_state}' ke liye koi city mapped nahi hai. "
+                    "Saari cities dikha rahe hain \u2014 niche se choose karein."
+                )
+                city_options = all_cities
+
             _city_default = city_options.index(_ctx_city) if _ctx_city in city_options else 0
             selected_city = st.selectbox("\U0001f3d9\ufe0f Select City", city_options,
                                           index=_city_default, key="city_select")
@@ -117,6 +127,28 @@ def render():
                 st.session_state.pop("_formal_pdf_name", None)
                 st.session_state.pop("current_quote_no", None)
                 st.session_state["_prev_city"] = selected_city
+
+            # Manual add-location: if a customer city isn't in the list, the user
+            # can add it here (persists + becomes selectable immediately).
+            with st.expander("➕ Location nahi mili? Add karein"):
+                from distance_matrix import add_custom_location
+                nc1, nc2 = st.columns(2)
+                new_city = nc1.text_input("City name", key="_new_loc_city")
+                new_state = nc2.selectbox("State", ALL_STATES, key="_new_loc_state") \
+                    if ALL_STATES else nc2.text_input("State", key="_new_loc_state_txt")
+                lc1, lc2 = st.columns(2)
+                new_lat = lc1.number_input("Latitude", value=0.0, format="%.4f", key="_new_loc_lat")
+                new_lon = lc2.number_input("Longitude", value=0.0, format="%.4f", key="_new_loc_lon")
+                st.caption("Tip: Google Maps pe location pe right-click → lat/long copy karein.")
+                if st.button("Save location", key="_save_new_loc"):
+                    if new_city.strip() and (new_lat or new_lon):
+                        if add_custom_location(new_city, new_state, new_lat, new_lon):
+                            st.success(f"'{new_city}' add ho gayi. List me select karein.")
+                            st.rerun()
+                        else:
+                            st.error("Save nahi ho payi — dobara try karein.")
+                    else:
+                        st.warning("City name aur lat/long zaroori hai.")
 
             if selected_city and selected_state == "All States":
                 detected_state = get_state_by_city(selected_city)

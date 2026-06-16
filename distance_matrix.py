@@ -323,6 +323,59 @@ CITY_STATE_MAP = {
     "Mandi": "Himachal Pradesh", "Baddi": "Himachal Pradesh",
 }
 
+# --- 2b. CUSTOM (user-added) LOCATIONS ---------------------------------------
+# Locations not in the master list can be added at runtime from the pricing UI.
+# They persist in custom_locations.json and merge into the maps below so a
+# custom city behaves exactly like a built-in one (selectable + distance-able).
+import json as _json
+from pathlib import Path as _Path
+
+_CUSTOM_LOC_FILE = _Path(__file__).parent / "custom_locations.json"
+
+
+def load_custom_locations() -> dict:
+    """Return {city: {state, lat, lon}} of user-added locations (safe on error)."""
+    try:
+        if _CUSTOM_LOC_FILE.exists():
+            with open(_CUSTOM_LOC_FILE, "r", encoding="utf-8") as f:
+                data = _json.load(f)
+                return data if isinstance(data, dict) else {}
+    except Exception:
+        pass
+    return {}
+
+
+def _merge_custom_locations() -> None:
+    """Merge persisted custom locations into the in-memory maps."""
+    for city, info in load_custom_locations().items():
+        try:
+            CITY_STATE_MAP[city] = info.get("state", "Custom")
+            DESTINATION_COORDS[city] = (float(info["lat"]), float(info["lon"]))
+        except Exception:
+            continue
+
+
+def add_custom_location(city: str, state: str, lat: float, lon: float) -> bool:
+    """Persist a new customer location and merge it live. True on success."""
+    city = (city or "").strip()
+    if not city:
+        return False
+    data = load_custom_locations()
+    data[city] = {"state": (state or "Custom").strip(),
+                  "lat": float(lat), "lon": float(lon)}
+    try:
+        with open(_CUSTOM_LOC_FILE, "w", encoding="utf-8") as f:
+            _json.dump(data, f, indent=2, ensure_ascii=False)
+    except Exception:
+        return False
+    CITY_STATE_MAP[city] = data[city]["state"]
+    DESTINATION_COORDS[city] = (float(lat), float(lon))
+    return True
+
+
+# Merge BEFORE computing ALL_STATES so custom states appear in the dropdown too.
+_merge_custom_locations()
+
 # Get unique states
 ALL_STATES = sorted(list(set(CITY_STATE_MAP.values())))
 
