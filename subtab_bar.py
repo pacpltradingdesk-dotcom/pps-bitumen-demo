@@ -260,10 +260,15 @@ def _render_sticky_notes():
         if hub_path.exists():
             with open(hub_path, "r", encoding="utf-8") as f:
                 hub = json.load(f)
-            for c in hub.get("eia_crude", {}).get("data", []):
+            from market_data import get_unified_prices as _gup
+            _u = _gup()
+            _crude = []
+            if _u.get("brent"): _crude.append({"benchmark": "Brent", "price": round(_u["brent"], 2)})
+            if _u.get("wti"): _crude.append({"benchmark": "WTI", "price": round(_u["wti"], 2)})
+            for c in _crude:
                 if isinstance(c, dict) and c.get("benchmark") and c.get("price"):
                     market_items.append((c["benchmark"], f"${c['price']}", "#111827")) 
-            for r in hub.get("frankfurter_fx", {}).get("data", []):
+            for r in ([{"pair": "USD/INR", "rate": round(_u["usdinr"], 2)}] if _u.get("usdinr") else []):
                 if isinstance(r, dict) and "INR" in r.get("pair", "").upper():
                     market_items.append(("USD/INR", str(r.get("rate", "—")), "#059669")) # Emerald 600
     except Exception:
