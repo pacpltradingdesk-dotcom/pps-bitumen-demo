@@ -76,3 +76,54 @@ def parse_message(raw: dict) -> dict | None:
         }
 
     return None
+
+
+def _parse_iso(s: str | None) -> datetime:
+    """Parse an ISO-8601 'Z' timestamp into an aware UTC datetime.
+
+    Returns epoch (very old) if unparseable, so callers treat it as stale.
+    """
+    if not s:
+        return datetime(1970, 1, 1, tzinfo=timezone.utc)
+    try:
+        return datetime.fromisoformat(s.replace("Z", "+00:00"))
+    except Exception:
+        return datetime(1970, 1, 1, tzinfo=timezone.utc)
+
+
+_POSITION_FIELDS = ("lat", "lon", "sog", "cog", "heading", "nav_status")
+_STATIC_FIELDS = ("name", "imo", "ship_type", "destination", "draught")
+
+
+def update_registry(registry: dict, rec: dict | None, now_iso: str) -> None:
+    """Merge a parsed record into the MMSI-keyed registry (in place).
+
+    Only non-None incoming fields overwrite, so a sentinel/blank value never
+    clobbers previously-good data. `now_iso` becomes the vessel's last_seen.
+    """
+    if not rec:
+        return
+    mmsi = rec["mmsi"]
+    v = registry.setdefault(mmsi, {"mmsi": mmsi})
+    fields = _POSITION_FIELDS if rec["kind"] == "position" else _STATIC_FIELDS
+    for k in fields:
+        if rec.get(k) is not None:
+            v[k] = rec[k]
+    v["last_seen"] = now_iso
+
+
+def prune_registry(registry: dict, now: datetime, max_age_min: int) -> None:
+    """Drop vessels not seen within `max_age_min` minutes (in place)."""
+    cutoff = now - timedelta(minutes=max_age_min)
+    stale = [m for m, v in registry.items() if _parse_iso(v.get("last_seen")) < cutoff]
+    for m in stale:
+        del registry[m]
+
+
+def build_snapshot(registry: dict, now_iso: str) -> dict:
+    """Build the JSON snapshot: tankers that currently have a position."""
+    vessels = [
+        v for v in registry.values()
+        if is_tanker(v.get("ship_type")) and v.get("lat") is not None
+    ]
+    return {"updated_utc": now_iso, "source": "aisstream", "vessels": vessels}
