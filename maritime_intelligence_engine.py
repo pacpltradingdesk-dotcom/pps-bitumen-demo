@@ -34,6 +34,11 @@ BASE = Path(__file__).parent
 
 TBL_MARITIME_INTEL  = BASE / "tbl_maritime_intel.json"
 TBL_MARITIME_ROUTES = BASE / "tbl_maritime_routes.json"
+TBL_LIVE_VESSELS    = BASE / "tbl_live_vessels.json"
+
+# Live AIS tuning.
+MARITIME_LIVE_MAX_AGE_MIN = 20   # snapshot older than this -> simulated fallback
+MARITIME_LIVE_MAX_VESSELS = 40   # cap displayed live vessels (nearest to ports)
 
 # Vessel positions are a route simulation, not a live AIS/MarineTraffic feed.
 # The UI uses this to show an honest "Simulated — live tracking coming soon"
@@ -65,6 +70,124 @@ def _save(path: Path, data: Any) -> None:
             json.dump(data, f, indent=2, ensure_ascii=False, default=str)
     except Exception:
         pass
+
+
+# ── Geo helpers for live AIS mapping ─────────────────────────────────────────
+
+def _haversine_nm(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Great-circle distance in nautical miles."""
+    r_nm = 3440.065  # Earth radius in nautical miles
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlmb = math.radians(lon2 - lon1)
+    a = (math.sin(dphi / 2) ** 2
+         + math.cos(p1) * math.cos(p2) * math.sin(dlmb / 2) ** 2)
+    return r_nm * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def _nearest_indian_port(lat: float, lon: float) -> str:
+    """Name of the closest Indian port to a coordinate."""
+    return min(
+        INDIAN_PORTS,
+        key=lambda p: _haversine_nm(lat, lon, INDIAN_PORTS[p]["lat"], INDIAN_PORTS[p]["lon"]),
+    )
+
+
+def _match_destination_port(dest_text: str | None) -> str | None:
+    """Match an AIS destination string to an Indian port name, else None.
+
+    AIS destination is free text (e.g. 'MUNDRA', 'INMUN'). We match on the
+    port key and its label's first word.
+    """
+    if not dest_text:
+        return None
+    t = dest_text.upper()
+    for name, pd in INDIAN_PORTS.items():
+        first_word = pd["label"].split(" ")[0].upper()
+        if name.upper() in t or first_word in t:
+            return name
+    return None
+
+
+def _is_fresh(updated_iso: str | None, max_age_min: int,
+              now: datetime | None = None) -> bool:
+    """True if `updated_iso` (UTC ISO 'Z') is within max_age_min of now."""
+    if not updated_iso:
+        return False
+    if now is None:
+        now = datetime.now(timezone.utc)
+    try:
+        ts = datetime.fromisoformat(updated_iso.replace("Z", "+00:00"))
+    except Exception:
+        return False
+    return (now - ts) <= timedelta(minutes=max_age_min)
+
+
+def _map_ais_to_vessel(v: dict) -> dict:
+    """Map one AIS snapshot record to the UI vessel dict contract."""
+    lat, lon = v["lat"], v["lon"]
+    dest = _match_destination_port(v.get("destination")) or _nearest_indian_port(lat, lon)
+    port = INDIAN_PORTS[dest]
+    sog = v.get("sog") or 0
+    dist_nm = _haversine_nm(lat, lon, port["lat"], port["lon"])
+
+    if dist_nm < 20:
+        status = "arriving"
+    elif sog < 0.5:
+        status = "delayed"          # stopped / drifting
+    else:
+        status = "en_route"
+
+    # ETA estimate from remaining distance and speed (fallback speed 8 kn).
+    eta_hours = round(dist_nm / max(sog, 8.0), 1)
+    eta_dt = _now() + timedelta(hours=eta_hours)
+
+    name = v.get("name") or f"MMSI {v['mmsi']}"
+    imo = f"IMO{v['imo']}" if v.get("imo") else "—"
+
+    return {
+        "vessel_name": name,
+        "imo": imo,
+        "route_id": "",
+        "cargo_type": "bulk",                # tankers map to the bulk lane
+        "departure_port": "—",
+        "destination_port": dest,
+        "departure_time": "—",
+        "lat": round(lat, 4),
+        "lon": round(lon, 4),
+        "speed_knots": round(sog, 1) if sog else 0.0,
+        "heading": v.get("heading") or 0,
+        "progress_pct": None,                # unknown without origin
+        "status": status,
+        "eta": eta_dt.strftime("%Y-%m-%d %H:%M IST"),
+        "eta_hours": eta_hours,
+        "delay_factor": 1.0,
+        "cargo_mt": None,                    # not available from AIS
+        "product_grade": None,               # not available from AIS
+        "is_simulated": False,
+        "source": "AIS",
+        "dist_to_port_nm": round(dist_nm, 1),
+    }
+
+
+def get_live_vessels(path: "Path | None" = None) -> list[dict]:
+    """Return real AIS vessels if the snapshot is fresh, else simulated fallback.
+
+    Never raises — any error degrades gracefully to the simulator.
+    """
+    try:
+        snap = _load(path or TBL_LIVE_VESSELS, {})
+        updated = snap.get("updated_utc")
+        records = snap.get("vessels") or []
+        if records and _is_fresh(updated, MARITIME_LIVE_MAX_AGE_MIN):
+            mapped = [_map_ais_to_vessel(r) for r in records if r.get("lat") is not None]
+            mapped.sort(key=lambda x: x["dist_to_port_nm"])
+            mapped = mapped[:MARITIME_LIVE_MAX_VESSELS]
+            if mapped:
+                return mapped
+    except Exception:
+        pass
+    return VesselSimulator.generate_vessels()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -873,8 +996,9 @@ def refresh_maritime_intel() -> dict:
     except Exception:
         vessel_count = 12
 
-    # 1. Generate vessels
-    vessels = VesselSimulator.generate_vessels(count=vessel_count)
+    # 1. Vessels — real AIS if a fresh snapshot exists, else simulated.
+    vessels = get_live_vessels()
+    vessels_are_simulated = bool(vessels and vessels[0].get("is_simulated"))
 
     # 2. Compute port congestion
     port_congestion = PortCongestionMonitor.compute_all_ports()
@@ -949,7 +1073,7 @@ def refresh_maritime_intel() -> dict:
             p["port"]: {"score": p["score"], "level": p["level"]}
             for p in port_congestion if p["priority"] == 1
         },
-        "vessel_data_simulated": VESSEL_DATA_SIMULATED,
+        "vessel_data_simulated": vessels_are_simulated,
         "last_updated": _ts(),
     }
 

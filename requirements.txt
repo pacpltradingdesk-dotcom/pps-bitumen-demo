@@ -26,6 +26,9 @@ pytz>=2023.3
 requests>=2.31.0
 feedparser>=6.0.0
 
+# Live AIS vessel feed (ais_collector daemon)
+websocket-client>=1.7.0
+
 # ML (lightweight)
 scikit-learn>=1.4.0
 statsmodels>=0.14.1

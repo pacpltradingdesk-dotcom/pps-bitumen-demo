@@ -192,6 +192,21 @@ Next ETA: {next_eta:.0f}h | Waiting: {port.get('vessels_waiting', 0)}
 # TAB 1: VESSEL TRACKING
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _progress_str(v: dict) -> str:
+    """' | Progress: 42%' when known, '' otherwise (live AIS has no origin)."""
+    p = v.get("progress_pct")
+    return f" | Progress: {p}%" if p is not None else ""
+
+
+def _cargo_str(v: dict) -> str:
+    """' | 3000 MT VG-30' when known, ' | cargo: n/a' for live AIS."""
+    mt = v.get("cargo_mt")
+    grade = v.get("product_grade")
+    if mt:
+        return f" | {mt} MT {grade or ''}".rstrip()
+    return " | cargo: n/a"
+
+
 def _render_vessel_tracking(intel: dict):
     """Interactive map + vessel table."""
     st.markdown("### 🚢 Vessel Tracking Map")
@@ -211,14 +226,21 @@ def _render_vessel_tracking(intel: dict):
     st.markdown("### 📋 Active Vessels")
     st.caption("Container shipments shown first")
 
-    # Honest demo badge: vessel positions are a route simulation, not a live
-    # AIS feed, so vessel names / IMO numbers are illustrative — not real.
-    if any(v.get("is_simulated") for v in vessels) or intel.get("summary", {}).get("vessel_data_simulated"):
+    # Data-source badge: green when real AIS, honest "simulated" otherwise.
+    _simulated = (any(v.get("is_simulated") for v in vessels)
+                  or intel.get("summary", {}).get("vessel_data_simulated"))
+    if _simulated:
         st.info(
             "🧪 **Simulated vessel data** — names, IMO numbers & positions are "
-            "illustrative estimates along known trade routes, not a live AIS feed. "
-            "Live ship tracking coming soon.",
+            "illustrative estimates along known trade routes, not a live AIS feed.",
             icon="ℹ️",
+        )
+    else:
+        st.success(
+            "🟢 **Live AIS data** — real tanker positions, names & IMO numbers "
+            "streamed from AISStream (vessels near Gulf supply & Indian ports). "
+            "Cargo grade/quantity are not broadcast by AIS.",
+            icon="📡",
         )
 
     for v in vessels:
@@ -252,8 +274,7 @@ border-radius:3px; font-size:0.55rem; font-weight:700;">{badge_text}</span>
 </div>
 <div style="font-size:0.72rem; color:#475569; margin-top:4px;">
 {v['departure_port']} → <strong>{v['destination_port']}</strong> |
-Speed: {v['speed_knots']} kn | Progress: {v['progress_pct']}% |
-{v.get('cargo_mt', 0)} MT {v.get('product_grade', '')}
+Speed: {v['speed_knots']} kn{_progress_str(v)}{_cargo_str(v)}
 </div>
 <div style="font-size:0.68rem; color:#64748b; margin-top:2px;">
 ETA: <strong>{v['eta']}</strong> ({v['eta_hours']}h remaining) |

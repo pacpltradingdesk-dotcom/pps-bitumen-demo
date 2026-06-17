@@ -1,3 +1,6 @@
+# Live AIS vessel snapshot (written by ais_collector daemon at runtime)
+tbl_live_vessels.json
+
 # Python
 __pycache__/
 *.py[cod]
