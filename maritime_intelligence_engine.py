@@ -42,6 +42,7 @@ MARITIME_LIVE_MAX_AGE_MIN = 20   # snapshot older than this -> simulated fallbac
 MARITIME_LIVE_MAX_VESSELS = 40   # cap displayed live vessels (nearest to ports)
 MARITIME_LIVE_MAX_DIST_NM = 700  # drop vessels farther than this from any Indian port
 MARITIME_PORT_MAX_AGE_MIN = 90   # port-arrivals snapshot older than this -> fall through
+MARITIME_PORT_MAX_VESSELS = 150  # port-arrivals span many ports — show a generous list
 
 # Vessel positions are a route simulation, not a live AIS/MarineTraffic feed.
 # The UI uses this to show an honest "Simulated — live tracking coming soon"
@@ -258,7 +259,7 @@ def get_live_vessels(path: "Path | None" = None,
         if precords and _is_fresh(psnap.get("updated_utc"), MARITIME_PORT_MAX_AGE_MIN):
             mapped = [_map_port_arrival_to_vessel(r) for r in precords]
             if mapped:
-                return mapped[:MARITIME_LIVE_MAX_VESSELS]
+                return mapped[:MARITIME_PORT_MAX_VESSELS]
     except Exception:
         pass
 

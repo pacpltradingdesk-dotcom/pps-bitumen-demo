@@ -23,14 +23,26 @@ UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/120.0 Safari/537.36")
 FETCH_TIMEOUT = 25
 
-# Phase 1: Kandla. Add more ports (Mundra, JNPT, Mangalore...) with their
-# gov URLs and MyShipTracking port URLs as Phase 2.
+_MYST = "https://www.myshiptracking.com/ports/port-of-{slug}-in-in-india-id-{id}"
+
+# All major bitumen-relevant Indian ports. Kandla also scrapes the official
+# Deendayal "Ships Expected" page (gives cargo + agent when populated).
 PORTS = [
-    {
-        "name": "Kandla", "lat": 23.03, "lon": 70.22,
-        "gov": "https://www.deendayalport.gov.in/en/ships-expected/",
-        "myst": "https://www.myshiptracking.com/ports/port-of-kandla-in-in-india-id-233",
-    },
+    {"name": "Kandla", "lat": 23.03, "lon": 70.22,
+     "gov": "https://www.deendayalport.gov.in/en/ships-expected/",
+     "myst": _MYST.format(slug="kandla", id=233)},
+    {"name": "Mundra", "lat": 22.84, "lon": 69.73,
+     "myst": _MYST.format(slug="mundra", id=305)},
+    {"name": "Mumbai", "lat": 18.95, "lon": 72.94,
+     "myst": _MYST.format(slug="mumbai", id=3658)},
+    {"name": "JNPT (Nhava Sheva)", "lat": 18.95, "lon": 72.95,
+     "myst": _MYST.format(slug="nhava-sheva", id=3646)},
+    {"name": "Chennai", "lat": 13.08, "lon": 80.29,
+     "myst": _MYST.format(slug="chennai", id=3639)},
+    {"name": "Visakhapatnam", "lat": 17.69, "lon": 83.29,
+     "myst": _MYST.format(slug="visakhapatnam", id=3632)},
+    {"name": "Paradip", "lat": 20.26, "lon": 86.67,
+     "myst": _MYST.format(slug="paradip", id=3618)},
 ]
 
 logging.basicConfig(level=logging.INFO,
