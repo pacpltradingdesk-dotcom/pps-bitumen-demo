@@ -403,170 +403,107 @@ Heading: {v['heading']}°
         st.metric("Delayed", summary.get("vessels_delayed", 0))
 
 
+_STATUS_COLOR = {"arriving": "#22c55e", "en_route": "#38bdf8",
+                 "anchored": "#fbbf24", "delayed": "#f43f5e"}
+_STATUS_LABEL = {"arriving": "Arriving", "en_route": "En route",
+                 "anchored": "Anchored", "delayed": "Delayed"}
+
+
+def _vessel_hover(v: dict) -> str:
+    """Compact, None-safe hover card for a vessel marker."""
+    cargo = v.get("product_grade") or "n/a"
+    eta = v.get("eta") or "—"
+    spd = v.get("speed_knots")
+    spd_s = f"{spd} kn" if spd else "—"
+    return (f"<b>{v.get('vessel_name', '—')}</b>  ({v.get('imo', '—')})<br>"
+            f"{v.get('status', '').upper()} → {v.get('destination_port', '—')}<br>"
+            f"Speed: {spd_s} · ETA: {eta}<br>Cargo: {cargo}")
+
+
 def _build_vessel_map(vessels: list, port_congestion: list):
-    """Build Plotly scatter_geo map with vessels, ports, and routes."""
+    """Modern dark tile-basemap (MapLibre / carto-darkmatter) marine map."""
     import plotly.graph_objects as go
     from maritime_intelligence_engine import INDIAN_PORTS, SUPPLY_PORTS, ROUTES
 
     fig = go.Figure()
 
-    # Layer 1: Route lines (bulk first so container overlays)
-    sorted_routes = sorted(ROUTES, key=lambda r: r["type"] == "container")
-    for route in sorted_routes:
-        from_port = SUPPLY_PORTS.get(route["from"], {})
-        to_port = INDIAN_PORTS.get(route["to"], {})
-        is_container = route["type"] == "container"
-
-        fig.add_trace(go.Scattergeo(
-            lon=[from_port.get("lon", 0), to_port.get("lon", 0)],
-            lat=[from_port.get("lat", 0), to_port.get("lat", 0)],
-            mode="lines",
-            line=dict(
-                width=2.5 if is_container else 1.2,
-                color="rgba(59,130,246,0.6)" if is_container else "rgba(245,158,11,0.3)",
-                dash="dash",
-            ),
-            name=f"{'Container' if is_container else 'Bulk'}: {route['from']} → {route['to']}",
-            showlegend=False,
-            hoverinfo="text",
-            hovertext=f"{route['from']} → {route['to']}<br>Type: {route['type']}<br>Avg: {route['avg_days']}d | {route['distance_nm']}nm",
+    # Layer 1 — route corridors (subtle glowing lines).
+    for route in ROUTES:
+        fp = SUPPLY_PORTS.get(route["from"], {})
+        tp = INDIAN_PORTS.get(route["to"], {})
+        if not fp or not tp:
+            continue
+        fig.add_trace(go.Scattermap(
+            lon=[fp["lon"], tp["lon"]], lat=[fp["lat"], tp["lat"]],
+            mode="lines", line=dict(width=1.4, color="rgba(56,189,248,0.22)"),
+            hoverinfo="skip", showlegend=False,
         ))
 
-    # Layer 2: Supply port markers
-    supply_lats = [p["lat"] for p in SUPPLY_PORTS.values()]
-    supply_lons = [p["lon"] for p in SUPPLY_PORTS.values()]
-    supply_names = list(SUPPLY_PORTS.keys())
-    supply_hover = [
-        f"<b>{name}</b><br>Country: {SUPPLY_PORTS[name]['country']}<br>Products: {', '.join(SUPPLY_PORTS[name].get('products', []))}"
-        for name in supply_names
-    ]
-
-    fig.add_trace(go.Scattergeo(
-        lon=supply_lons, lat=supply_lats,
-        mode="markers+text",
-        marker=dict(size=10, color="#e2e8f0", symbol="square",
-                    line=dict(width=1, color="#94a3b8")),
-        text=supply_names,
-        textposition="top center",
-        textfont=dict(size=8, color="#e2e8f0"),
-        name="Supply Ports",
-        hoverinfo="text",
-        hovertext=supply_hover,
+    # Layer 2 — supply ports (amber).
+    fig.add_trace(go.Scattermap(
+        lon=[p["lon"] for p in SUPPLY_PORTS.values()],
+        lat=[p["lat"] for p in SUPPLY_PORTS.values()],
+        mode="markers",
+        marker=dict(size=12, color="#fb923c"),
+        text=[f"⚓ {n} · {SUPPLY_PORTS[n]['country']} (supply)" for n in SUPPLY_PORTS],
+        hoverinfo="text", name="Supply ports",
     ))
 
-    # Layer 3: Indian port markers (color by congestion)
-    congestion_map = {p["port"]: p for p in port_congestion}
-    for port_name, port_data in INDIAN_PORTS.items():
-        cong = congestion_map.get(port_name, {})
-        score = cong.get("score", 20)
-        level = cong.get("level", "Low")
-        is_priority = port_data["priority"] == 1
+    # Layer 3 — Indian ports, coloured by congestion.
+    cong = {p["port"]: p for p in port_congestion}
+    iports = list(INDIAN_PORTS.items())
 
-        if score >= 60:
-            color = "#ef4444"
-        elif score >= 35:
-            color = "#f59e0b"
-        else:
-            color = "#22c55e"
+    def _pc(score):
+        return "#f43f5e" if score >= 60 else "#fbbf24" if score >= 35 else "#34d399"
 
-        fig.add_trace(go.Scattergeo(
-            lon=[port_data["lon"]], lat=[port_data["lat"]],
-            mode="markers+text",
-            marker=dict(
-                size=16 if is_priority else 10,
-                color=color,
-                symbol="diamond" if is_priority else "circle",
-                line=dict(width=2 if is_priority else 1, color="white"),
-            ),
-            text=[port_name],
-            textposition="bottom center",
-            textfont=dict(size=9 if is_priority else 7, color="#e2e8f0",
-                          family="Arial Black" if is_priority else "Arial"),
-            name=port_name,
-            showlegend=False,
-            hoverinfo="text",
-            hovertext=f"<b>{port_data.get('label', port_name)}</b><br>"
-                       f"Type: {port_data['type']}<br>"
-                       f"Congestion: {level} ({score}%)<br>"
-                       f"Waiting: {cong.get('vessels_waiting', 0)} vessels",
-        ))
+    fig.add_trace(go.Scattermap(
+        lon=[d["lon"] for _, d in iports], lat=[d["lat"] for _, d in iports],
+        mode="markers",
+        marker=dict(
+            size=[16 if d["priority"] == 1 else 12 for _, d in iports],
+            color=[_pc(cong.get(n, {}).get("score", 20)) for n, _ in iports],
+        ),
+        text=[f"⚓ {d.get('label', n)} · congestion "
+              f"{cong.get(n, {}).get('score', 20)}%" for n, d in iports],
+        hoverinfo="text", name="Indian ports",
+    ))
 
-    # Layer 4: Vessel markers (bulk first, container on top)
-    sorted_vessels = sorted(vessels, key=lambda v: v["cargo_type"] == "container")
-    for v in sorted_vessels:
-        is_container = v["cargo_type"] == "container"
-        status = v.get("status", "en_route")
-
-        if status == "delayed":
-            v_color = "#ef4444"
-        elif status == "arriving":
-            v_color = "#22c55e"
-        elif is_container:
-            v_color = "#3b82f6"
-        else:
-            v_color = "#f59e0b"
-
-        fig.add_trace(go.Scattergeo(
-            lon=[v["lon"]], lat=[v["lat"]],
+    # Layer 4 — vessels grouped by status (clean legend + colour coding).
+    by_status: dict[str, list] = {}
+    for v in vessels:
+        by_status.setdefault(v.get("status", "en_route"), []).append(v)
+    for status in ("anchored", "en_route", "arriving", "delayed"):
+        vs = by_status.get(status)
+        if not vs:
+            continue
+        fig.add_trace(go.Scattermap(
+            lon=[v["lon"] for v in vs], lat=[v["lat"] for v in vs],
             mode="markers",
-            marker=dict(
-                size=14 if is_container else 9,
-                color=v_color,
-                symbol="diamond" if is_container else "circle",
-                line=dict(width=2 if is_container else 1, color="white"),
-            ),
-            name=v["vessel_name"],
-            showlegend=False,
+            marker=dict(size=10, color=_STATUS_COLOR.get(status, "#38bdf8")),
+            text=[_vessel_hover(v) for v in vs],
             hoverinfo="text",
-            hovertext=(
-                f"<b>{v['vessel_name']}</b> ({v['imo']})<br>"
-                f"Type: {'CONTAINER' if is_container else 'BULK'}<br>"
-                f"{v['departure_port']} → {v['destination_port']}<br>"
-                f"Speed: {v['speed_knots']} kn | Heading: {v['heading']}°<br>"
-                f"Progress: {v['progress_pct']}% | ETA: {v['eta']}<br>"
-                f"Cargo: {v.get('cargo_mt', 0)} MT {v.get('product_grade', '')}<br>"
-                f"Status: {status.upper()}"
-            ),
+            name=f"{_STATUS_LABEL.get(status, status.title())} ({len(vs)})",
         ))
 
-    # Map styling
+    center_lat, center_lon, zoom = 15.5, 75.0, 3.1
     try:
         from settings_engine import get as gs
-        center_lat = gs("maritime_map_center_lat", 18.0)
-        center_lon = gs("maritime_map_center_lon", 68.0)
-    except Exception as _e:
-        center_lat, center_lon = 18.0, 68.0
+        center_lat = gs("maritime_map_center_lat", center_lat)
+        center_lon = gs("maritime_map_center_lon", center_lon)
+    except Exception:
+        pass
 
-    fig.update_geos(
-        center=dict(lat=center_lat, lon=center_lon),
-        projection_type="natural earth",
-        projection_scale=4,
-        showland=True, landcolor="#1a1a2e",
-        showocean=True, oceancolor="#0a1628",
-        showcountries=True, countrycolor="#333355",
-        showcoastlines=True, coastlinecolor="#334466",
-        showframe=False,
-        lonaxis=dict(range=[40, 110]),
-        lataxis=dict(range=[-5, 35]),
-    )
     fig.update_layout(
-        height=550,
-        margin=dict(l=0, r=0, t=30, b=0),
-        paper_bgcolor="#0f172a",
-        plot_bgcolor="#0f172a",
+        height=560,
+        margin=dict(l=0, r=0, t=0, b=0),
+        map=dict(style="carto-darkmatter",
+                 center=dict(lat=center_lat, lon=center_lon), zoom=zoom),
+        paper_bgcolor="#0b1220",
         font=dict(color="#e2e8f0"),
-        legend=dict(
-            bgcolor="rgba(15,23,42,0.8)",
-            font=dict(color="#e2e8f0", size=9),
-            x=0.01, y=0.99,
-        ),
-        title=dict(
-            text="Indian Ocean — Bitumen Maritime Routes",
-            font=dict(size=14, color="#c9a84c"),
-            x=0.5,
-        ),
+        legend=dict(orientation="h", yanchor="top", y=0.99, xanchor="left", x=0.01,
+                    bgcolor="rgba(11,18,32,0.72)", bordercolor="#1e293b", borderwidth=1,
+                    font=dict(color="#e2e8f0", size=11)),
     )
-
     return fig
 
 
