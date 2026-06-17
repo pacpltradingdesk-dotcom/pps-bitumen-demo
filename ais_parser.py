@@ -129,6 +129,22 @@ def build_snapshot(registry: dict, now_iso: str) -> dict:
     return {"updated_utc": now_iso, "source": "aisstream", "vessels": vessels}
 
 
+def in_any_box(lat: float | None, lon: float | None, boxes: list) -> bool:
+    """True if (lat, lon) falls inside any [[latA,lonA],[latB,lonB]] box.
+
+    Corner order is normalized (min/max), so boxes may list corners in any order.
+    Used as a client-side guard because the AISStream bounding-box filter is
+    not always honored — we enforce the region ourselves.
+    """
+    if lat is None or lon is None:
+        return False
+    for (a_lat, a_lon), (b_lat, b_lon) in boxes:
+        if min(a_lat, b_lat) <= lat <= max(a_lat, b_lat) and \
+           min(a_lon, b_lon) <= lon <= max(a_lon, b_lon):
+            return True
+    return False
+
+
 def atomic_write_json(path: Path, data: Any) -> None:
     """Write JSON via temp file + os.replace so readers never see a partial file."""
     path = Path(path)

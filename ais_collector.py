@@ -31,10 +31,12 @@ PRUNE_MAX_AGE_MIN = 60      # drop vessels not seen for this long
 # Singapore Strait box was removed: it flooded the feed with ~1500 nm-away
 # bunkering traffic that is not India-bound. We focus on the Gulf->India
 # corridor and Indian approaches.
+# Corners as [[SW lat,lon],[NE lat,lon]]. We also enforce these locally
+# (in_any_box) because the AISStream server-side filter is not always honored.
 BOUNDING_BOXES = [
-    [[30.0, 47.0], [22.5, 60.0]],   # Arabian/Persian Gulf + Gulf of Oman
-    [[25.0, 60.0], [8.0, 76.5]],    # Arabian Sea / India west coast
-    [[22.5, 80.0], [8.0, 92.0]],    # Bay of Bengal / India east coast
+    [[22.5, 47.0], [30.0, 60.0]],   # Arabian/Persian Gulf + Gulf of Oman
+    [[8.0, 60.0], [25.0, 76.5]],    # Arabian Sea / India west coast
+    [[8.0, 80.0], [22.5, 92.0]],    # Bay of Bengal / India east coast
 ]
 
 logging.basicConfig(
@@ -88,8 +90,16 @@ def run() -> None:
                 try:
                     msg = json.loads(raw)
                     rec = ap.parse_message(msg)
-                    if rec:
+                    if not rec:
+                        continue
+                    if rec["kind"] == "position":
+                        # Enforce region locally — drop out-of-box positions.
+                        if not ap.in_any_box(rec.get("lat"), rec.get("lon"), BOUNDING_BOXES):
+                            continue
                         ap.update_registry(registry, rec, _now_iso())
+                    else:  # static data — only for vessels we already track in-region
+                        if rec["mmsi"] in registry:
+                            ap.update_registry(registry, rec, _now_iso())
                 except Exception as e:  # one bad message must not kill the loop
                     log.debug("skip message: %s", e)
 

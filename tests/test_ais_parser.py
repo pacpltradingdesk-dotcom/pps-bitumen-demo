@@ -120,6 +120,15 @@ def test_build_snapshot_only_tankers_with_position():
     assert snap["updated_utc"] == "2026-06-17T10:00:00Z"
 
 
+def test_in_any_box():
+    boxes = [[[30.0, 47.0], [22.5, 60.0]],   # Gulf (corner order intentionally mixed)
+             [[8.0, 60.0], [25.0, 76.5]]]    # Arabian Sea / west India
+    assert ap.in_any_box(25.0, 55.0, boxes) is True    # in Gulf box
+    assert ap.in_any_box(15.0, 70.0, boxes) is True    # in Arabian Sea box
+    assert ap.in_any_box(1.2, 103.8, boxes) is False   # Singapore — outside both
+    assert ap.in_any_box(None, None, boxes) is False
+
+
 def test_atomic_write_json_roundtrip(tmp_path: Path):
     target = tmp_path / "snap.json"
     data = {"updated_utc": "t", "vessels": [{"mmsi": 1}]}
