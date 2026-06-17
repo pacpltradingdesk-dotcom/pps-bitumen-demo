@@ -170,6 +170,26 @@ def _map_ais_to_vessel(v: dict) -> dict:
     }
 
 
+def get_live_vessels(path: "Path | None" = None) -> list[dict]:
+    """Return real AIS vessels if the snapshot is fresh, else simulated fallback.
+
+    Never raises — any error degrades gracefully to the simulator.
+    """
+    try:
+        snap = _load(path or TBL_LIVE_VESSELS, {})
+        updated = snap.get("updated_utc")
+        records = snap.get("vessels") or []
+        if records and _is_fresh(updated, MARITIME_LIVE_MAX_AGE_MIN):
+            mapped = [_map_ais_to_vessel(r) for r in records if r.get("lat") is not None]
+            mapped.sort(key=lambda x: x["dist_to_port_nm"])
+            mapped = mapped[:MARITIME_LIVE_MAX_VESSELS]
+            if mapped:
+                return mapped
+    except Exception:
+        pass
+    return VesselSimulator.generate_vessels()
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # A. STATIC PORT & ROUTE DATA
 # ═══════════════════════════════════════════════════════════════════════════════

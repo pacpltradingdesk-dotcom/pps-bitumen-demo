@@ -54,3 +54,48 @@ def test_map_ais_to_vessel_handles_missing_name_and_imo():
     assert v["vessel_name"] == "MMSI 12345"
     assert v["imo"] == "—"
     assert v["speed_knots"] == 0.0
+
+
+import json
+from pathlib import Path
+
+
+def _write_snapshot(path: Path, updated_iso: str, vessels: list) -> None:
+    path.write_text(json.dumps({"updated_utc": updated_iso, "source": "aisstream",
+                                "vessels": vessels}), encoding="utf-8")
+
+
+def test_get_live_vessels_returns_live_when_fresh(tmp_path: Path):
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    snap = tmp_path / "live.json"
+    _write_snapshot(snap, now_iso, [
+        {"mmsi": 1, "name": "TANKER ONE", "imo": 9000001, "lat": 22.8, "lon": 69.7,
+         "sog": 10.0, "heading": 90, "ship_type": 80, "destination": "MUNDRA"},
+    ])
+    vessels = mie.get_live_vessels(path=snap)
+    assert len(vessels) == 1
+    assert vessels[0]["source"] == "AIS"
+    assert vessels[0]["is_simulated"] is False
+
+
+def test_get_live_vessels_falls_back_when_stale(tmp_path: Path):
+    snap = tmp_path / "live.json"
+    _write_snapshot(snap, "2020-01-01T00:00:00Z", [
+        {"mmsi": 1, "lat": 22.8, "lon": 69.7, "ship_type": 80}])
+    vessels = mie.get_live_vessels(path=snap)
+    assert all(v.get("is_simulated") for v in vessels)   # simulated fallback
+
+
+def test_get_live_vessels_falls_back_when_missing(tmp_path: Path):
+    vessels = mie.get_live_vessels(path=tmp_path / "nope.json")
+    assert all(v.get("is_simulated") for v in vessels)
+
+
+def test_get_live_vessels_caps_count(tmp_path: Path):
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    snap = tmp_path / "live.json"
+    many = [{"mmsi": i, "name": f"T{i}", "imo": 9000000 + i, "lat": 22.0 + i * 0.01,
+             "lon": 69.0, "sog": 10.0, "ship_type": 80} for i in range(100)]
+    _write_snapshot(snap, now_iso, many)
+    vessels = mie.get_live_vessels(path=snap)
+    assert len(vessels) == mie.MARITIME_LIVE_MAX_VESSELS
