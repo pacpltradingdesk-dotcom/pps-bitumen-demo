@@ -30,6 +30,9 @@ python-dateutil>=2.8.2
 pytz>=2023.3
 requests>=2.31.0
 
+# Live AIS vessel feed (ais_collector daemon)
+websocket-client>=1.7.0
+
 # Market Intelligence (Google Trends)
 pytrends>=4.9.0
 
