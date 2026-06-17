@@ -127,3 +127,12 @@ def build_snapshot(registry: dict, now_iso: str) -> dict:
         if is_tanker(v.get("ship_type")) and v.get("lat") is not None
     ]
     return {"updated_utc": now_iso, "source": "aisstream", "vessels": vessels}
+
+
+def atomic_write_json(path: Path, data: Any) -> None:
+    """Write JSON via temp file + os.replace so readers never see a partial file."""
+    path = Path(path)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, default=str)
+    os.replace(tmp, path)

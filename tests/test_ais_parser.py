@@ -1,4 +1,6 @@
 from __future__ import annotations
+import json
+from pathlib import Path
 import ais_parser as ap
 
 
@@ -116,3 +118,12 @@ def test_build_snapshot_only_tankers_with_position():
     assert mmsis == {1}
     assert snap["source"] == "aisstream"
     assert snap["updated_utc"] == "2026-06-17T10:00:00Z"
+
+
+def test_atomic_write_json_roundtrip(tmp_path: Path):
+    target = tmp_path / "snap.json"
+    data = {"updated_utc": "t", "vessels": [{"mmsi": 1}]}
+    ap.atomic_write_json(target, data)
+    assert json.loads(target.read_text(encoding="utf-8")) == data
+    # No leftover temp file.
+    assert not (tmp_path / "snap.json.tmp").exists()
