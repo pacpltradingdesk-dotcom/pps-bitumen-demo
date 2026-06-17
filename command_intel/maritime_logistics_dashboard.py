@@ -192,6 +192,40 @@ Next ETA: {next_eta:.0f}h | Waiting: {port.get('vessels_waiting', 0)}
 # TAB 1: VESSEL TRACKING
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _track_links(query: str) -> dict:
+    """Deep-link a ship query (IMO / MMSI / name) to the public trackers."""
+    import urllib.parse
+    q = urllib.parse.quote_plus((query or "").strip())
+    return {
+        "MarineTraffic": f"https://www.marinetraffic.com/en/data/?asset_type=vessels&keyword={q}",
+        "VesselFinder": f"https://www.vesselfinder.com/vessels?name={q}",
+        "MyShipTracking": f"https://www.myshiptracking.com/vessels?searchKey={q}",
+    }
+
+
+def _render_ship_search() -> None:
+    """A 'track any ship' box that deep-links to public vessel trackers."""
+    with st.expander("🔎 Track any ship (IMO / MMSI / name)", expanded=False):
+        q = st.text_input(
+            "Ship IMO, MMSI, or name",
+            key="_ship_track_q",
+            placeholder="e.g. 9876543  or  HAFNIA MERLIN",
+            label_visibility="collapsed",
+        )
+        if q and q.strip():
+            links = _track_links(q)
+            c1, c2, c3 = st.columns(3)
+            with c1:
+                st.link_button("🌐 MarineTraffic", links["MarineTraffic"], use_container_width=True)
+            with c2:
+                st.link_button("🚢 VesselFinder", links["VesselFinder"], use_container_width=True)
+            with c3:
+                st.link_button("📡 MyShipTracking", links["MyShipTracking"], use_container_width=True)
+            st.caption("Opens the ship's live page (position, photo, details) on the chosen tracker.")
+        else:
+            st.caption("Enter a ship's IMO number, MMSI, or name to open its live tracking page.")
+
+
 def _dest_str(v: dict) -> str:
     """Port routing text: 'Jebel Ali → Mundra' (known departure),
     '→ Mundra' (AIS-declared dest), or 'near Mundra' (inferred from position)."""
@@ -231,6 +265,7 @@ def _cargo_str(v: dict) -> str:
 
 def _render_vessel_tracking(intel: dict):
     """Interactive map + vessel table."""
+    _render_ship_search()
     st.markdown("### 🚢 Vessel Tracking Map")
 
     vessels = intel.get("vessels", [])
