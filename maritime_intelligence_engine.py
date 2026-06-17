@@ -67,6 +67,43 @@ def _save(path: Path, data: Any) -> None:
         pass
 
 
+# ── Geo helpers for live AIS mapping ─────────────────────────────────────────
+
+def _haversine_nm(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+    """Great-circle distance in nautical miles."""
+    r_nm = 3440.065  # Earth radius in nautical miles
+    p1, p2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlmb = math.radians(lon2 - lon1)
+    a = (math.sin(dphi / 2) ** 2
+         + math.cos(p1) * math.cos(p2) * math.sin(dlmb / 2) ** 2)
+    return r_nm * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def _nearest_indian_port(lat: float, lon: float) -> str:
+    """Name of the closest Indian port to a coordinate."""
+    return min(
+        INDIAN_PORTS,
+        key=lambda p: _haversine_nm(lat, lon, INDIAN_PORTS[p]["lat"], INDIAN_PORTS[p]["lon"]),
+    )
+
+
+def _match_destination_port(dest_text: str | None) -> str | None:
+    """Match an AIS destination string to an Indian port name, else None.
+
+    AIS destination is free text (e.g. 'MUNDRA', 'INMUN'). We match on the
+    port key and its label's first word.
+    """
+    if not dest_text:
+        return None
+    t = dest_text.upper()
+    for name, pd in INDIAN_PORTS.items():
+        first_word = pd["label"].split(" ")[0].upper()
+        if name.upper() in t or first_word in t:
+            return name
+    return None
+
+
 # ═══════════════════════════════════════════════════════════════════════════════
 # A. STATIC PORT & ROUTE DATA
 # ═══════════════════════════════════════════════════════════════════════════════
