@@ -77,31 +77,35 @@ def run() -> None:
         ws = None
         try:
             log.info("connecting to %s", WS_URL)
-            ws = websocket.create_connection(WS_URL, timeout=30)
+            ws = websocket.create_connection(WS_URL, timeout=15)
+            ws.settimeout(5)  # short recv timeout so quiet periods don't drop us
             ws.send(_subscription(api_key))
             log.info("subscribed (%d bounding boxes)", len(BOUNDING_BOXES))
             backoff = 1
             last_flush = time.monotonic()
 
             while True:
-                raw = ws.recv()
-                if not raw:
-                    continue
+                # A recv timeout in a quiet region is NOT a disconnect — keep
+                # the connection and still flush on schedule.
                 try:
-                    msg = json.loads(raw)
-                    rec = ap.parse_message(msg)
-                    if not rec:
-                        continue
-                    if rec["kind"] == "position":
-                        # Enforce region locally — drop out-of-box positions.
-                        if not ap.in_any_box(rec.get("lat"), rec.get("lon"), BOUNDING_BOXES):
-                            continue
-                        ap.update_registry(registry, rec, _now_iso())
-                    else:  # static data — only for vessels we already track in-region
-                        if rec["mmsi"] in registry:
-                            ap.update_registry(registry, rec, _now_iso())
-                except Exception as e:  # one bad message must not kill the loop
-                    log.debug("skip message: %s", e)
+                    raw = ws.recv()
+                except websocket.WebSocketTimeoutException:
+                    raw = None
+
+                if raw:
+                    try:
+                        msg = json.loads(raw)
+                        rec = ap.parse_message(msg)
+                        if rec:
+                            if rec["kind"] == "position":
+                                # Enforce region locally — drop out-of-box positions.
+                                if ap.in_any_box(rec.get("lat"), rec.get("lon"), BOUNDING_BOXES):
+                                    ap.update_registry(registry, rec, _now_iso())
+                            elif rec["mmsi"] in registry:
+                                # static data — only for vessels already tracked in-region
+                                ap.update_registry(registry, rec, _now_iso())
+                    except Exception as e:  # one bad message must not kill the loop
+                        log.debug("skip message: %s", e)
 
                 if time.monotonic() - last_flush >= FLUSH_SECONDS:
                     _flush(registry)
