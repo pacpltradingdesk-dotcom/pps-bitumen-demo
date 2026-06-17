@@ -996,8 +996,9 @@ def refresh_maritime_intel() -> dict:
     except Exception:
         vessel_count = 12
 
-    # 1. Generate vessels
-    vessels = VesselSimulator.generate_vessels(count=vessel_count)
+    # 1. Vessels — real AIS if a fresh snapshot exists, else simulated.
+    vessels = get_live_vessels()
+    vessels_are_simulated = bool(vessels and vessels[0].get("is_simulated"))
 
     # 2. Compute port congestion
     port_congestion = PortCongestionMonitor.compute_all_ports()
@@ -1072,7 +1073,7 @@ def refresh_maritime_intel() -> dict:
             p["port"]: {"score": p["score"], "level": p["level"]}
             for p in port_congestion if p["priority"] == 1
         },
-        "vessel_data_simulated": VESSEL_DATA_SIMULATED,
+        "vessel_data_simulated": vessels_are_simulated,
         "last_updated": _ts(),
     }
 
