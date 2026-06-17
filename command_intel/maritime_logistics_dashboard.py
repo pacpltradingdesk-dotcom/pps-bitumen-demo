@@ -217,11 +217,15 @@ def _eta_remaining_str(v: dict) -> str:
 
 
 def _cargo_str(v: dict) -> str:
-    """' | 3000 MT VG-30' when known, ' | cargo: n/a' for live AIS."""
+    """' | 3000 MT VG-30' / ' | BITUMEN' (cargo text only) / ' | cargo: n/a'."""
     mt = v.get("cargo_mt")
     grade = v.get("product_grade")
+    if mt and grade:
+        return f" | {mt} MT {grade}"
     if mt:
-        return f" | {mt} MT {grade or ''}".rstrip()
+        return f" | {mt} MT"
+    if grade:
+        return f" | {grade}"
     return " | cargo: n/a"
 
 
@@ -247,17 +251,24 @@ def _render_vessel_tracking(intel: dict):
     # Data-source badge: green when real AIS, honest "simulated" otherwise.
     _simulated = (any(v.get("is_simulated") for v in vessels)
                   or intel.get("summary", {}).get("vessel_data_simulated"))
+    _src = vessels[0].get("source") if vessels else None
     if _simulated:
         st.info(
             "🧪 **Simulated vessel data** — names, IMO numbers & positions are "
-            "illustrative estimates along known trade routes, not a live AIS feed.",
+            "illustrative estimates along known trade routes, not a live feed.",
             icon="ℹ️",
+        )
+    elif _src == "PORT":
+        st.success(
+            "🟢 **Live port data** — real vessel arrivals at Indian ports from "
+            "port-authority & MyShipTracking pages. Shows expected & in-port "
+            "vessels with ETAs (port-level, not live GPS positions).",
+            icon="⚓",
         )
     else:
         st.success(
             "🟢 **Live AIS data** — real tanker positions, names & IMO numbers "
-            "streamed from AISStream (vessels near Gulf supply & Indian ports). "
-            "Cargo grade/quantity are not broadcast by AIS.",
+            "streamed from AISStream (vessels near Gulf supply & Indian ports).",
             icon="📡",
         )
 
