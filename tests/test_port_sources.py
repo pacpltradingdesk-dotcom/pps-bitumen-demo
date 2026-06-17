@@ -26,6 +26,9 @@ def test_parse_myshiptracking_real_fixture():
     assert by_name["VELON 1"]["status"] == "expected"
     assert "2026-06-17 12:42" in by_name["VELON 1"]["eta"]
     assert "VIGOR OL" in by_name and by_name["VIGOR OL"]["status"] == "in_port"
+    # In-port vessels now also carry MMSI/IMO from the row's vessel link.
+    assert by_name["VIGOR OL"]["mmsi"] == "636023727"
+    assert by_name["VIGOR OL"]["imo"] == "1057268"
     # All records carry the port + coords + source.
     for r in recs:
         assert r["port"] == "Kandla" and r["port_lat"] == 23.03 and r["source"] == "myshiptracking"

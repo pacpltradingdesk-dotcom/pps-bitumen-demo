@@ -210,10 +210,16 @@ def _map_port_arrival_to_vessel(r: dict) -> dict:
     Port pages give real India vessel lists (name, ETA, sometimes cargo/agent)
     but no live position, so the vessel is plotted at its port.
     """
-    if r.get("imo"):
-        ident = f"IMO{r['imo']}"
-    elif r.get("mmsi"):
-        ident = f"MMSI {r['mmsi']}"
+    imo = str(r.get("imo") or "")
+    mmsi = str(r.get("mmsi") or "")
+    # Show a real IMO when plausible (7 digits, 5-9 prefix); else MMSI — both
+    # work for the live lookup, so prefer the identifier that resolves.
+    if imo and len(imo) == 7 and imo[0] in "56789":
+        ident = f"IMO{imo}"
+    elif mmsi:
+        ident = f"MMSI {mmsi}"
+    elif imo:
+        ident = f"IMO{imo}"
     else:
         ident = "—"
     status = "arriving" if r.get("status") == "in_port" else "en_route"

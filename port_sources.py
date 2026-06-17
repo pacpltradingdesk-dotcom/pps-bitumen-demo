@@ -60,12 +60,17 @@ def parse_myshiptracking(html: str, port: str, lat: float, lon: float) -> list[d
             cells = _cells(tr)
             if len(cells) < 2:
                 continue
+            # Each vessel row links to /vessels/<slug>-mmsi-<MMSI>-imo-<IMO>;
+            # this gives us MMSI + IMO for in-port AND expected vessels.
+            href = re.search(r"-mmsi-(\d+)-imo-(\d+)", tr)
+            mmsi = href.group(1) if href else ""
+            imo = href.group(2) if (href and href.group(2) != "0") else ""
             if _MMSI_RE.fullmatch(cells[0]):
                 # Expected arrival: MMSI | NAME [FLAG] | ETA
                 name, flag = _clean_name_flag(cells[1])
                 if name:
                     recs.append(_rec(name, flag, port, lat, lon, "myshiptracking",
-                                     mmsi=cells[0],
+                                     mmsi=mmsi or cells[0], imo=imo,
                                      eta=_extract_dt(cells[2] if len(cells) > 2 else ""),
                                      status="expected"))
             elif any(c in ("ARRIVAL", "DEPARTURE") for c in cells):
@@ -75,6 +80,7 @@ def parse_myshiptracking(html: str, port: str, lat: float, lon: float) -> list[d
                 name, flag = _clean_name_flag(cells[0])
                 if name:
                     recs.append(_rec(name, flag, port, lat, lon, "myshiptracking",
+                                     mmsi=mmsi, imo=imo,
                                      eta=_extract_dt(cells[1]), status="in_port"))
     return recs
 
