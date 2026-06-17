@@ -149,6 +149,29 @@ def test_map_port_arrival_in_port_and_expected():
     assert expected["imo"] == "—"
 
 
+def test_compute_delivery_prediction_handles_none_eta():
+    # Port/anchored vessels have eta_hours=None — must not crash.
+    v = {"vessel_name": "PORT VESSEL", "eta": "—", "eta_hours": None, "delay_factor": 1.0}
+    pred = mie.LogisticsRiskEngine.compute_delivery_prediction(v, None)
+    assert pred["vessel_name"] == "PORT VESSEL"
+
+
+def test_refresh_uses_port_arrivals_end_to_end(tmp_path: Path, monkeypatch):
+    from datetime import datetime, timezone
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    port = tmp_path / "port.json"
+    port.write_text(json.dumps({"updated_utc": now_iso, "source": "port-pages",
+        "vessels": [{"name": "FUXING V", "port": "Kandla", "port_lat": 23.03,
+                     "port_lon": 70.22, "eta": "2026-06-18 10:00", "status": "expected",
+                     "source": "myshiptracking"}]}), encoding="utf-8")
+    monkeypatch.setattr(mie, "TBL_PORT_ARRIVALS", port)
+    monkeypatch.setattr(mie, "TBL_MARITIME_INTEL", tmp_path / "intel.json")
+    monkeypatch.setattr(mie, "TBL_MARITIME_ROUTES", tmp_path / "routes.json")
+    intel = mie.refresh_maritime_intel()   # must not crash on None eta_hours
+    assert intel["summary"]["vessel_data_simulated"] is False
+    assert any(v["vessel_name"] == "FUXING V" for v in intel["vessels"])
+
+
 def test_get_live_vessels_prefers_port_arrivals(tmp_path: Path):
     from datetime import datetime, timezone
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")

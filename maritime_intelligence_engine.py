@@ -772,7 +772,8 @@ class LogisticsRiskEngine:
     def compute_delivery_prediction(vessel: dict, route_risk: dict | None = None) -> dict:
         """Predict delivery time with risk adjustment."""
         eta_str = vessel.get("eta", "")
-        remaining_hours = vessel.get("eta_hours", 48)
+        # Port/anchored vessels carry eta_hours=None — fall back to a nominal.
+        remaining_hours = vessel.get("eta_hours") or 48
         delay_hours = 0
 
         if route_risk:
