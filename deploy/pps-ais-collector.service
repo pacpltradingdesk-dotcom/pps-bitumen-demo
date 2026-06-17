@@ -9,8 +9,9 @@ Type=simple
 WorkingDirectory=/opt/pps-bitumen
 # Set the key here OR in an EnvironmentFile. Replace REPLACE_WITH_KEY.
 Environment=AISSTREAM_API_KEY=REPLACE_WITH_KEY
-# ExecStart python path is set during deploy to the app's venv (see setup doc).
-ExecStart=/opt/pps-bitumen/venv/bin/python /opt/pps-bitumen/ais_collector.py
+Environment=PYTHONUNBUFFERED=1
+# App venv lives at /opt/pps-bitumen/.venv on the production VPS.
+ExecStart=/opt/pps-bitumen/.venv/bin/python /opt/pps-bitumen/ais_collector.py
 Restart=always
 RestartSec=10
 StandardOutput=journal

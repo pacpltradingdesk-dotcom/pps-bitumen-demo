@@ -9,10 +9,9 @@ Prereq: a free AISStream API key from https://aisstream.io (sign in with GitHub
    cd /opt/pps-bitumen && git pull
    ```
 
-2. Find the venv python the app uses and install the new dep:
+2. Install the new dep into the app venv (production venv is `/opt/pps-bitumen/.venv`):
    ```
-   ls /opt/pps-bitumen          # locate venv (e.g. venv/ or .venv/)
-   /opt/pps-bitumen/venv/bin/pip install "websocket-client>=1.7.0"
+   /opt/pps-bitumen/.venv/bin/pip install "websocket-client>=1.7.0"
    ```
    If the venv path differs, update `ExecStart` in the service file accordingly.
 
