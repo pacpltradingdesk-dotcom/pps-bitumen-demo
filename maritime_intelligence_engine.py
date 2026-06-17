@@ -39,6 +39,7 @@ TBL_LIVE_VESSELS    = BASE / "tbl_live_vessels.json"
 # Live AIS tuning.
 MARITIME_LIVE_MAX_AGE_MIN = 20   # snapshot older than this -> simulated fallback
 MARITIME_LIVE_MAX_VESSELS = 40   # cap displayed live vessels (nearest to ports)
+MARITIME_LIVE_MAX_DIST_NM = 700  # drop vessels farther than this from any Indian port
 
 # Vessel positions are a route simulation, not a live AIS/MarineTraffic feed.
 # The UI uses this to show an honest "Simulated — live tracking coming soon"
@@ -124,23 +125,38 @@ def _is_fresh(updated_iso: str | None, max_age_min: int,
 
 
 def _map_ais_to_vessel(v: dict) -> dict:
-    """Map one AIS snapshot record to the UI vessel dict contract."""
+    """Map one AIS snapshot record to the UI vessel dict contract.
+
+    Destination is only claimed when AIS actually declares an Indian port;
+    otherwise it is the nearest Indian port flagged as inferred (UI shows
+    'near X' rather than '→ X'). Status and ETA are derived honestly from
+    speed/position — a stopped vessel is 'anchored' with no ETA, not 'delayed'.
+    """
     lat, lon = v["lat"], v["lon"]
-    dest = _match_destination_port(v.get("destination")) or _nearest_indian_port(lat, lon)
+    matched = _match_destination_port(v.get("destination"))
+    if matched:
+        dest, dest_inferred = matched, False
+    else:
+        dest, dest_inferred = _nearest_indian_port(lat, lon), True
     port = INDIAN_PORTS[dest]
     sog = v.get("sog") or 0
     dist_nm = _haversine_nm(lat, lon, port["lat"], port["lon"])
 
-    if dist_nm < 20:
+    if sog < 0.5:
+        status = "anchored"             # stopped / at anchor
+    elif dist_nm < 25:
         status = "arriving"
-    elif sog < 0.5:
-        status = "delayed"          # stopped / drifting
     else:
         status = "en_route"
 
-    # ETA estimate from remaining distance and speed (fallback speed 8 kn).
-    eta_hours = round(dist_nm / max(sog, 8.0), 1)
-    eta_dt = _now() + timedelta(hours=eta_hours)
+    # ETA only when genuinely under way (AIS gives no origin, so this is a
+    # distance/speed estimate toward the nearest/declared port).
+    if sog > 1.0:
+        eta_hours = round(dist_nm / sog, 1)
+        eta = (_now() + timedelta(hours=eta_hours)).strftime("%Y-%m-%d %H:%M IST")
+    else:
+        eta_hours = None
+        eta = "—"
 
     name = v.get("name") or f"MMSI {v['mmsi']}"
     imo = f"IMO{v['imo']}" if v.get("imo") else "—"
@@ -152,6 +168,7 @@ def _map_ais_to_vessel(v: dict) -> dict:
         "cargo_type": "bulk",                # tankers map to the bulk lane
         "departure_port": "—",
         "destination_port": dest,
+        "dest_inferred": dest_inferred,
         "departure_time": "—",
         "lat": round(lat, 4),
         "lon": round(lon, 4),
@@ -159,7 +176,7 @@ def _map_ais_to_vessel(v: dict) -> dict:
         "heading": v.get("heading") or 0,
         "progress_pct": None,                # unknown without origin
         "status": status,
-        "eta": eta_dt.strftime("%Y-%m-%d %H:%M IST"),
+        "eta": eta,
         "eta_hours": eta_hours,
         "delay_factor": 1.0,
         "cargo_mt": None,                    # not available from AIS
@@ -181,6 +198,9 @@ def get_live_vessels(path: "Path | None" = None) -> list[dict]:
         records = snap.get("vessels") or []
         if records and _is_fresh(updated, MARITIME_LIVE_MAX_AGE_MIN):
             mapped = [_map_ais_to_vessel(r) for r in records if r.get("lat") is not None]
+            # Distance gate: keep only vessels within range of an Indian port,
+            # so Singapore/east-Asia traffic (1000+ nm away) is dropped.
+            mapped = [x for x in mapped if x["dist_to_port_nm"] <= MARITIME_LIVE_MAX_DIST_NM]
             mapped.sort(key=lambda x: x["dist_to_port_nm"])
             mapped = mapped[:MARITIME_LIVE_MAX_VESSELS]
             if mapped:

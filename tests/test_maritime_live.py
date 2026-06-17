@@ -123,3 +123,58 @@ def test_refresh_marks_simulated_when_no_snapshot(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(mie, "TBL_MARITIME_ROUTES", tmp_path / "routes.json")
     intel = mie.refresh_maritime_intel()
     assert intel["summary"]["vessel_data_simulated"] is True
+
+
+# ── Refinement: honest destination, status, distance gate ────────────────────
+
+def test_destination_inferred_flag_when_ais_dest_unknown():
+    # AIS destination 'SINGAPORE' does not match an Indian port -> inferred.
+    near_mundra = {"mmsi": 1, "name": "X", "lat": 22.80, "lon": 69.70,
+                   "sog": 9.0, "ship_type": 80, "destination": "SINGAPORE"}
+    v = mie._map_ais_to_vessel(near_mundra)
+    assert v["dest_inferred"] is True
+
+    # AIS destination matching an Indian port -> NOT inferred.
+    declared = {**near_mundra, "destination": "MUNDRA"}
+    v2 = mie._map_ais_to_vessel(declared)
+    assert v2["dest_inferred"] is False
+    assert v2["destination_port"] == "Mundra"
+
+
+def test_status_anchored_arriving_en_route():
+    # Stopped (sog ~0) far from port -> anchored, not "delayed".
+    anchored = mie._map_ais_to_vessel(
+        {"mmsi": 1, "lat": 18.0, "lon": 68.0, "sog": 0.0, "ship_type": 80})
+    assert anchored["status"] == "anchored"
+    # Right next to Mundra -> arriving.
+    arriving = mie._map_ais_to_vessel(
+        {"mmsi": 2, "lat": 22.84, "lon": 69.73, "sog": 6.0, "ship_type": 80})
+    assert arriving["status"] == "arriving"
+    # Moving in open sea -> en_route.
+    enroute = mie._map_ais_to_vessel(
+        {"mmsi": 3, "lat": 18.0, "lon": 68.0, "sog": 11.0, "ship_type": 80})
+    assert enroute["status"] == "en_route"
+
+
+def test_eta_none_when_stopped():
+    stopped = mie._map_ais_to_vessel(
+        {"mmsi": 1, "lat": 18.0, "lon": 68.0, "sog": 0.0, "ship_type": 80})
+    assert stopped["eta"] == "—"
+    assert stopped["eta_hours"] is None
+
+
+def test_distance_gate_excludes_far_vessels(tmp_path: Path):
+    from datetime import datetime, timezone
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    snap = tmp_path / "live.json"
+    # One vessel near Mundra (kept), one in Singapore Strait (dropped: ~1500nm).
+    _write_snapshot(snap, now_iso, [
+        {"mmsi": 1, "name": "NEAR INDIA", "imo": 9000001, "lat": 22.8, "lon": 69.7,
+         "sog": 10.0, "ship_type": 80, "destination": "MUNDRA"},
+        {"mmsi": 2, "name": "SINGAPORE TANKER", "imo": 9000002, "lat": 1.24, "lon": 103.8,
+         "sog": 0.0, "ship_type": 80, "destination": "SINGAPORE"},
+    ])
+    vessels = mie.get_live_vessels(path=snap)
+    names = {v["vessel_name"] for v in vessels}
+    assert "NEAR INDIA" in names
+    assert "SINGAPORE TANKER" not in names
