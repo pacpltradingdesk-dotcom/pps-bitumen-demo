@@ -203,27 +203,67 @@ def _track_links(query: str) -> dict:
     }
 
 
+def _render_ship_card(data: dict) -> None:
+    """Render a scraped vessel's live details inline (no redirect)."""
+    p = data.get("params", {})
+    st.success(f"🚢 **{data.get('name', '—')}** — {data.get('type') or 'Vessel'}")
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Flag", data.get("flag") or "—")
+    c2.metric("Built", data.get("built") or "—")
+    c3.metric("IMO / MMSI", f"{data.get('imo') or '—'} / {data.get('mmsi') or '—'}")
+    rows = [
+        ("Status", p.get("Navigation Status")),
+        ("Destination", p.get("Destination")),
+        ("ETA", p.get("ETA")),
+        ("Last Port", p.get("Last Port")),
+        ("Course / Speed", p.get("Course / Speed")),
+        ("Draught", p.get("Current draught")),
+        ("Position received", p.get("Position received")),
+    ]
+    body = "  \n".join(f"**{k}:** {v}" for k, v in rows if v)
+    st.markdown(body or "_No live voyage data available right now._")
+    st.caption("📡 Live data fetched from VesselFinder and shown here — no redirect.")
+
+
 def _render_ship_search() -> None:
-    """A 'track any ship' box that deep-links to public vessel trackers."""
+    """Track any ship: IMO/MMSI -> live details inline; name -> tracker links."""
     with st.expander("🔎 Track any ship (IMO / MMSI / name)", expanded=False):
         q = st.text_input(
             "Ship IMO, MMSI, or name",
             key="_ship_track_q",
-            placeholder="e.g. 9876543  or  HAFNIA MERLIN",
+            placeholder="e.g. 9876543  or  563484000  or  HAFNIA MERLIN",
             label_visibility="collapsed",
         )
-        if q and q.strip():
-            links = _track_links(q)
-            c1, c2, c3 = st.columns(3)
-            with c1:
-                st.link_button("🌐 MarineTraffic", links["MarineTraffic"], use_container_width=True)
-            with c2:
-                st.link_button("🚢 VesselFinder", links["VesselFinder"], use_container_width=True)
-            with c3:
-                st.link_button("📡 MyShipTracking", links["MyShipTracking"], use_container_width=True)
-            st.caption("Opens the ship's live page (position, photo, details) on the chosen tracker.")
-        else:
-            st.caption("Enter a ship's IMO number, MMSI, or name to open its live tracking page.")
+        if not (q and q.strip()):
+            st.caption("Enter a ship's IMO or MMSI number to see its live details here "
+                       "(no redirect). A name opens the tracker page.")
+            return
+
+        digits = "".join(ch for ch in q if ch.isdigit())
+        data = None
+        if len(digits) >= 7:  # looks like an IMO (7) or MMSI (9)
+            try:
+                import vessel_lookup
+                with st.spinner("Fetching live vessel data…"):
+                    data = vessel_lookup.fetch_vessel(digits)
+            except Exception:
+                data = None
+
+        if data:
+            _render_ship_card(data)
+            return
+
+        # Fallback: name search, or lookup failed -> external tracker links.
+        links = _track_links(q)
+        st.caption("Couldn't auto-fetch inline (use the exact IMO/MMSI number for that). "
+                   "Open on a tracker instead:")
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.link_button("🌐 MarineTraffic", links["MarineTraffic"], use_container_width=True)
+        with c2:
+            st.link_button("🚢 VesselFinder", links["VesselFinder"], use_container_width=True)
+        with c3:
+            st.link_button("📡 MyShipTracking", links["MyShipTracking"], use_container_width=True)
 
 
 def _dest_str(v: dict) -> str:
