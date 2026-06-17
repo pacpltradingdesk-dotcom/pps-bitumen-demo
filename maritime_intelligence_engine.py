@@ -35,11 +35,13 @@ BASE = Path(__file__).parent
 TBL_MARITIME_INTEL  = BASE / "tbl_maritime_intel.json"
 TBL_MARITIME_ROUTES = BASE / "tbl_maritime_routes.json"
 TBL_LIVE_VESSELS    = BASE / "tbl_live_vessels.json"
+TBL_PORT_ARRIVALS   = BASE / "tbl_port_arrivals.json"
 
 # Live AIS tuning.
 MARITIME_LIVE_MAX_AGE_MIN = 20   # snapshot older than this -> simulated fallback
 MARITIME_LIVE_MAX_VESSELS = 40   # cap displayed live vessels (nearest to ports)
 MARITIME_LIVE_MAX_DIST_NM = 700  # drop vessels farther than this from any Indian port
+MARITIME_PORT_MAX_AGE_MIN = 90   # port-arrivals snapshot older than this -> fall through
 
 # Vessel positions are a route simulation, not a live AIS/MarineTraffic feed.
 # The UI uses this to show an honest "Simulated — live tracking coming soon"
@@ -201,20 +203,72 @@ def _map_ais_to_vessel(v: dict) -> dict:
     }
 
 
-def get_live_vessels(path: "Path | None" = None) -> list[dict]:
-    """Return real AIS vessels if the snapshot is fresh, else simulated fallback.
+def _map_port_arrival_to_vessel(r: dict) -> dict:
+    """Map a port-page arrival record to the UI vessel dict contract.
 
-    Never raises — any error degrades gracefully to the simulator.
+    Port pages give real India vessel lists (name, ETA, sometimes cargo/agent)
+    but no live position, so the vessel is plotted at its port.
     """
+    if r.get("imo"):
+        ident = f"IMO{r['imo']}"
+    elif r.get("mmsi"):
+        ident = f"MMSI {r['mmsi']}"
+    else:
+        ident = "—"
+    status = "arriving" if r.get("status") == "in_port" else "en_route"
+    return {
+        "vessel_name": r.get("name") or "—",
+        "imo": ident,
+        "route_id": "",
+        "cargo_type": "bulk",
+        "departure_port": "—",
+        "destination_port": r.get("port", "—"),
+        "dest_inferred": False,                  # a real declared port arrival
+        "departure_time": "—",
+        "lat": r.get("port_lat", 0.0),
+        "lon": r.get("port_lon", 0.0),
+        "speed_knots": 0.0,
+        "heading": 0,
+        "progress_pct": None,
+        "status": status,
+        "eta": r.get("eta") or "—",
+        "eta_hours": None,
+        "delay_factor": 1.0,
+        "cargo_mt": None,
+        "product_grade": r.get("cargo") or None,  # gov pages give commodity text
+        "agent": r.get("agent") or None,
+        "flag": r.get("flag") or None,
+        "is_simulated": False,
+        "source": "PORT",
+        "dist_to_port_nm": 0.0,
+    }
+
+
+def get_live_vessels(path: "Path | None" = None,
+                     port_path: "Path | None" = None) -> list[dict]:
+    """Return the best available real vessel data, else simulated fallback.
+
+    Priority: (1) port-page arrivals (real India coverage), (2) live AIS
+    snapshot, (3) deterministic simulation. Never raises.
+    """
+    # 1. Port-page arrivals — the real India source (free AIS lacks coverage).
+    try:
+        psnap = _load(port_path or TBL_PORT_ARRIVALS, {})
+        precords = psnap.get("vessels") or []
+        if precords and _is_fresh(psnap.get("updated_utc"), MARITIME_PORT_MAX_AGE_MIN):
+            mapped = [_map_port_arrival_to_vessel(r) for r in precords]
+            if mapped:
+                return mapped[:MARITIME_LIVE_MAX_VESSELS]
+    except Exception:
+        pass
+
+    # 2. Live AIS snapshot.
     try:
         snap = _load(path or TBL_LIVE_VESSELS, {})
         updated = snap.get("updated_utc")
         records = snap.get("vessels") or []
         if records and _is_fresh(updated, MARITIME_LIVE_MAX_AGE_MIN):
             mapped = [_map_ais_to_vessel(r) for r in records if r.get("lat") is not None]
-            # Distance gate: keep vessels that either DECLARE an Indian port
-            # (kept regardless of distance — the valuable India-bound signal) or
-            # are within range of some port. Drops mid-ocean / far-east traffic.
             mapped = [x for x in mapped
                       if (not x["dest_inferred"]) or x["dist_to_port_nm"] <= MARITIME_LIVE_MAX_DIST_NM]
             mapped.sort(key=lambda x: x["dist_to_port_nm"])
@@ -223,6 +277,8 @@ def get_live_vessels(path: "Path | None" = None) -> list[dict]:
                 return mapped
     except Exception:
         pass
+
+    # 3. Simulated fallback.
     return VesselSimulator.generate_vessels()
 
 

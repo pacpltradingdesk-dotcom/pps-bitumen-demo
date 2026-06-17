@@ -1,6 +1,9 @@
 # Live AIS vessel snapshot (written by ais_collector daemon at runtime)
 tbl_live_vessels.json
 
+# Port-page vessel arrivals (written by port_scraper cron at runtime)
+tbl_port_arrivals.json
+
 # Python
 __pycache__/
 *.py[cod]

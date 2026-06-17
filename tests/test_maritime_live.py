@@ -72,7 +72,7 @@ def test_get_live_vessels_returns_live_when_fresh(tmp_path: Path):
         {"mmsi": 1, "name": "TANKER ONE", "imo": 9000001, "lat": 22.8, "lon": 69.7,
          "sog": 10.0, "heading": 90, "ship_type": 80, "destination": "MUNDRA"},
     ])
-    vessels = mie.get_live_vessels(path=snap)
+    vessels = mie.get_live_vessels(path=snap, port_path=tmp_path / "noport.json")
     assert len(vessels) == 1
     assert vessels[0]["source"] == "AIS"
     assert vessels[0]["is_simulated"] is False
@@ -82,12 +82,12 @@ def test_get_live_vessels_falls_back_when_stale(tmp_path: Path):
     snap = tmp_path / "live.json"
     _write_snapshot(snap, "2020-01-01T00:00:00Z", [
         {"mmsi": 1, "lat": 22.8, "lon": 69.7, "ship_type": 80}])
-    vessels = mie.get_live_vessels(path=snap)
+    vessels = mie.get_live_vessels(path=snap, port_path=tmp_path / "noport.json")
     assert all(v.get("is_simulated") for v in vessels)   # simulated fallback
 
 
 def test_get_live_vessels_falls_back_when_missing(tmp_path: Path):
-    vessels = mie.get_live_vessels(path=tmp_path / "nope.json")
+    vessels = mie.get_live_vessels(path=tmp_path / "nope.json", port_path=tmp_path / "noport.json")
     assert all(v.get("is_simulated") for v in vessels)
 
 
@@ -97,7 +97,7 @@ def test_get_live_vessels_caps_count(tmp_path: Path):
     many = [{"mmsi": i, "name": f"T{i}", "imo": 9000000 + i, "lat": 22.0 + i * 0.01,
              "lon": 69.0, "sog": 10.0, "ship_type": 80} for i in range(100)]
     _write_snapshot(snap, now_iso, many)
-    vessels = mie.get_live_vessels(path=snap)
+    vessels = mie.get_live_vessels(path=snap, port_path=tmp_path / "noport.json")
     assert len(vessels) == mie.MARITIME_LIVE_MAX_VESSELS
 
 
@@ -108,6 +108,7 @@ def test_refresh_uses_live_when_snapshot_fresh(tmp_path: Path, monkeypatch):
         {"mmsi": 1, "name": "REAL TANKER", "imo": 9000001, "lat": 22.8, "lon": 69.7,
          "sog": 10.0, "heading": 90, "ship_type": 80, "destination": "MUNDRA"}])
     # Point the engine at our temp snapshot and a temp output dir.
+    monkeypatch.setattr(mie, "TBL_PORT_ARRIVALS", tmp_path / "noport.json")
     monkeypatch.setattr(mie, "TBL_LIVE_VESSELS", snap)
     monkeypatch.setattr(mie, "TBL_MARITIME_INTEL", tmp_path / "intel.json")
     monkeypatch.setattr(mie, "TBL_MARITIME_ROUTES", tmp_path / "routes.json")
@@ -118,11 +119,54 @@ def test_refresh_uses_live_when_snapshot_fresh(tmp_path: Path, monkeypatch):
 
 
 def test_refresh_marks_simulated_when_no_snapshot(tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(mie, "TBL_PORT_ARRIVALS", tmp_path / "noport.json")
     monkeypatch.setattr(mie, "TBL_LIVE_VESSELS", tmp_path / "missing.json")
     monkeypatch.setattr(mie, "TBL_MARITIME_INTEL", tmp_path / "intel.json")
     monkeypatch.setattr(mie, "TBL_MARITIME_ROUTES", tmp_path / "routes.json")
     intel = mie.refresh_maritime_intel()
     assert intel["summary"]["vessel_data_simulated"] is True
+
+
+# ── Port-page arrivals as primary real source ────────────────────────────────
+
+def test_map_port_arrival_in_port_and_expected():
+    in_port = mie._map_port_arrival_to_vessel(
+        {"name": "FUXING V", "mmsi": "412345678", "port": "Kandla",
+         "port_lat": 23.03, "port_lon": 70.22, "eta": "2026-06-17 01:41",
+         "status": "in_port", "source": "myshiptracking"})
+    assert in_port["vessel_name"] == "FUXING V"
+    assert in_port["imo"] == "MMSI 412345678"
+    assert in_port["destination_port"] == "Kandla"
+    assert in_port["status"] == "arriving"
+    assert in_port["is_simulated"] is False and in_port["source"] == "PORT"
+
+    expected = mie._map_port_arrival_to_vessel(
+        {"name": "MT GULF PRIDE", "port": "Kandla", "port_lat": 23.03, "port_lon": 70.22,
+         "eta": "18-06-2026", "cargo": "BITUMEN VG-30", "agent": "ABC", "status": "expected",
+         "source": "deendayal"})
+    assert expected["status"] == "en_route"
+    assert expected["product_grade"] == "BITUMEN VG-30"   # gov cargo surfaced
+    assert expected["imo"] == "—"
+
+
+def test_get_live_vessels_prefers_port_arrivals(tmp_path: Path):
+    from datetime import datetime, timezone
+    now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    port = tmp_path / "port.json"
+    port.write_text(json.dumps({"updated_utc": now_iso, "source": "port-pages",
+        "vessels": [{"name": "PORT VESSEL", "port": "Kandla", "port_lat": 23.03,
+                     "port_lon": 70.22, "eta": "2026-06-18 10:00", "status": "expected",
+                     "source": "myshiptracking"}]}), encoding="utf-8")
+    # Even with a fresh AIS snapshot present, port arrivals win.
+    ais = tmp_path / "ais.json"
+    ais.write_text(json.dumps({"updated_utc": now_iso, "source": "aisstream",
+        "vessels": [{"mmsi": 1, "name": "AIS VESSEL", "imo": 9000001, "lat": 22.8,
+                     "lon": 69.7, "sog": 10.0, "ship_type": 80, "destination": "MUNDRA"}]}),
+        encoding="utf-8")
+    vessels = mie.get_live_vessels(path=ais, port_path=port)
+    assert len(vessels) == 1
+    assert vessels[0]["vessel_name"] == "PORT VESSEL"
+    assert vessels[0]["source"] == "PORT"
 
 
 # ── Refinement: honest destination, status, distance gate ────────────────────
@@ -195,6 +239,6 @@ def test_distance_gate_keeps_relevant_drops_far(tmp_path: Path):
         {"mmsi": 4, "name": "MID OCEAN", "imo": 9000004, "lat": -25.0, "lon": 75.0,
          "sog": 5.0, "ship_type": 80, "destination": "CAPE TOWN"},
     ])
-    names = {v["vessel_name"] for v in mie.get_live_vessels(path=snap)}
+    names = {v["vessel_name"] for v in mie.get_live_vessels(path=snap, port_path=tmp_path / "noport.json")}
     assert {"NEAR INDIA", "GULF SUPPLY", "GULF TO INDIA"} <= names
     assert "MID OCEAN" not in names
