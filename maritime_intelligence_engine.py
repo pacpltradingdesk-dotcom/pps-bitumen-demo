@@ -34,6 +34,11 @@ BASE = Path(__file__).parent
 
 TBL_MARITIME_INTEL  = BASE / "tbl_maritime_intel.json"
 TBL_MARITIME_ROUTES = BASE / "tbl_maritime_routes.json"
+TBL_LIVE_VESSELS    = BASE / "tbl_live_vessels.json"
+
+# Live AIS tuning.
+MARITIME_LIVE_MAX_AGE_MIN = 20   # snapshot older than this -> simulated fallback
+MARITIME_LIVE_MAX_VESSELS = 40   # cap displayed live vessels (nearest to ports)
 
 # Vessel positions are a route simulation, not a live AIS/MarineTraffic feed.
 # The UI uses this to show an honest "Simulated — live tracking coming soon"
@@ -102,6 +107,67 @@ def _match_destination_port(dest_text: str | None) -> str | None:
         if name.upper() in t or first_word in t:
             return name
     return None
+
+
+def _is_fresh(updated_iso: str | None, max_age_min: int,
+              now: datetime | None = None) -> bool:
+    """True if `updated_iso` (UTC ISO 'Z') is within max_age_min of now."""
+    if not updated_iso:
+        return False
+    if now is None:
+        now = datetime.now(timezone.utc)
+    try:
+        ts = datetime.fromisoformat(updated_iso.replace("Z", "+00:00"))
+    except Exception:
+        return False
+    return (now - ts) <= timedelta(minutes=max_age_min)
+
+
+def _map_ais_to_vessel(v: dict) -> dict:
+    """Map one AIS snapshot record to the UI vessel dict contract."""
+    lat, lon = v["lat"], v["lon"]
+    dest = _match_destination_port(v.get("destination")) or _nearest_indian_port(lat, lon)
+    port = INDIAN_PORTS[dest]
+    sog = v.get("sog") or 0
+    dist_nm = _haversine_nm(lat, lon, port["lat"], port["lon"])
+
+    if dist_nm < 20:
+        status = "arriving"
+    elif sog < 0.5:
+        status = "delayed"          # stopped / drifting
+    else:
+        status = "en_route"
+
+    # ETA estimate from remaining distance and speed (fallback speed 8 kn).
+    eta_hours = round(dist_nm / max(sog, 8.0), 1)
+    eta_dt = _now() + timedelta(hours=eta_hours)
+
+    name = v.get("name") or f"MMSI {v['mmsi']}"
+    imo = f"IMO{v['imo']}" if v.get("imo") else "—"
+
+    return {
+        "vessel_name": name,
+        "imo": imo,
+        "route_id": "",
+        "cargo_type": "bulk",                # tankers map to the bulk lane
+        "departure_port": "—",
+        "destination_port": dest,
+        "departure_time": "—",
+        "lat": round(lat, 4),
+        "lon": round(lon, 4),
+        "speed_knots": round(sog, 1) if sog else 0.0,
+        "heading": v.get("heading") or 0,
+        "progress_pct": None,                # unknown without origin
+        "status": status,
+        "eta": eta_dt.strftime("%Y-%m-%d %H:%M IST"),
+        "eta_hours": eta_hours,
+        "delay_factor": 1.0,
+        "cargo_mt": None,                    # not available from AIS
+        "product_grade": None,               # not available from AIS
+        "is_simulated": False,
+        "source": "AIS",
+        "dist_to_port_nm": round(dist_nm, 1),
+    }
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
