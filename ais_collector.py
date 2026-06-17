@@ -27,12 +27,14 @@ WS_URL = "wss://stream.aisstream.io/v0/stream"
 FLUSH_SECONDS = 30          # how often we write the snapshot
 PRUNE_MAX_AGE_MIN = 60      # drop vessels not seen for this long
 
-# Bounding boxes [[[lat,lon],[lat,lon]], ...] — Gulf supply + Indian coasts + Singapore.
+# Bounding boxes [[[lat,lon],[lat,lon]], ...] — Gulf supply + Indian coasts only.
+# Singapore Strait box was removed: it flooded the feed with ~1500 nm-away
+# bunkering traffic that is not India-bound. We focus on the Gulf->India
+# corridor and Indian approaches.
 BOUNDING_BOXES = [
     [[30.0, 47.0], [22.5, 60.0]],   # Arabian/Persian Gulf + Gulf of Oman
     [[25.0, 60.0], [8.0, 76.5]],    # Arabian Sea / India west coast
     [[22.5, 80.0], [8.0, 92.0]],    # Bay of Bengal / India east coast
-    [[5.0, 95.0], [0.0, 105.0]],    # Singapore Strait
 ]
 
 logging.basicConfig(

@@ -192,10 +192,28 @@ Next ETA: {next_eta:.0f}h | Waiting: {port.get('vessels_waiting', 0)}
 # TAB 1: VESSEL TRACKING
 # ═══════════════════════════════════════════════════════════════════════════════
 
+def _dest_str(v: dict) -> str:
+    """Port routing text: 'Jebel Ali → Mundra' (known departure),
+    '→ Mundra' (AIS-declared dest), or 'near Mundra' (inferred from position)."""
+    dep = v.get("departure_port")
+    dest = v.get("destination_port", "—")
+    if dep and dep != "—":
+        return f"{dep} → <strong>{dest}</strong>"
+    if v.get("dest_inferred"):
+        return f"near <strong>{dest}</strong>"
+    return f"→ <strong>{dest}</strong>"
+
+
 def _progress_str(v: dict) -> str:
     """' | Progress: 42%' when known, '' otherwise (live AIS has no origin)."""
     p = v.get("progress_pct")
     return f" | Progress: {p}%" if p is not None else ""
+
+
+def _eta_remaining_str(v: dict) -> str:
+    """' (12.3h remaining)' when ETA hours known, '' for anchored/unknown."""
+    h = v.get("eta_hours")
+    return f" ({h}h remaining)" if h is not None else ""
 
 
 def _cargo_str(v: dict) -> str:
@@ -254,6 +272,8 @@ def _render_vessel_tracking(intel: dict):
             st_color, st_dot = "#ef4444", "🔴"
         elif status == "arriving":
             st_color, st_dot = "#22c55e", "🟢"
+        elif status == "anchored":
+            st_color, st_dot = "#f59e0b", "⚓"
         else:
             st_color, st_dot = "#3b82f6", "🔵"
 
@@ -273,11 +293,11 @@ border-radius:3px; font-size:0.55rem; font-weight:700;">{badge_text}</span>
 </div>
 </div>
 <div style="font-size:0.72rem; color:#475569; margin-top:4px;">
-{v['departure_port']} → <strong>{v['destination_port']}</strong> |
+{_dest_str(v)} |
 Speed: {v['speed_knots']} kn{_progress_str(v)}{_cargo_str(v)}
 </div>
 <div style="font-size:0.68rem; color:#64748b; margin-top:2px;">
-ETA: <strong>{v['eta']}</strong> ({v['eta_hours']}h remaining) |
+ETA: <strong>{v['eta']}</strong>{_eta_remaining_str(v)} |
 Heading: {v['heading']}°
 </div>
 </div>
