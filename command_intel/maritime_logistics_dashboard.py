@@ -290,6 +290,11 @@ def _eta_remaining_str(v: dict) -> str:
     return f" ({h}h remaining)" if h is not None else ""
 
 
+def _vessel_digits(v: dict) -> str:
+    """Digits from a vessel's IMO/MMSI field, for the VesselFinder lookup."""
+    return "".join(c for c in str(v.get("imo", "")) if c.isdigit())
+
+
 def _cargo_str(v: dict) -> str:
     """' | 3000 MT VG-30' / ' | BITUMEN' (cargo text only) / ' | cargo: n/a'."""
     mt = v.get("cargo_mt")
@@ -319,9 +324,9 @@ def _render_vessel_tracking(intel: dict):
     fig = _build_vessel_map(vessels, port_congestion)
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False}, key="_maritime_vessel_map")
 
-    # Vessel table — container FIRST
+    # Vessel table
     st.markdown("### 📋 Active Vessels")
-    st.caption("Container shipments shown first")
+    st.caption("🔍 Click any vessel for live details · search to bring matches to the top")
 
     # Data-source badge: green when real AIS, honest "simulated" otherwise.
     _simulated = (any(v.get("is_simulated") for v in vessels)
@@ -347,12 +352,54 @@ def _render_vessel_tracking(intel: dict):
             icon="📡",
         )
 
-    for v in vessels:
+    # ── Search / filter — matching vessels float to the top ──────────────
+    fq = st.text_input(
+        "Filter vessels", key="_vessel_filter",
+        placeholder="🔎 Search vessel name or port — matches move to top",
+        label_visibility="collapsed",
+    )
+    if fq and fq.strip():
+        ql = fq.lower().strip()
+
+        def _vmatch(v):
+            return (ql in (v.get("vessel_name") or "").lower()
+                    or ql in (v.get("destination_port") or "").lower()
+                    or ql in str(v.get("imo") or "").lower())
+
+        n_match = sum(1 for v in vessels if _vmatch(v))
+        vessels = sorted(vessels, key=lambda v: 0 if _vmatch(v) else 1)
+        st.caption(f"🔎 {n_match} match(es) moved to the top")
+
+    # ── Selected vessel's live detail card (lazy: only the clicked one) ───
+    sel = st.session_state.get("_sel_vessel")
+    if sel:
+        st.markdown(f"#### 🔍 {sel.get('name', 'Vessel')} — live details")
+        digits = sel.get("q", "")
+        data = None
+        if digits:
+            try:
+                import vessel_lookup
+                with st.spinner("Fetching live vessel data…"):
+                    data = vessel_lookup.fetch_vessel(digits)
+            except Exception:
+                data = None
+        if data:
+            _render_ship_card(data)
+        elif digits:
+            st.info("Couldn't fetch live details for this vessel right now — try again shortly.")
+        else:
+            st.info("This vessel has no IMO/MMSI on record, so a live lookup isn't available.")
+        if st.button("✖ Close details", key="_close_vessel_detail"):
+            st.session_state.pop("_sel_vessel", None)
+            st.rerun()
+        st.markdown("---")
+
+    # ── Vessel rows — click 🔍 to load that vessel's live details ─────────
+    for i, v in enumerate(vessels):
         is_container = v["cargo_type"] == "container"
         badge_color = "#3b82f6" if is_container else "#f59e0b"
         badge_text = "CONTAINER" if is_container else "BULK"
 
-        # Status styling
         status = v.get("status", "en_route")
         if status == "delayed":
             st_color, st_dot = "#ef4444", "🔴"
@@ -363,7 +410,9 @@ def _render_vessel_tracking(intel: dict):
         else:
             st_color, st_dot = "#3b82f6", "🔵"
 
-        st.markdown(f"""
+        row, btn = st.columns([0.93, 0.07])
+        with row:
+            st.markdown(f"""
 <div style="background:#f8fafc; border-radius:8px; padding:10px 14px; margin-bottom:6px;
 border-left:4px solid {badge_color};">
 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -388,6 +437,11 @@ Heading: {v['heading']}°
 </div>
 </div>
 """, unsafe_allow_html=True)
+        with btn:
+            if st.button("🔍", key=f"_vdet_{i}", help="Live details"):
+                st.session_state["_sel_vessel"] = {
+                    "q": _vessel_digits(v), "name": v["vessel_name"]}
+                st.rerun()
 
     # Summary metrics
     st.markdown("---")
