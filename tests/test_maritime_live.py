@@ -163,18 +163,38 @@ def test_eta_none_when_stopped():
     assert stopped["eta_hours"] is None
 
 
-def test_distance_gate_excludes_far_vessels(tmp_path: Path):
+def test_nearest_port_any_includes_supply_ports():
+    # A point at Jebel Ali (a supply port) resolves to Jebel Ali, ~0 nm.
+    name, dist = mie._nearest_port_any(25.02, 55.06)
+    assert name == "Jebel Ali" and dist < 30
+
+
+def test_gulf_vessel_labelled_near_supply_port():
+    # Tanker in the Persian Gulf with no Indian destination -> 'near Jebel Ali'.
+    v = mie._map_ais_to_vessel(
+        {"mmsi": 1, "lat": 25.0, "lon": 55.1, "sog": 8.0, "ship_type": 80})
+    assert v["dest_inferred"] is True
+    assert v["destination_port"] == "Jebel Ali"
+
+
+def test_distance_gate_keeps_relevant_drops_far(tmp_path: Path):
     from datetime import datetime, timezone
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     snap = tmp_path / "live.json"
-    # One vessel near Mundra (kept), one in Singapore Strait (dropped: ~1500nm).
     _write_snapshot(snap, now_iso, [
+        # A: near Mundra, declared MUNDRA -> kept.
         {"mmsi": 1, "name": "NEAR INDIA", "imo": 9000001, "lat": 22.8, "lon": 69.7,
          "sog": 10.0, "ship_type": 80, "destination": "MUNDRA"},
-        {"mmsi": 2, "name": "SINGAPORE TANKER", "imo": 9000002, "lat": 1.24, "lon": 103.8,
-         "sog": 0.0, "ship_type": 80, "destination": "SINGAPORE"},
+        # B: in the Gulf near a supply port, no Indian dest -> kept (near Jebel Ali).
+        {"mmsi": 2, "name": "GULF SUPPLY", "imo": 9000002, "lat": 25.0, "lon": 55.1,
+         "sog": 6.0, "ship_type": 80, "destination": "FUJAIRAH"},
+        # C: far in the Gulf, but DECLARES an Indian port -> kept (valuable).
+        {"mmsi": 3, "name": "GULF TO INDIA", "imo": 9000003, "lat": 26.5, "lon": 56.0,
+         "sog": 11.0, "ship_type": 80, "destination": "MUNDRA"},
+        # D: mid-ocean, far from every port, no Indian dest -> dropped.
+        {"mmsi": 4, "name": "MID OCEAN", "imo": 9000004, "lat": -25.0, "lon": 75.0,
+         "sog": 5.0, "ship_type": 80, "destination": "CAPE TOWN"},
     ])
-    vessels = mie.get_live_vessels(path=snap)
-    names = {v["vessel_name"] for v in vessels}
-    assert "NEAR INDIA" in names
-    assert "SINGAPORE TANKER" not in names
+    names = {v["vessel_name"] for v in mie.get_live_vessels(path=snap)}
+    assert {"NEAR INDIA", "GULF SUPPLY", "GULF TO INDIA"} <= names
+    assert "MID OCEAN" not in names

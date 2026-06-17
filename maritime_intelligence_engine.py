@@ -94,6 +94,16 @@ def _nearest_indian_port(lat: float, lon: float) -> str:
     )
 
 
+def _nearest_port_any(lat: float, lon: float) -> tuple[str, float]:
+    """Nearest port (Indian OR supply) to a coordinate, as (name, distance_nm)."""
+    best_name, best_d = "", float("inf")
+    for name, pd in list(INDIAN_PORTS.items()) + list(SUPPLY_PORTS.items()):
+        d = _haversine_nm(lat, lon, pd["lat"], pd["lon"])
+        if d < best_d:
+            best_name, best_d = name, d
+    return best_name, best_d
+
+
 def _match_destination_port(dest_text: str | None) -> str | None:
     """Match an AIS destination string to an Indian port name, else None.
 
@@ -135,12 +145,16 @@ def _map_ais_to_vessel(v: dict) -> dict:
     lat, lon = v["lat"], v["lon"]
     matched = _match_destination_port(v.get("destination"))
     if matched:
+        # AIS declares an Indian port — most valuable signal.
         dest, dest_inferred = matched, False
+        port = INDIAN_PORTS[dest]
+        dist_nm = _haversine_nm(lat, lon, port["lat"], port["lon"])
     else:
-        dest, dest_inferred = _nearest_indian_port(lat, lon), True
-    port = INDIAN_PORTS[dest]
+        # No declared Indian port — locate by nearest port (Indian or supply),
+        # so a Gulf vessel reads 'near Jebel Ali' rather than a far Indian port.
+        dest, dist_nm = _nearest_port_any(lat, lon)
+        dest_inferred = True
     sog = v.get("sog") or 0
-    dist_nm = _haversine_nm(lat, lon, port["lat"], port["lon"])
 
     if sog < 0.5:
         status = "anchored"             # stopped / at anchor
@@ -198,9 +212,11 @@ def get_live_vessels(path: "Path | None" = None) -> list[dict]:
         records = snap.get("vessels") or []
         if records and _is_fresh(updated, MARITIME_LIVE_MAX_AGE_MIN):
             mapped = [_map_ais_to_vessel(r) for r in records if r.get("lat") is not None]
-            # Distance gate: keep only vessels within range of an Indian port,
-            # so Singapore/east-Asia traffic (1000+ nm away) is dropped.
-            mapped = [x for x in mapped if x["dist_to_port_nm"] <= MARITIME_LIVE_MAX_DIST_NM]
+            # Distance gate: keep vessels that either DECLARE an Indian port
+            # (kept regardless of distance — the valuable India-bound signal) or
+            # are within range of some port. Drops mid-ocean / far-east traffic.
+            mapped = [x for x in mapped
+                      if (not x["dest_inferred"]) or x["dist_to_port_nm"] <= MARITIME_LIVE_MAX_DIST_NM]
             mapped.sort(key=lambda x: x["dist_to_port_nm"])
             mapped = mapped[:MARITIME_LIVE_MAX_VESSELS]
             if mapped:
