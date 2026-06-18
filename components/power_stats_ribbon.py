@@ -42,7 +42,15 @@ def _total_rows() -> int | None:
 
 
 def _vg30_price() -> int | None:
-    """Return VG30 price ₹/MT from hub cache, best-effort."""
+    """Return VG30 price ₹/MT from the single source of truth, best-effort."""
+    # Single source of truth — same VG30 base shown everywhere else.
+    try:
+        from market_data import get_unified_prices
+        v = get_unified_prices().get("vg30")
+        if isinstance(v, (int, float)) and v > 0:
+            return int(v)
+    except Exception:
+        pass
     try:
         data = json.loads(_HUB_CACHE.read_text(encoding="utf-8"))
     except Exception:
