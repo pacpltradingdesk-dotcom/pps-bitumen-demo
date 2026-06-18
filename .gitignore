@@ -73,6 +73,8 @@ api_health_log.json
 sync_logs.json
 sre_audit_log.json
 sre_alerts.json
+sre_alerts.archive.json
+ai_config.json
 sre_health_status.json
 sre_metrics.json
 hub_activity_log.json
