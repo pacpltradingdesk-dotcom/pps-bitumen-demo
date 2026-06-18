@@ -356,6 +356,14 @@ def _step3():
             # Mumbai/JNPT VG30 is the headline base — keep VG30_BASE in sync so
             # the Command Center KPI + tickers move with this manual update.
             lp["VG30_BASE"] = new_mumbai_vg30
+            # Re-anchor intra-fortnight drift to this manual base + current crude/FX.
+            try:
+                from market_data import get_unified_prices as _gup
+                _u = _gup()
+                lp["VG30_ANCHOR"] = {"base": int(new_mumbai_vg30),
+                                     "brent": _u.get("brent"), "usdinr": _u.get("usdinr")}
+            except Exception:
+                pass
             try:
                 with open(lp_path, "w", encoding="utf-8") as f:
                     json.dump(lp, f, indent=4, ensure_ascii=False)

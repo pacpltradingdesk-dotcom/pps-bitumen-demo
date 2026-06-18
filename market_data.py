@@ -154,6 +154,21 @@ def get_unified_prices() -> dict:
     if out["source"] == "unknown":
         out["source"] = "fallback"
 
+    # ── 5. Intra-fortnight drift (bounded ±5%) on top of the published base ──
+    # If a circular anchor exists (base + crude/fx at circular time), nudge the
+    # VG30 base with crude/fx moves since then so it isn't frozen between
+    # fortnightly circulars. The circular stays authoritative (cap + re-anchor
+    # on next circular). No anchor -> no drift (published base shown as-is).
+    try:
+        lp_a = json.loads(_LIVE_PRICES_PATH.read_text(encoding="utf-8"))
+        anchor = lp_a.get("VG30_ANCHOR")
+        if isinstance(anchor, dict) and anchor.get("base"):
+            from price_drift import drift_vg30
+            out["vg30"] = drift_vg30(anchor.get("base"), anchor.get("brent"),
+                                     anchor.get("usdinr"), out.get("brent"), out.get("usdinr"))
+    except Exception:
+        pass
+
     return out
 
 def format_change(chg_7d):

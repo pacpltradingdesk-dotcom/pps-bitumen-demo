@@ -39,6 +39,20 @@ def _current_value_map() -> dict:
     return out
 
 
+def _make_anchor(base: int) -> dict:
+    """Drift anchor: this published base + the crude/FX at publish time."""
+    import datetime
+    brent = usdinr = None
+    try:
+        from market_data import get_unified_prices
+        u = get_unified_prices()
+        brent, usdinr = u.get("brent"), u.get("usdinr")
+    except Exception:
+        pass
+    return {"base": int(base), "brent": brent, "usdinr": usdinr,
+            "set_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M IST")}
+
+
 def _apply_overrides(updates: dict, vg30_base) -> bool:
     """Merge updates (+ VG30_BASE) into live_prices.json. Returns success."""
     try:
@@ -48,6 +62,7 @@ def _apply_overrides(updates: dict, vg30_base) -> bool:
         lp.update({k: int(v) for k, v in updates.items()})
         if vg30_base:
             lp["VG30_BASE"] = int(vg30_base)
+            lp["VG30_ANCHOR"] = _make_anchor(int(vg30_base))
         _LIVE_PRICES.write_text(json.dumps(lp, indent=4, ensure_ascii=False), encoding="utf-8")
         try:
             from calculation_engine import get_engine
