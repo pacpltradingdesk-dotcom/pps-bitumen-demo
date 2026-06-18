@@ -993,16 +993,19 @@ class SmartAlertEngine:
         """
         fired = 0
 
-        # API health — only price-critical feeds (crude/FX, which drive VG30 +
-        # KPIs) raise P0/P1. Supplementary feeds (weather, country, World Bank)
-        # are not production-blocking, so they cap at P2/P3 and never trigger the
-        # red "P0 errors open" banner.
-        _NONCRIT_API = ("weather", "forecast", "rest_countr", "restcountr",
-                    "countr", "world_bank", "worldbank")
+        # API health severity policy:
+        #   - Only price-critical feeds (crude/FX — they drive VG30 + KPIs)
+        #     raise P0 when genuinely DOWN.
+        #   - Every other (supplementary) feed caps at P2 when down.
+        #   - ANY WARN (slow / transient latency, NOT down) is never red → P3.
+        # This stops the red "P0 errors open" banner from firing on noisy or
+        # supplementary feeds.
+        _CRIT_API = ("brent", "wti", "usdinr", "usd_inr", "crude", "fx",
+                     "eia_crude", "frankfurter")
         for r in health_results.get("api_health", []):
             entity = r["entity"]
             _ent = str(entity).lower()
-            _is_crit = not any(k in _ent for k in _NONCRIT_API)
+            _is_crit = any(k in _ent for k in _CRIT_API)
             if r["status"] == "FAIL":
                 alert_id = cls.fire(
                     "P0" if _is_crit else "P2", entity,
@@ -1015,7 +1018,7 @@ class SmartAlertEngine:
                     fired += 1
             elif r["status"] == "WARN":
                 alert_id = cls.fire(
-                    "P1" if _is_crit else "P3", entity,
+                    "P3", entity,
                     what_happened=f"API {entity} degraded performance",
                     where=f"API Layer / {entity}",
                     why=r.get("details", ""),
