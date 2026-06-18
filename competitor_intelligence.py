@@ -507,14 +507,20 @@ Use our live `api_manager` USD/INR for actual.
         pass
     if not news_items:
         news_items = [{"date": n["date"], "headline": n["headline"]} for n in NEWS_FEED[:4]]
+    import html as _html
     _brent_tag = f" | Brent: ${live_brent:.2f}/bbl" if live_brent else ""
     for n in news_items:
-        if not n.get("headline"):
+        _hl = (n.get("headline") or "").strip()
+        if not _hl:
             continue
+        # Headlines/dates come from a live external news feed (untrusted) — escape
+        # before embedding in raw HTML to prevent XSS.
+        _safe_date = _html.escape(str(n.get("date", "")))
+        _safe_hl = _html.escape(_hl)
         st.markdown(
             f'<div style="border-left:3px solid #f59e0b;padding:6px 12px;margin-bottom:5px;background:#0f172a;border-radius:0 6px 6px 0">'
-            f'<span style="color:#94a3b8;font-size:0.75rem">{n["date"]}{_brent_tag}</span><br>'
-            f'<span style="color:#f8fafc;font-size:0.88rem">{n["headline"]}</span></div>',
+            f'<span style="color:#94a3b8;font-size:0.75rem">{_safe_date}{_brent_tag}</span><br>'
+            f'<span style="color:#f8fafc;font-size:0.88rem">{_safe_hl}</span></div>',
             unsafe_allow_html=True,
         )
 
