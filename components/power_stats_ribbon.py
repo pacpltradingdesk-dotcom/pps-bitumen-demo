@@ -10,6 +10,7 @@ so a missing table or cache never breaks the UI.
 """
 from __future__ import annotations
 
+import datetime
 import json
 import sqlite3
 from pathlib import Path
@@ -120,22 +121,72 @@ def _composite_signal() -> tuple[str, int] | None:
     return None
 
 
-def _alerts_count() -> int | None:
-    """Count active alerts — SRE + market, matching what command_center shows."""
-    total = 0
-    seen = False
-    for fname in ("sre_alerts.json", "market_alerts.json"):
+def _parse_alert_ts(s: str | None) -> datetime.datetime | None:
+    """Parse an alert timestamp like '2026-06-10 06:14 IST'. None on failure."""
+    if not s:
+        return None
+    s = str(s).replace(" IST", "").strip()
+    for fmt in ("%Y-%m-%d %H:%M", "%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S"):
         try:
-            data = json.loads((_ROOT / fname).read_text(encoding="utf-8"))
-        except Exception:
+            return datetime.datetime.strptime(s, fmt)
+        except ValueError:
             continue
-        seen = True
-        if isinstance(data, list):
-            total += sum(1 for a in data
-                         if isinstance(a, dict) and a.get("status") != "dismissed")
-        elif isinstance(data, dict):
-            total += len(data.get("active", []))
-    return total if seen else None
+    return None
+
+
+def _market_alert_active(alert: dict, now: datetime.datetime) -> bool:
+    """A market alert is active if not dismissed and not past its expiry.
+
+    market_alerts.json is a rolling 500-entry log; most entries are long
+    expired. Only the non-expired ones are genuinely "active". If an alert
+    carries no parseable expiry, we keep counting it (fail-visible).
+    """
+    if not isinstance(alert, dict):
+        return False
+    if alert.get("status") == "dismissed":
+        return False
+    exp = _parse_alert_ts(alert.get("expires_at"))
+    if exp is None:
+        return True
+    return exp > now
+
+
+def _count_active_alerts(sre_data, market_data,
+                         now: datetime.datetime) -> int | None:
+    """Pure counter: SRE alerts (non-dismissed) + non-expired market alerts.
+
+    Returns None only when neither source is available at all.
+    """
+    if sre_data is None and market_data is None:
+        return None
+    total = 0
+    if isinstance(sre_data, list):
+        total += sum(1 for a in sre_data
+                     if isinstance(a, dict) and a.get("status") != "dismissed")
+    elif isinstance(sre_data, dict):
+        total += len(sre_data.get("active", []))
+    if isinstance(market_data, list):
+        total += sum(1 for a in market_data if _market_alert_active(a, now))
+    elif isinstance(market_data, dict):
+        total += len(market_data.get("active", []))
+    return total
+
+
+def _alerts_count() -> int | None:
+    """Count active alerts — SRE (open) + market (non-expired).
+
+    Matches what the Command Center shows: a rolling market-alert log must
+    not inflate the ribbon with hundreds of long-expired entries.
+    """
+    def _load(fname):
+        try:
+            return json.loads((_ROOT / fname).read_text(encoding="utf-8"))
+        except Exception:
+            return None
+
+    sre = _load("sre_alerts.json")
+    market = _load("market_alerts.json")
+    return _count_active_alerts(sre, market, datetime.datetime.now())
 
 
 def _fmt_int(n: int | None) -> str:
