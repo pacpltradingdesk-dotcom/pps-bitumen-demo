@@ -999,6 +999,17 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
     elif isinstance(sync_logs, dict):
         last_sync = sync_logs.get("last_sync", sync_logs.get("timestamp", "Unknown"))
         if isinstance(last_sync, str) and len(last_sync) > 16: last_sync = last_sync[:16]
+    # Fallback: derive from the data-cache file mtime (the 15-min refresh cron
+    # rewrites hub_cache.json) so we never show a bare "Never"/"Unknown".
+    if last_sync in ("Never", "Unknown", "", None):
+        try:
+            import os as _os
+            _hc = Path(__file__).resolve().parents[2] / "hub_cache.json"
+            if _hc.exists():
+                last_sync = datetime.datetime.fromtimestamp(
+                    _os.path.getmtime(_hc)).strftime("%Y-%m-%d %H:%M")
+        except Exception:
+            pass
 
     st.markdown(f"""
 <div style="margin-top:24px;padding:16px 0 8px;border-top:1px solid #E2E8F0;">

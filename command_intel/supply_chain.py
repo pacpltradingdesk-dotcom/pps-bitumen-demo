@@ -159,6 +159,7 @@ Iraq → India Port → Tanker → Delivery → Payment Tracking
 </div>
 """, unsafe_allow_html=True)
     
+    st.warning("⚠️ **Demo** shipment data — illustrative Iraq→India tracking flow, not live PO-linked shipments.")
     shipments = _get_shipment_data()
 
     if not shipments:

@@ -9,28 +9,31 @@ import datetime
 
 
 def _get_tankers():
+    """Return (tankers, is_demo). is_demo=True when falling back to mock data."""
     try:
         from tanker_engine import get_all_tankers
         data = get_all_tankers()
         if data:
-            return data
+            return data, False
     except Exception:
         pass
     try:
         from tanker_engine import get_mock_tankers
-        return get_mock_tankers()
+        return get_mock_tankers(), True
     except Exception:
-        return []
+        return [], False
 
 
 def render():
     st.header("🚛 Tanker Tracking")
     st.caption("Real-time tracking of bulk tankers and drum trucks.")
 
-    tankers = _get_tankers()
+    tankers, is_demo = _get_tankers()
     if not tankers:
         st.info("No tanker data available.")
         return
+    if is_demo:
+        st.warning("⚠️ Showing **demo** tanker data — live tracking source unavailable.")
 
     df = pd.DataFrame(tankers)
 

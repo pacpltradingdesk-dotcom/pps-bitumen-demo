@@ -77,7 +77,7 @@ def render():
     deals = _get_deals()
     if not deals:
         deals = _get_mock_deals()
-        st.info("Showing demo data. Real data will appear as deals are recorded.")
+        st.warning("⚠️ Showing **demo** deal data — real figures will appear as deals are recorded.")
 
     df = pd.DataFrame(deals)
 

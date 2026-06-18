@@ -505,14 +505,25 @@ def fetch_api_data(widget_id: str, force: bool = False):
         stats[widget_id]["failures"] = stats[widget_id].get("failures", 0) + 1
         stats[widget_id]["consecutive_failures"] = prev_consec + 1
 
+        # Only price-critical feeds (crude / FX — they drive VG30 + KPIs) escalate
+        # to P0/P1. Supplementary feeds (weather, country, World Bank) are not
+        # production-blocking, so they cap at P2/P3 and never trigger the
+        # "P0 errors open" banner — they were the source of the alert noise.
+        _wid = str(widget_id).lower()
+        _is_critical = any(c in _wid for c in ("brent", "wti", "usdinr", "crude", "fx", "usd_inr"))
+        if _is_critical:
+            _severity = "P0" if prev_consec >= 2 else "P1"
+        else:
+            _severity = "P2" if prev_consec >= 5 else "P3"
+
         log_error(
             api_id=widget_id,
             component="API Fetch",
             error_type=error_detail or "Unknown failure",
             message=f"{config.get('name', widget_id)} failed after {max_retries} retries. Error: {error_detail}",
-            severity="P0" if prev_consec >= 2 else "P1",
+            severity=_severity,
             auto_fixed=False,
-            manual_required=True,
+            manual_required=_is_critical,
             root_cause=error_detail,
             resolution_notes="Check endpoint URL, rate limit, and API availability. Consider replacing with alternative free API.",
         )

@@ -814,14 +814,15 @@ def _render_settings():
     with col3:
         st.metric("Dedup Threshold", f"{int(ne.DEDUP_THRESHOLD*100)}%")
 
-    if st.button("🗑 Clear ALL Articles (reset to demo data)", type="secondary"):
+    _confirm_clear = st.checkbox("Confirm permanent delete", key="news_clear_confirm")
+    if st.button("🗑 Clear ALL Articles (permanent — cannot undo)", type="secondary", disabled=not _confirm_clear):
         import os
         from pathlib import Path as _Path
         _target = _Path(str(ne.ARTICLES_FILE)).resolve()
         _expected_dir = _Path(os.path.dirname(os.path.abspath(__file__))).parent.resolve()
         if _target.exists() and str(_target).startswith(str(_expected_dir)):
             os.remove(str(_target))
-        st.success("Articles cleared — demo data will reload on next fetch.")
+        st.success("All articles cleared — live news feeds will repopulate on the next fetch cycle.")
         st.rerun()
 
 # ══════════════════════════════════════════════════════════════════════════════

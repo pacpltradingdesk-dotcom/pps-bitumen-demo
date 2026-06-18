@@ -9,28 +9,31 @@ import datetime
 
 
 def _get_tenders():
+    """Return (tenders, is_demo). is_demo=True when falling back to mock data."""
     try:
         from tender_engine import get_tenders
         data = get_tenders()
         if data:
-            return data
+            return data, False
     except Exception:
         pass
     try:
         from tender_engine import get_mock_tenders
-        return get_mock_tenders()
+        return get_mock_tenders(), True
     except Exception:
-        return []
+        return [], False
 
 
 def render():
     st.header("🏗️ NHAI Tender Feed")
     st.caption("Track road project tenders and estimate bitumen demand opportunities.")
 
-    tenders = _get_tenders()
+    tenders, is_demo = _get_tenders()
     if not tenders:
         st.info("No tender data available.")
         return
+    if is_demo:
+        st.warning("⚠️ Showing **demo** tender data — live tender feed unavailable.")
 
     df = pd.DataFrame(tenders)
     for col in ["road_length_km", "estimated_bitumen_mt", "value_cr"]:

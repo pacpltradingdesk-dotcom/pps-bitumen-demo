@@ -8,29 +8,31 @@ import pandas as pd
 
 
 def _get_credit_data():
-    """Get credit data from engine or mock."""
+    """Return (credits, is_demo). is_demo=True when falling back to mock data."""
     try:
         from credit_engine import get_all_credits
         data = get_all_credits()
         if data:
-            return data
+            return data, False
     except Exception:
         pass
     try:
         from credit_engine import get_mock_credits
-        return get_mock_credits()
+        return get_mock_credits(), True
     except Exception:
-        return []
+        return [], False
 
 
 def render():
     st.header("💳 Credit Limit & Aging")
     st.caption("Customer credit tracking, aging buckets, and overdue alerts.")
 
-    credits = _get_credit_data()
+    credits, is_demo = _get_credit_data()
     if not credits:
         st.info("No credit data available. Add customer credit limits to get started.")
         return
+    if is_demo:
+        st.warning("⚠️ Showing **demo** credit data — customer credit database unavailable.")
 
     df = pd.DataFrame(credits)
     for col in ["credit_limit", "outstanding", "days_outstanding", "last_payment_amount"]:
