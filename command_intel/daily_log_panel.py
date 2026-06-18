@@ -111,7 +111,7 @@ def render():
                                          key="mi_source")
 
             intel_notes = st.text_area("Intelligence",
-                                       placeholder="e.g. Competitor X offering VG30 at Rs38,500 in Ahmedabad",
+                                       placeholder="e.g. Competitor X offering VG30 at Rs76,870 in Ahmedabad",
                                        key="mi_notes")
 
             confidence = st.radio("Confidence Level",

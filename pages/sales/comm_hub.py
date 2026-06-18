@@ -4,6 +4,11 @@ import datetime
 
 from components.empty_state import render_empty_state
 
+try:
+    from price_master import VG30_BASE as _VG30_DEFAULT
+except Exception:
+    _VG30_DEFAULT = 76870
+
 
 def render():
     _today_str = datetime.date.today().strftime("%d %b %Y")
@@ -63,7 +68,7 @@ def render():
                 _grade_idx = _grade_opts.index(_ctx_grade) if _ctx_grade in _grade_opts else 0
                 _comm_grade = st.selectbox("Grade", _grade_opts, index=_grade_idx, key="comm_grade")
                 _comm_qty = st.number_input("Quantity (MT)", min_value=10, value=100, step=10, key="comm_qty")
-            _comm_price = st.number_input("Price (INR/MT)", min_value=20000, max_value=80000, value=42000, step=500, key="comm_price")
+            _comm_price = st.number_input("Price (INR/MT)", min_value=20000, max_value=80000, value=_VG30_DEFAULT, step=500, key="comm_price")
 
             _channel = st.radio("Channel", ["WhatsApp", "Email", "Call Script"], horizontal=True)
 
@@ -173,7 +178,7 @@ def render():
             except Exception as _e:
                 _fu_cust = st.text_input("Customer", key="fu_cust")
                 _fu_city = st.text_input("City", key="fu_city")
-            _fu_price = st.number_input("Offer Price", min_value=20000, value=42000, step=500, key="fu_price")
+            _fu_price = st.number_input("Offer Price", min_value=20000, value=_VG30_DEFAULT, step=500, key="fu_price")
             if st.button("Generate Sequence", key="fu_gen"):
                 if not _fu_cust:
                     st.warning("Please enter a customer name.")

@@ -234,7 +234,7 @@ def generate_forecast_calendar() -> pd.DataFrame:
         dates.append(datetime.date(y, m, 16))
 
     rows = []
-    prev_price = 48_200.0
+    prev_price = 76_870.0
 
     # Current Brent & FX trend (use api_manager if available)
     try:
@@ -395,7 +395,7 @@ def _generate_past_accuracy_data(years: int = 3) -> pd.DataFrame:
             start = 52_000 - 11 * 280 - 11 * 120  # ~47,600
             return start + (m - 1) * 60 + rng.normal(0, 200)
         else:  # 2025+
-            return 48_200 + (m - 1) * 40 + rng.normal(0, 220)
+            return 76_870 + (m - 1) * 40 + rng.normal(0, 220)
 
     rows = []
     prev_pred = 48_000.0
@@ -463,7 +463,7 @@ def _render_future_view(df: pd.DataFrame):
 
     w1, w2 = st.columns([1.6, 1])
     with w1:
-        last_official = 48_200
+        last_official = 76_870
         final_pred    = df.iloc[0]["Predicted (₹/MT)"]
         st.markdown(
             f"| Driver | Impact (₹/MT) |\n|--------|---------------|\n"
@@ -879,7 +879,7 @@ def render():
         low_price = nr["Low Range"]
         high_price = nr["High Range"]
         conf = nr["Confidence %"]
-        last_price = 48_200  # last official IOCL price
+        last_price = 76_870  # last official IOCL price
 
         # Direction based on prediction vs last official
         change = pred_price - last_price

@@ -918,7 +918,7 @@ def _payment_create_form():
                                   value=float(po_defaults.get("quantity", 20.0)),
                                   step=0.001, format="%.3f", key="pay_buy_qty")
         buy_rate = st.number_input("Buy Rate/MT (\u20b9)", min_value=0.0,
-                                   value=float(po_defaults.get("rate", 35000.0)),
+                                   value=float(po_defaults.get("rate", 76870.0)),
                                    step=100.0, format="%.2f", key="pay_buy_rate")
 
         purchase_due_date = st.date_input("Purchase Due Date", value=date.today(), key="pay_purch_due")
