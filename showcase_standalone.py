@@ -37,10 +37,10 @@ def _get_live_rates():
         with open(os.path.join(BASE_DIR, "live_prices.json"), "r") as f:
             lp = json.load(f)
         return {
-            "VG30 Bulk (Mumbai)": lp.get("DRUM_MUMBAI_VG30", 37000) - 2000,
-            "VG30 Drum (Mumbai)": lp.get("DRUM_MUMBAI_VG30", 37000),
-            "VG30 Bulk (Kandla)": lp.get("DRUM_KANDLA_VG30", 35500) - 2000,
-            "VG30 Drum (Kandla)": lp.get("DRUM_KANDLA_VG30", 35500),
+            "VG30 Bulk (Mumbai)": lp.get("DRUM_MUMBAI_VG30", 76870) - 2000,
+            "VG30 Drum (Mumbai)": lp.get("DRUM_MUMBAI_VG30", 76870),
+            "VG30 Bulk (Kandla)": lp.get("DRUM_KANDLA_VG30", 78260) - 2000,
+            "VG30 Drum (Kandla)": lp.get("DRUM_KANDLA_VG30", 78260),
         }
     except Exception:
         return {"VG30 Bulk": 34000, "VG30 Drum": 36000, "VG10 Bulk": 35000, "VG10 Drum": 37000}

@@ -167,7 +167,7 @@ def calculate_personalized_rate(city, grade="VG30", load_type="Bulk"):
         with open(os.path.join(BASE_DIR, "live_prices.json"), "r") as f:
             lp = json.load(f)
         key = f"DRUM_KANDLA_{grade}" if grade else "DRUM_KANDLA_VG30"
-        drum_price = lp.get(key, lp.get("DRUM_KANDLA_VG30", 35500))
+        drum_price = lp.get(key, lp.get("DRUM_KANDLA_VG30", 78260))
         bulk_price = drum_price - 2000
         return {"landed_cost": bulk_price if load_type == "Bulk" else drum_price, "source": "Market Rate", "base_price": bulk_price}
     except Exception:

@@ -114,7 +114,7 @@ BITUMEN_PCT_OF_CONTRACT = {
     "Bridge Approach":         0.05,
 }
 
-VG30_PRICE_PER_MT = 48302  # IOCL basic, ex-Koyali, w.e.f. 16-02-2026
+VG30_PRICE_PER_MT = 78260  # IOCL basic, ex-Koyali (Multi Energy 16-06-2026; see price_master)
 
 SEASONALITY = {
     "Apr": 0.90, "May": 0.85, "Jun": 0.40, "Jul": 0.15,

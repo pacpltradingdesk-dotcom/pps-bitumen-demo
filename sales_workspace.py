@@ -215,7 +215,11 @@ def render_deal_room():
 
             freight_rate = 4.5 # Hardcoded estimation for Sales Demo
             est_freight = dist * freight_rate
-            base_price = 42000 # Mock daily price
+            try:
+                from market_data import get_unified_prices
+                base_price = int(get_unified_prices().get("vg30") or 76870)
+            except Exception:
+                base_price = 76870  # real VG30 base (price_master)
             
             landing_cost = base_price + est_freight
             margin = sell_price - landing_cost

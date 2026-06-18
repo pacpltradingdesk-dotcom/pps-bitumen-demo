@@ -99,23 +99,23 @@ def render(mkt: dict, _CONFIDENCE_OK: bool = False, render_data_health_card=None
             lambda x: x.date() if hasattr(x, "date") else x) > _today]
         if not _future.empty:
             _nr     = _future.iloc[0]
-            _pred   = _nr.get("Predicted (₹/MT)", _nr.get("Predicted", 48500))
+            _pred   = _nr.get("Predicted (₹/MT)", _nr.get("Predicted", 76870))
             _lo     = _nr.get("Low Range", _pred - 400)
             _hi     = _nr.get("High Range", _pred + 400)
             _rdate  = _nr.get("Revision Date", "01-04-2026")
             _status = _nr.get("Status", "Pending")
             _chart_rows = _future.head(6)
             _chart_dates  = [str(r.get("Revision Date", "")) for _, r in _chart_rows.iterrows()]
-            _chart_prices = [float(r.get("Predicted (₹/MT)", r.get("Predicted", 48500)))
+            _chart_prices = [float(r.get("Predicted (₹/MT)", r.get("Predicted", 76870)))
                              for _, r in _chart_rows.iterrows()]
         else:
-            _pred, _lo, _hi, _rdate, _status = 48500, 48100, 48900, "01-04-2026 *(offline)*", "Pending"
+            _pred, _lo, _hi, _rdate, _status = 76870, 76300, 77400, "next revision *(offline)*", "Pending"
             _chart_dates  = ["01-04-2026", "16-04-2026", "01-05-2026", "16-05-2026", "01-06-2026", "16-06-2026"]
-            _chart_prices = [48500, 48800, 49100, 48700, 49200, 49600]
+            _chart_prices = [76870, 77200, 77600, 77100, 78000, 78400]
     except Exception:
-        _pred, _lo, _hi, _rdate, _status = 48500, 48100, 48900, "01-04-2026 *(offline)*", "Pending"
+        _pred, _lo, _hi, _rdate, _status = 76870, 76300, 77400, "next revision *(offline)*", "Pending"
         _chart_dates  = ["01-04-2026", "16-04-2026", "01-05-2026", "16-05-2026", "01-06-2026", "16-06-2026"]
-        _chart_prices = [48500, 48800, 49100, 48700, 49200, 49600]
+        _chart_prices = [76870, 77200, 77600, 77100, 78000, 78400]
 
     # CRM tasks
     try:
@@ -231,7 +231,7 @@ def render(mkt: dict, _CONFIDENCE_OK: bool = False, render_data_health_card=None
       <span style="color:{mkt['usdinr']['color']};font-weight:600;"> {mkt['usdinr']['change']}</span>
     </span>
     <span style="color:#fcd34d;font-size:0.82rem;font-weight:600;">
-      VG30: {_fmt_inr_home(_lp.get("DRUM_KANDLA_VG30", 35500))}
+      VG30: {_fmt_inr_home(_lp.get("DRUM_KANDLA_VG30", 78260))}
     </span>
   </div>
   <div style="font-size:0.72rem;color:#93c5fd;white-space:nowrap;">
@@ -481,10 +481,10 @@ def render(mkt: dict, _CONFIDENCE_OK: bool = False, render_data_health_card=None
 
     with _h6a:
         st.markdown('<div class="zoho-row-header">Sales Snapshot (Live Prices)</div>', unsafe_allow_html=True)
-        _vg30_mum = _lp.get("DRUM_MUMBAI_VG30", 37000)
-        _vg30_kan = _lp.get("DRUM_KANDLA_VG30", 35500)
-        _vg10_mum = _lp.get("DRUM_MUMBAI_VG10", 38000)
-        _vg10_kan = _lp.get("DRUM_KANDLA_VG10", 36500)
+        _vg30_mum = _lp.get("DRUM_MUMBAI_VG30", 76870)
+        _vg30_kan = _lp.get("DRUM_KANDLA_VG30", 78260)
+        _vg10_mum = _lp.get("DRUM_MUMBAI_VG10", 75910)
+        _vg10_kan = _lp.get("DRUM_KANDLA_VG10", 76960)
         st.markdown(f"""
 <div class="zoho-card">
   <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
