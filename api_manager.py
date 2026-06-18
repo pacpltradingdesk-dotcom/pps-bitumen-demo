@@ -578,6 +578,10 @@ def run_all_health_checks(force: bool = True) -> dict:
     failed = 0
 
     for wid in widgets:
+        # Skip connectors explicitly disabled in api_config.json (e.g. dead
+        # endpoints) so they don't log perpetual failures / fake alerts.
+        if isinstance(widgets.get(wid), dict) and widgets[wid].get("enabled", True) is False:
+            continue
         start = time.time()
         data = fetch_api_data(wid, force=force)
         latency = int((time.time() - start) * 1000)
@@ -588,6 +592,7 @@ def run_all_health_checks(force: bool = True) -> dict:
         else:
             failed += 1
 
+    total = healthy + failed  # only connectors actually checked (excludes disabled)
     summary = {
         "total": total, "healthy": healthy, "failed": failed,
         "health_pct": round(healthy / total * 100) if total > 0 else 0,

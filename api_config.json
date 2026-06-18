@@ -436,6 +436,7 @@
         },
 
         "rest_countries_india": {
+            "enabled": false,
             "name": "India Country Data (REST Countries)",
             "purpose": "Provides country-level metadata: population, area, currency, timezone for reports",
             "provider": "REST Countries",
