@@ -490,12 +490,19 @@ Use our live `api_manager` USD/INR for actual.
     news_items = []
     try:
         from news_engine import get_articles
-        for a in (get_articles(max_age_hours=168, impact_min=0) or [])[:4]:
-            if isinstance(a, dict):
-                news_items.append({
-                    "date": str(a.get("date_time") or a.get("date") or a.get("published") or "")[:10],
-                    "headline": a.get("headline") or a.get("title") or a.get("summary") or "",
-                })
+        _arts = [a for a in (get_articles(max_age_hours=168, impact_min=0) or []) if isinstance(a, dict)]
+
+        def _pubkey(a):
+            try:
+                return _dtm.datetime.strptime(str(a.get("published_at_ist", ""))[:16], "%d-%m-%Y %H:%M")
+            except Exception:
+                return _dtm.datetime.min
+
+        for a in sorted(_arts, key=_pubkey, reverse=True)[:4]:
+            news_items.append({
+                "date": str(a.get("published_at_ist") or a.get("fetched_at_ist") or "")[:10],
+                "headline": a.get("headline") or a.get("summary") or "",
+            })
     except Exception:
         pass
     if not news_items:
