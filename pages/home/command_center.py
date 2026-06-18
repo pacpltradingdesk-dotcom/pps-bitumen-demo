@@ -281,6 +281,16 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
     # Alerts
     alerts_data = _load_json("sre_alerts.json", [])
     active_alerts = [a for a in alerts_data if isinstance(a, dict) and a.get("status") == "Open"]
+    # Dedup by message so one recurring warning (e.g. price_anomalies) shows once
+    # instead of dozens of times — keeps the alert panel and the count meaningful.
+    _seen_msg, _deduped = set(), []
+    for _a in active_alerts:
+        _m = _a.get("what_happened") or _a.get("message") or ""
+        if _m in _seen_msg:
+            continue
+        _seen_msg.add(_m)
+        _deduped.append(_a)
+    active_alerts = _deduped
 
     # Stats
     try:
