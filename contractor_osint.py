@@ -975,7 +975,7 @@ def _tab_executive():
     _card(c2, "Projects (6 months)",   total_projects,                 "Awards / LOA / WO",      "#3b82f6")
     _card(c3, "Total Contract Value",  format_inr_short(total_value),  f"{total_km:.0f} km total","#22c55e")
     _card(c4, "Bitumen Demand (Base)", f"{total_bit_base:,.0f} MT",    f"Low: {total_bit_low:,} | High: {total_bit_high:,}", "#8b5cf6")
-    _card(c5, "Potential Revenue",     format_inr_short(total_bit_base * 48302), "@ ₹48,302/MT VG-30", "#f59e0b")
+    _card(c5, "Potential Revenue",     format_inr_short(total_bit_base * VG30_PRICE_PER_MT), "@ ₹78,260/MT VG-30", "#f59e0b")
 
     st.markdown("---")
     _hdr("🏆", "Top Projects by Bitumen Demand", "#3b82f6")
@@ -1060,7 +1060,7 @@ def _tab_projects():
                 return ""
         styled = df.style.applymap(color_verified, subset=["Verified"]).applymap(color_conf, subset=["Conf %"])
         st.dataframe(styled, use_container_width=True, hide_index=True)
-        st.caption(f"Showing {len(rows)} projects | All within last 183 days | VG-30 @ ₹48,302/MT")
+        st.caption(f"Showing {len(rows)} projects | All within last 183 days | VG-30 @ ₹78,260/MT")
     else:
         st.info("No projects match the current filters.")
 
@@ -2182,7 +2182,7 @@ def _tab_add_edit_data():
 def _tab_estimation_tool():
     """Interactive single-project bitumen estimator."""
     _hdr("🧮", "Bitumen Estimation Calculator", "#22c55e")
-    st.caption("Estimate MT requirement for any single project. Grade: VG-30 @ ₹48,302/MT (IOCL, 16-02-2026)")
+    st.caption("Estimate MT requirement for any single project. Grade: VG-30 @ ₹78,260/MT (IOCL, latest revision)")
 
     c1, c2 = st.columns(2)
     proj_type   = c1.selectbox("Project Type", list(BITUMEN_MT_PER_KM.keys()))
@@ -2212,9 +2212,9 @@ def _tab_estimation_tool():
 
     # Revenue potential
     r1, r2, r3 = st.columns(3)
-    _card(r1, "Revenue (Low)",  format_inr_short(est['low']  * 48302), "@ ₹48,302/MT", "#f59e0b")
-    _card(r2, "Revenue (Base)", format_inr_short(est['base'] * 48302), "@ ₹48,302/MT", "#22c55e")
-    _card(r3, "Revenue (High)", format_inr_short(est['high'] * 48302), "@ ₹48,302/MT", "#3b82f6")
+    _card(r1, "Revenue (Low)",  format_inr_short(est['low']  * VG30_PRICE_PER_MT), "@ ₹78,260/MT", "#f59e0b")
+    _card(r2, "Revenue (Base)", format_inr_short(est['base'] * VG30_PRICE_PER_MT), "@ ₹78,260/MT", "#22c55e")
+    _card(r3, "Revenue (High)", format_inr_short(est['high'] * VG30_PRICE_PER_MT), "@ ₹78,260/MT", "#3b82f6")
 
     st.markdown("---")
     _hdr("📅", "Monthly Distribution", "#8b5cf6")
@@ -2253,7 +2253,7 @@ border-left:5px solid #f59e0b;">
 </div>
 <div style="color:#94a3b8;font-size:0.9rem;margin-top:4px">
 Track road contractors — project awards, bitumen demand (MT), monthly heatmap, risk flags, CRM export.
-Date filter: last 6 months only | Grade: VG-30 @ ₹48,302/MT | All data with source citations.
+Date filter: last 6 months only | Grade: VG-30 @ ₹78,260/MT | All data with source citations.
 </div>
 </div>
 """, unsafe_allow_html=True)
@@ -2290,7 +2290,7 @@ Date filter: last 6 months only | Grade: VG-30 @ ₹48,302/MT | All data with so
     st.markdown(
         '<div style="color:#475569;font-size:0.76rem;text-align:center">'
         'Contractor OSINT v2.0 | PPS Anantams Logistics AI | Data: BSE filings, NHAI, PMGSY, News '
-        '| Grade: VG-30 @ ₹48,302/MT | Full contact data, site info, milestone timeline | '
+        '| Grade: VG-30 @ ₹78,260/MT | Full contact data, site info, milestone timeline | '
         'Strict 6-month date filter applied</div>',
         unsafe_allow_html=True,
     )
