@@ -683,7 +683,7 @@ class DiscussionGuide:
                 pass
 
         if landed_cost <= 0:
-            landed_cost = 42000  # fallback
+            landed_cost = 76870  # fallback
 
         pricing_tiers = {
             "aggressive": round(landed_cost + self.min_margin),
@@ -889,7 +889,7 @@ class DiscussionGuide:
                 pass
 
         if our_landed_cost <= 0:
-            our_landed_cost = 42000  # fallback estimate
+            our_landed_cost = 76870  # fallback estimate
 
         # ── 3. Competitor pricing estimate (heuristic) ───────────────────────
         # Competitors typically operate at 5-15% above our cost

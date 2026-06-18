@@ -29,10 +29,10 @@ def _get_market_prices():
             "brent": u.get("brent") or 82.50,
             "wti": u.get("wti") or 78.30,
             "usd_inr": round(float(u.get("usdinr") or 86.0), 2),
-            "vg30": u.get("vg30") or 35500,
+            "vg30": u.get("vg30") or 76870,
         }
     except Exception:
-        return {"brent": 82.50, "wti": 78.30, "usd_inr": 86.0, "vg30": 35500}
+        return {"brent": 82.50, "wti": 78.30, "usd_inr": 86.0, "vg30": 76870}
 
 def _get_ai_signal():
     try:
@@ -318,10 +318,10 @@ def _step3():
     except Exception:
         lp = {}
 
-    cur_mumbai_vg30 = lp.get("DRUM_MUMBAI_VG30", 37000)
-    cur_kandla_vg30 = lp.get("DRUM_KANDLA_VG30", 35500)
-    cur_mumbai_vg10 = lp.get("DRUM_MUMBAI_VG10", 38000)
-    cur_kandla_vg10 = lp.get("DRUM_KANDLA_VG10", 36500)
+    cur_mumbai_vg30 = lp.get("DRUM_MUMBAI_VG30", 76870)
+    cur_kandla_vg30 = lp.get("DRUM_KANDLA_VG30", 78260)
+    cur_mumbai_vg10 = lp.get("DRUM_MUMBAI_VG10", 75910)
+    cur_kandla_vg10 = lp.get("DRUM_KANDLA_VG10", 76960)
 
     # Show current prices
     st.markdown(f"""<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:12px;padding:16px 20px;margin-bottom:16px;">
@@ -353,6 +353,9 @@ def _step3():
             lp["DRUM_KANDLA_VG30"] = new_kandla_vg30
             lp["DRUM_MUMBAI_VG10"] = new_mumbai_vg10
             lp["DRUM_KANDLA_VG10"] = new_kandla_vg10
+            # Mumbai/JNPT VG30 is the headline base — keep VG30_BASE in sync so
+            # the Command Center KPI + tickers move with this manual update.
+            lp["VG30_BASE"] = new_mumbai_vg30
             try:
                 with open(lp_path, "w", encoding="utf-8") as f:
                     json.dump(lp, f, indent=4, ensure_ascii=False)

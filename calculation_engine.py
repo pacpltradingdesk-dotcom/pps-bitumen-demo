@@ -159,26 +159,32 @@ except ImportError:
 
 PRICE_CONFIG_FILE = Path(__file__).parent / "live_prices.json"
 
+# Real bitumen basic prices, Rs./MT. VG30 == 60/70 penetration grade (IS 73:2013).
+# Source: All India Petroleum Products Price Revision 16-06-2026 (Multi Energy).
+# Refineries not separately listed on the sheet use their nearest listed
+# location (noted inline). Import terminals = nearest PSU depot minus ~Rs 6k,
+# the typical imported-landed discount over PSU material.
 _DEFAULT_LIVE_PRICES: Dict[str, float] = {
-    # PSU Refineries (VG30 Bulk ex-refinery Rs./MT)
-    "IOCL Koyali": 42_000, "IOCL Mathura": 42_500, "IOCL Haldia": 41_800,
-    "IOCL Barauni": 41_500, "IOCL Panipat": 42_200, "IOCL Digboi": 41_000,
-    "IOCL Guwahati": 41_200, "IOCL Bongaigaon": 41_100,
-    "BPCL Mumbai": 43_000, "BPCL Kochi": 42_800,
-    "HPCL Mumbai": 42_900, "HPCL Visakhapatnam": 41_600,
-    "CPCL Chennai": 42_100, "MRPL Mangalore": 41_900,
-    "NRL Numaligarh": 41_300, "ONGC Tatipaka": 41_500,
-    "HMEL Bhatinda": 42_000, "BORL Bina": 41_700,
-    "RIL Jamnagar": 42_400, "Nayara Vadinar": 42_200,
-    # Import terminals (landed at port, Rs./MT)
-    "Mangalore Port Import": 38_500, "Karwar Port Import": 38_800,
-    "Digi Port Import": 39_000, "Taloja Terminal": 39_500,
-    "VVF Mumbai Terminal": 39_200, "Kandla Port Import": 38_000,
-    "Mundra Port Import": 37_800, "JNPT Import Terminal": 39_800,
-    "Haldia Port Import": 39_000, "Ennore Port Import": 39_200,
-    # Drum prices
-    "DRUM_MUMBAI_VG30": 37_000, "DRUM_KANDLA_VG30": 35_500,
-    "DRUM_MUMBAI_VG10": 38_000, "DRUM_KANDLA_VG10": 36_500,
+    # PSU Refineries (VG30 / 60-70 Bulk ex-refinery Rs./MT)
+    "IOCL Koyali": 78_260, "IOCL Mathura": 76_382, "IOCL Haldia": 77_382,
+    "IOCL Barauni": 78_412, "IOCL Panipat": 76_382,
+    "IOCL Digboi": 77_090, "IOCL Guwahati": 77_090, "IOCL Bongaigaon": 77_090,  # ~Guwahati
+    "BPCL Mumbai": 76_870, "BPCL Kochi": 76_870,           # Mumbai/JNPT, Coimbatore/Kochi
+    "HPCL Mumbai": 76_870, "HPCL Visakhapatnam": 77_670,   # Vizag
+    "CPCL Chennai": 74_582, "MRPL Mangalore": 78_850,
+    "NRL Numaligarh": 77_090, "ONGC Tatipaka": 77_670,     # ~Guwahati, ~Vizag
+    "HMEL Bhatinda": 76_370, "BORL Bina": 76_870,          # Bathinda, ~Indore
+    "RIL Jamnagar": 77_934, "Nayara Vadinar": 77_934,      # Jamnagar/Vadinar
+    # Import terminals (landed at port, Rs./MT ≈ nearest PSU depot − ~Rs 6k)
+    "Mangalore Port Import": 72_850, "Karwar Port Import": 72_230,
+    "Digi Port Import": 70_870, "Taloja Terminal": 70_870,
+    "VVF Mumbai Terminal": 70_870, "Kandla Port Import": 72_260,
+    "Mundra Port Import": 71_390, "JNPT Import Terminal": 70_870,
+    "Haldia Port Import": 71_382, "Ennore Port Import": 68_582,
+    # Bulk VG30 (60/70) and VG10 (80/100) base prices by drum-source region.
+    # (Used widely as the regional VG30/VG10 base, not as packed-drum prices.)
+    "DRUM_MUMBAI_VG30": 76_870, "DRUM_KANDLA_VG30": 78_260,
+    "DRUM_MUMBAI_VG10": 75_910, "DRUM_KANDLA_VG10": 76_960,
     # Operational constants
     "DECANTER_CONVERSION_COST": 500,
     "BULK_RATE_PER_KM": 5.5,
@@ -331,7 +337,7 @@ class BitumenCalculationEngine:
 
     def _get_base_price(self, source_name: str) -> float:
         """Return ex-refinery / ex-terminal base price for *source_name*."""
-        return float(self._prices.get(source_name, 42_000))
+        return float(self._prices.get(source_name, 76_870))
 
     def _safe_distance(self, source: str, destination: str) -> float:
         """
@@ -584,11 +590,11 @@ class BitumenCalculationEngine:
         drum_source = _drum_source_for(destination)
 
         if drum_source == "Kandla":
-            drum_base = float(self._prices.get(f"DRUM_KANDLA_{grade}", 35_500))
+            drum_base = float(self._prices.get(f"DRUM_KANDLA_{grade}", 78_260))
             src_coords = KANDLA_COORDS
             src_label = "Kandla"
         else:
-            drum_base = float(self._prices.get(f"DRUM_MUMBAI_{grade}", 37_000))
+            drum_base = float(self._prices.get(f"DRUM_MUMBAI_{grade}", 76_870))
             src_coords = MUMBAI_COORDS
             src_label = "Mumbai"
 

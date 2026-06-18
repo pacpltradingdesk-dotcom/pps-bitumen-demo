@@ -40,33 +40,36 @@ ROOT = Path(__file__).parent.parent if Path else None
 LIVE_PRICES_PATH = ROOT / "live_prices.json" if ROOT else None
 
 
-def _update_live_prices(location, grade, price):
-    """Update live_prices.json with the manually entered price so it reflects everywhere."""
-    if not LIVE_PRICES_PATH or not json:
-        return
+def _write_override_key(key, price):
+    """Write a single live_prices.json override key (read-merge-write)."""
+    if not LIVE_PRICES_PATH or not json or not key:
+        return False
     try:
         lp = {}
         if LIVE_PRICES_PATH.exists():
             with open(LIVE_PRICES_PATH, "r", encoding="utf-8") as f:
                 lp = json.load(f)
-
-        # Map location + grade to live_prices keys
-        loc_map = {
-            "Mumbai": "DRUM_MUMBAI",
-            "Gujarat": "DRUM_KANDLA",
-            "Kandla": "DRUM_KANDLA",
-            "Delhi": "DRUM_MUMBAI",
-            "Chennai": "DRUM_MUMBAI",
-        }
-        prefix = loc_map.get(location, "DRUM_MUMBAI")
-        key = f"{prefix}_{grade.upper()}"
         lp[key] = int(price)
-
         with open(LIVE_PRICES_PATH, "w", encoding="utf-8") as f:
             json.dump(lp, f, indent=4, ensure_ascii=False)
         return True
     except Exception:
         return False
+
+
+def _update_live_prices(location, grade, price):
+    """Update a DRUM field-quote price so it reflects everywhere (Command
+    Center ticker, Market Snapshot, Pricing Calculator, Rate Broadcast)."""
+    # Map location + grade to the live_prices drum keys.
+    loc_map = {
+        "Mumbai": "DRUM_MUMBAI",
+        "Gujarat": "DRUM_KANDLA",
+        "Kandla": "DRUM_KANDLA",
+        "Delhi": "DRUM_MUMBAI",
+        "Chennai": "DRUM_MUMBAI",
+    }
+    prefix = loc_map.get(location, "DRUM_MUMBAI")
+    return _write_override_key(f"{prefix}_{grade.upper()}", price)
 
 
 def _load_crude_prices():
@@ -91,8 +94,8 @@ def render():
 
     st.markdown("---")
 
-    tab_entry, tab_history, tab_chart = st.tabs([
-        "📝 Entry Form", "📋 Entry History", "📈 Price Chart"
+    tab_entry, tab_override, tab_history, tab_chart = st.tabs([
+        "📝 Entry Form", "🏭 Refinery / Import Override", "📋 Entry History", "📈 Price Chart"
     ])
 
     # Auto-calculate next revision date (1st or 16th of current/next month)
@@ -166,6 +169,51 @@ def render():
                 }
             ])
             st.dataframe(df_entries, use_container_width=True, hide_index=True)
+
+    # ─── TAB: Refinery / Import Override ───
+    with tab_override:
+        st.subheader("🏭 Pin a Real Refinery / Import Rate")
+        st.caption(
+            "By default these prices are derived from the live VG30 base and move "
+            "with the market. Enter a published rate here to pin (override) one "
+            "location. Absurd values (far from the derived price) are auto-rejected "
+            "on display so a typo never flashes a wrong number."
+        )
+        try:
+            from price_board import REFINERY_ITEMS, IMPORT_ITEMS, build_price_board
+            from market_data import get_unified_prices
+
+            cat = st.radio("Category", ["Refinery (ex-works)", "Bulk Import"],
+                           horizontal=True, key="ovr_cat")
+            if cat.startswith("Refinery"):
+                labels = {f"{it.name} ({it.grade})": it.override_key for it in REFINERY_ITEMS}
+            else:
+                labels = {it.name: it.override_key
+                          for it in IMPORT_ITEMS if it.override_key.startswith("BULK_")}
+
+            base_vg30 = float(get_unified_prices().get("vg30") or 0)
+            board = build_price_board(base_vg30)
+            derived_map = {f"{n} ({g})": p for n, g, p in board["refinery"]}
+            derived_map.update({n: p for n, p in board["imports"]})
+
+            with st.form("refimport_override"):
+                sel = st.selectbox("Location", list(labels.keys()), key="ovr_loc")
+                cur = derived_map.get(sel)
+                if cur:
+                    st.metric("Current derived price", f"₹{cur:,}/MT")
+                new_price = st.number_input("Published rate (₹/MT)", min_value=10000, step=100)
+                if st.form_submit_button("Pin this rate"):
+                    if _write_override_key(labels[sel], new_price):
+                        try:
+                            from calculation_engine import get_engine
+                            get_engine().reload_prices()
+                        except Exception:
+                            pass
+                        st.success(f"✅ {sel} pinned at ₹{new_price:,}/MT — now reflects in the Command Center ticker.")
+                    else:
+                        st.error("Could not write the override. Check file permissions.")
+        except Exception as e:
+            st.warning(f"Override panel unavailable: {e}")
 
     # ─── TAB 2: Entry History ───
     with tab_history:

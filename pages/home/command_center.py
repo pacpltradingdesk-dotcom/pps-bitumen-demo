@@ -144,7 +144,7 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
     brent_val = float(_up["brent"]) if _up["brent"] is not None else 0.0
     wti_val   = float(_up["wti"])   if _up["wti"]   is not None else 0.0
     usdinr_f  = float(_up["usdinr"]) if _up["usdinr"] is not None else 0.0
-    vg30_k    = float(_up["vg30"])  if _up["vg30"]  is not None else 35500.0
+    vg30_k    = float(_up["vg30"])  if _up["vg30"]  is not None else 76870.0
     brent   = f"{brent_val:.2f}"  if brent_val else "—"
     wti     = f"{wti_val:.2f}"    if wti_val   else "—"
     usdinr  = f"{usdinr_f:.2f}"   if usdinr_f  else "—"
@@ -160,42 +160,17 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
     sig_bg = "#f0fdf4" if pa_action in ("BUY", "PRE-BUY") else (
         "#fef2f2" if pa_action == "SELL" else "#fffbeb")
 
-    # Refinery prices
+    # Refinery + import ticker prices — derived from the unified VG30 base
+    # (so they move with the market and stay consistent with the headline),
+    # with sane per-location manual overrides from live_prices.json.
+    # See price_board.build_price_board.
     refinery_prices = []
-    try:
-        lp = _load_json("live_prices.json", {})
-        refineries = [
-            ("IOCL Koyali", "VG30", lp.get("IOCL_KOYALI_VG30", 42000)),
-            ("IOCL Mathura", "VG30", lp.get("IOCL_MATHURA_VG30", 42500)),
-            ("IOCL Haldia", "VG30", lp.get("IOCL_HALDIA_VG30", 41800)),
-            ("BPCL Mumbai", "VG30", lp.get("BPCL_MUMBAI_VG30", 43000)),
-            ("HPCL Mumbai", "VG30", lp.get("HPCL_MUMBAI_VG30", 42900)),
-            ("HPCL Vizag", "VG30", lp.get("HPCL_VIZAG_VG30", 41600)),
-            ("CPCL Chennai", "VG30", lp.get("CPCL_CHENNAI_VG30", 42100)),
-            ("MRPL Mangalore", "VG30", lp.get("MRPL_MANGALORE_VG30", 41900)),
-            ("IOCL Panipat", "VG30", lp.get("IOCL_PANIPAT_VG30", 42200)),
-            ("IOCL Barauni", "VG30", lp.get("IOCL_BARAUNI_VG30", 41500)),
-            ("BPCL Kochi", "VG30", lp.get("BPCL_KOCHI_VG30", 42800)),
-        ]
-        refinery_prices = [(n, g, p) for n, g, p in refineries if p]
-    except Exception:
-        pass
-
-    # Import/Drum prices
     import_prices = []
     try:
-        lp = _load_json("live_prices.json", {})
-        imports = [
-            ("Drum Mumbai VG30", lp.get("DRUM_MUMBAI_VG30", 37000)),
-            ("Drum Kandla VG30", lp.get("DRUM_KANDLA_VG30", 35500)),
-            ("Drum Mumbai VG10", lp.get("DRUM_MUMBAI_VG10", 38000)),
-            ("Drum Kandla VG10", lp.get("DRUM_KANDLA_VG10", 36500)),
-            ("Bulk Kandla Import", lp.get("BULK_KANDLA_IMPORT", 38000)),
-            ("Bulk Mundra Import", lp.get("BULK_MUNDRA_IMPORT", 37800)),
-            ("Bulk JNPT Import", lp.get("BULK_JNPT_IMPORT", 39800)),
-            ("Bulk Mangalore", lp.get("BULK_MANGALORE_IMPORT", 38500)),
-        ]
-        import_prices = [(n, p) for n, p in imports if p]
+        from price_board import build_price_board
+        _board = build_price_board(vg30_k, live_prices)
+        refinery_prices = _board["refinery"]
+        import_prices = _board["imports"]
     except Exception:
         pass
 

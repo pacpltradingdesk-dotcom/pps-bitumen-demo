@@ -22,44 +22,47 @@ PRICE_CONFIG_FILE = Path(__file__).parent / "live_prices.json"
 
 def get_live_prices():
     """Load live prices from config file."""
+    # Real bitumen basic prices, Rs./MT. VG30 == 60/70 (IS 73:2013).
+    # Source: All India Petroleum Products Price Revision 16-06-2026 (Multi Energy).
+    # Kept in sync with calculation_engine._DEFAULT_LIVE_PRICES.
     default_prices = {
-        # PSU Refineries (VG30 Bulk)
-        "IOCL Koyali": 42000,
-        "IOCL Mathura": 42500,
-        "IOCL Haldia": 41800,
-        "IOCL Barauni": 41500,
-        "IOCL Panipat": 42200,
-        "BPCL Mumbai": 43000,
-        "BPCL Kochi": 42800,
-        "HPCL Mumbai": 42900,
-        "HPCL Visakhapatnam": 41600,
-        "CPCL Chennai": 42100,
-        "MRPL Mangalore": 41900,
-        "IOCL Digboi": 41000,
-        "IOCL Guwahati": 41200,
-        "IOCL Bongaigaon": 41100,
-        "NRL Numaligarh": 41300,
-        "ONGC Tatipaka": 41500,
-        
-        # Import Bulk Terminals
-        "Mangalore Port Import": 38500,
-        "Karwar Port Import": 38800,
-        "Digi Port Import": 39000,
-        "Taloja Terminal": 39500,
-        "VVF Mumbai Terminal": 39200,
-        "Kandla Port Import": 38000,
-        "Mundra Port Import": 37800,
-        "JNPT Import Terminal": 39800,
-        
-        # DRUM BITUMEN PRICES (Only 2 locations)
-        "DRUM_MUMBAI_VG30": 37000,
-        "DRUM_KANDLA_VG30": 35500,
-        "DRUM_MUMBAI_VG10": 38000,
-        "DRUM_KANDLA_VG10": 36500,
-        
+        # PSU Refineries (VG30 / 60-70 Bulk)
+        "IOCL Koyali": 78260,
+        "IOCL Mathura": 76382,
+        "IOCL Haldia": 77382,
+        "IOCL Barauni": 78412,
+        "IOCL Panipat": 76382,
+        "BPCL Mumbai": 76870,
+        "BPCL Kochi": 76870,
+        "HPCL Mumbai": 76870,
+        "HPCL Visakhapatnam": 77670,
+        "CPCL Chennai": 74582,
+        "MRPL Mangalore": 78850,
+        "IOCL Digboi": 77090,
+        "IOCL Guwahati": 77090,
+        "IOCL Bongaigaon": 77090,
+        "NRL Numaligarh": 77090,
+        "ONGC Tatipaka": 77670,
+
+        # Import Bulk Terminals (≈ nearest PSU depot − ~Rs 6k landed discount)
+        "Mangalore Port Import": 72850,
+        "Karwar Port Import": 72230,
+        "Digi Port Import": 70870,
+        "Taloja Terminal": 70870,
+        "VVF Mumbai Terminal": 70870,
+        "Kandla Port Import": 72260,
+        "Mundra Port Import": 71390,
+        "JNPT Import Terminal": 70870,
+
+        # Bulk VG30 / VG10 base prices by drum-source region
+        "DRUM_MUMBAI_VG30": 76870,
+        "DRUM_KANDLA_VG30": 78260,
+        "DRUM_MUMBAI_VG10": 75910,
+        "DRUM_KANDLA_VG10": 76960,
+
         # Decanter Conversion Cost
         "DECANTER_CONVERSION_COST": 500,
-        
+
         # Transport Rates
         "BULK_RATE_PER_KM": 5.5,
         "DRUM_RATE_PER_KM": 6.0,
@@ -131,7 +134,7 @@ def calculate_landed_cost(source_name, destination, base_price=None, rate_per_km
     prices = get_live_prices()
     
     if base_price is None:
-        base_price = prices.get(source_name, 42000)
+        base_price = prices.get(source_name, 76870)
     
     if rate_per_km is None:
         rate_per_km = prices.get("BULK_RATE_PER_KM", 5.5)
@@ -168,10 +171,10 @@ def calculate_decanter_cost(destination, grade="VG30"):
     
     # Get drum base price
     if drum_source == "Kandla":
-        drum_price = prices.get(f"DRUM_KANDLA_{grade}", 35500)
+        drum_price = prices.get(f"DRUM_KANDLA_{grade}", 78260)
         drum_coords = KANDLA_COORDS
     else:
-        drum_price = prices.get(f"DRUM_MUMBAI_{grade}", 37000)
+        drum_price = prices.get(f"DRUM_MUMBAI_{grade}", 76870)
         drum_coords = MUMBAI_COORDS
     
     # Distance from drum source to destination
@@ -214,11 +217,11 @@ def calculate_drum_direct_cost(destination, grade="VG30"):
     drum_source = get_drum_source_for_city(destination)
     
     if drum_source == "Kandla":
-        base_price = prices.get(f"DRUM_KANDLA_{grade}", 35500)
+        base_price = prices.get(f"DRUM_KANDLA_{grade}", 78260)
         source_coords = KANDLA_COORDS
         source_name = "Kandla Drum Import"
     else:
-        base_price = prices.get(f"DRUM_MUMBAI_{grade}", 37000)
+        base_price = prices.get(f"DRUM_MUMBAI_{grade}", 76870)
         source_coords = MUMBAI_COORDS
         source_name = "Mumbai Drum Import"
     
