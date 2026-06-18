@@ -17,13 +17,41 @@ import re
 
 _PROMPT = (
     "This image is an Indian petroleum 'Price Revision' circular. "
-    "Extract ONLY the 'Bitumen (Bulk) Basic Prices' table. "
-    "For every location row, emit one object per grade column. "
-    "Return STRICT JSON only (no prose, no markdown): a JSON array of objects "
-    '{"location": <str as printed>, "grade": "60/70-VG30" or "80/100-VG10", '
-    '"price": <integer Rs/MT, no commas>}. '
-    "Skip cells marked NA. Do not include any other table."
+    "Extract ONLY the 'Bitumen (Bulk) Basic Prices' table, and the circular's "
+    "effective / revision date (usually printed in the header, e.g. 'w.e.f "
+    "16-06-2026'). "
+    "Return STRICT JSON only (no prose, no markdown) as a single object: "
+    '{"effective_date": "<DD-MM-YYYY as printed, or null if absent>", '
+    '"rows": [ {"location": <str as printed>, '
+    '"grade": "60/70-VG30" or "80/100-VG10", '
+    '"price": <integer Rs/MT, no commas>} ]}. '
+    "Emit one row object per location per grade column. Skip cells marked NA. "
+    "Do not include any other table."
 )
+
+
+def find_effective_date(text: str | None) -> str | None:
+    """Pull the circular's effective-date string from an LLM reply.
+
+    Prefers the JSON 'effective_date' field; falls back to a date near an
+    'effective'/'w.e.f'/'revision' cue in prose. Returns the raw date string
+    (circular_parser.parse_circular_date handles the format). None if absent.
+    """
+    if not text:
+        return None
+    s = str(text)
+    # 1) JSON object field
+    m = re.search(r'"effective_date"\s*:\s*"([^"]+)"', s)
+    if m:
+        return m.group(1).strip()
+    # 2) prose cue → nearest date token on the same line
+    for line in s.splitlines():
+        if re.search(r"effective|w\.?e\.?f|revision|dated", line, re.IGNORECASE):
+            d = re.search(r"\d{1,2}[-./]\d{1,2}[-./]\d{4}|\d{4}-\d{1,2}-\d{1,2}"
+                          r"|\d{1,2}\s+[A-Za-z]{3,9}\.?\s+\d{4}", line)
+            if d:
+                return d.group(0).strip()
+    return None
 
 
 def parse_rows_json(text: str | None) -> list[dict]:
@@ -55,11 +83,13 @@ def extract_rows(image_bytes: bytes, media_type: str = "image/jpeg",
 
     key = api_key or get_api_key()
     if not key:
-        return {"rows": [], "error": "No Anthropic API key configured (Settings → AI Setup)."}
+        return {"rows": [], "effective_date": None,
+                "error": "No Anthropic API key configured (Settings → AI Setup)."}
     try:
         import anthropic
     except ImportError:
-        return {"rows": [], "error": "anthropic package not installed."}
+        return {"rows": [], "effective_date": None,
+                "error": "anthropic package not installed."}
 
     try:
         client = anthropic.Anthropic(api_key=key)
@@ -78,6 +108,7 @@ def extract_rows(image_bytes: bytes, media_type: str = "image/jpeg",
             }],
         )
         raw = resp.content[0].text if resp.content else ""
-        return {"rows": parse_rows_json(raw), "error": None}
+        return {"rows": parse_rows_json(raw),
+                "effective_date": find_effective_date(raw), "error": None}
     except Exception as e:  # network / auth / model errors — degrade to manual
-        return {"rows": [], "error": str(e)}
+        return {"rows": [], "effective_date": None, "error": str(e)}

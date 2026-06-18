@@ -35,3 +35,25 @@ def test_parse_rows_json_garbage_returns_empty():
     assert ce.parse_rows_json("no json here") == []
     assert ce.parse_rows_json("") == []
     assert ce.parse_rows_json("{not a list}") == []
+
+
+def test_find_effective_date_from_object_json():
+    txt = '{"effective_date":"16-06-2026","rows":[{"location":"Mumbai","grade":"VG30","price":76870}]}'
+    assert ce.find_effective_date(txt) == "16-06-2026"
+
+
+def test_find_effective_date_from_prose():
+    txt = "Effective Date: 16-06-2026\n[{\"location\":\"X\",\"grade\":\"VG30\",\"price\":70000}]"
+    assert ce.find_effective_date(txt) == "16-06-2026"
+
+
+def test_find_effective_date_none_when_absent():
+    assert ce.find_effective_date('[{"location":"X","grade":"VG30","price":70000}]') is None
+    assert ce.find_effective_date("") is None
+
+
+def test_parse_rows_json_still_works_on_object_wrapper():
+    # rows array nested inside the new object form must still extract
+    txt = '{"effective_date":"16-06-2026","rows":[{"location":"Mumbai","grade":"VG30","price":76870}]}'
+    rows = ce.parse_rows_json(txt)
+    assert rows and rows[0]["location"] == "Mumbai"

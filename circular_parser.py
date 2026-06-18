@@ -14,6 +14,7 @@ produces are validated against price_master by the test suite (drift guard).
 """
 from __future__ import annotations
 
+import datetime
 import re
 
 # Bitumen bulk is ~₹70k-85k/MT; this wide band only rejects obvious OCR misreads
@@ -52,6 +53,73 @@ _VG10_LOCATION_KEYS: dict[str, list[str]] = {
 
 # Mumbai/JNPT VG30 is the headline reference (price_master.VG30_BASE).
 _BASE_TOKENS = ("mumbai", "jnpt")
+
+
+_MONTHS = {
+    "jan": 1, "feb": 2, "mar": 3, "apr": 4, "may": 5, "jun": 6,
+    "jul": 7, "aug": 8, "sep": 9, "oct": 10, "nov": 11, "dec": 12,
+}
+
+
+def parse_circular_date(text: str | None) -> datetime.date | None:
+    """Parse a circular's effective date from common Indian formats.
+
+    Handles DD-MM-YYYY, DD.MM.YYYY, DD/MM/YYYY, ISO YYYY-MM-DD, and
+    'DD <Month> YYYY' (e.g. '16 June 2026'). Returns None on anything else.
+    """
+    if not text:
+        return None
+    s = str(text).strip()
+
+    # ISO first (YYYY-MM-DD) — unambiguous.
+    m = re.search(r"\b(\d{4})-(\d{1,2})-(\d{1,2})\b", s)
+    if m:
+        y, mo, d = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        try:
+            return datetime.date(y, mo, d)
+        except ValueError:
+            return None
+
+    # DD<sep>MM<sep>YYYY  (sep = - . /)
+    m = re.search(r"\b(\d{1,2})[-./](\d{1,2})[-./](\d{4})\b", s)
+    if m:
+        d, mo, y = (int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        try:
+            return datetime.date(y, mo, d)
+        except ValueError:
+            return None
+
+    # DD <Month name> YYYY
+    m = re.search(r"\b(\d{1,2})\s+([A-Za-z]{3,9})\.?\s+(\d{4})\b", s)
+    if m:
+        d, mon_txt, y = (int(m.group(1)), m.group(2).lower()[:3], int(m.group(3)))
+        mo = _MONTHS.get(mon_txt)
+        if mo:
+            try:
+                return datetime.date(y, mo, d)
+            except ValueError:
+                return None
+    return None
+
+
+def circular_date_status(circ_date: datetime.date | None,
+                         last_date: datetime.date | None,
+                         today: datetime.date) -> str:
+    """Classify an uploaded circular's date.
+
+    Returns one of:
+      'unknown' — date could not be read
+      'future'  — dated after today (likely an OCR misread)
+      'past'    — older than the currently-applied circular (rolls prices back)
+      'ok'      — newer/equal to the last applied, and not in the future
+    """
+    if circ_date is None:
+        return "unknown"
+    if circ_date > today:
+        return "future"
+    if last_date is not None and circ_date < last_date:
+        return "past"
+    return "ok"
 
 
 def normalize_grade(text: str | None) -> str | None:

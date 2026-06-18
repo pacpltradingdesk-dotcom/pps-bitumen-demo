@@ -53,7 +53,19 @@ def _make_anchor(base: int) -> dict:
             "set_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M IST")}
 
 
-def _apply_overrides(updates: dict, vg30_base) -> bool:
+def _last_circular_date():
+    """The effective date of the currently-applied circular, or None."""
+    try:
+        from circular_parser import parse_circular_date
+        if _LIVE_PRICES.exists():
+            lp = json.loads(_LIVE_PRICES.read_text(encoding="utf-8")) or {}
+            return parse_circular_date(lp.get("LAST_CIRCULAR_DATE"))
+    except Exception:
+        pass
+    return None
+
+
+def _apply_overrides(updates: dict, vg30_base, circular_date: str | None = None) -> bool:
     """Merge updates (+ VG30_BASE) into live_prices.json. Returns success."""
     try:
         lp = {}
@@ -63,6 +75,8 @@ def _apply_overrides(updates: dict, vg30_base) -> bool:
         if vg30_base:
             lp["VG30_BASE"] = int(vg30_base)
             lp["VG30_ANCHOR"] = _make_anchor(int(vg30_base))
+        if circular_date:
+            lp["LAST_CIRCULAR_DATE"] = str(circular_date)
         _LIVE_PRICES.write_text(json.dumps(lp, indent=4, ensure_ascii=False), encoding="utf-8")
         try:
             from calculation_engine import get_engine
@@ -100,6 +114,7 @@ def render():
             return
         from circular_parser import build_updates
         st.session_state["_circ_result"] = build_updates(res.get("rows", []))
+        st.session_state["_circ_date"] = res.get("effective_date")
 
     result = st.session_state.get("_circ_result")
     if not result:
@@ -134,14 +149,52 @@ def render():
     if result.get("unmatched"):
         st.caption(f"{len(result['unmatched'])} row(s) had an unknown location/grade and were skipped.")
 
+    # ── Date sensitivity: warn on a past / future / undated circular ──
+    import datetime
+    from circular_parser import parse_circular_date, circular_date_status
+
+    circ_date_raw = st.session_state.get("_circ_date")
+    circ_date = parse_circular_date(circ_date_raw)
+    last_date = _last_circular_date()
+    status = circular_date_status(circ_date, last_date, datetime.date.today())
+
+    if circ_date:
+        st.caption(f"🗓️ Circular date detected: **{circ_date:%d-%m-%Y}**"
+                   + (f" · last applied: {last_date:%d-%m-%Y}" if last_date else ""))
+
+    needs_confirm = status in ("past", "future", "unknown")
+    if status == "past":
+        st.error(
+            f"⛔ **PAST circular.** This circular is dated **{circ_date:%d-%m-%Y}**, "
+            f"which is OLDER than the currently-applied one "
+            f"(**{last_date:%d-%m-%Y}**). Applying it will roll prices BACKWARD. "
+            "Apply only if you are deliberately restoring an old circular."
+        )
+    elif status == "future":
+        st.warning(
+            f"⚠️ **Future-dated circular** ({circ_date:%d-%m-%Y} is after today). "
+            "This is usually a misread date — double-check the image before applying."
+        )
+    elif status == "unknown":
+        st.warning(
+            "⚠️ **No date found** on this circular. Can't verify it isn't an old "
+            "one — confirm you trust this circular before applying."
+        )
+
+    confirmed = True
+    if needs_confirm:
+        confirmed = st.checkbox("I understand — apply this circular anyway", value=False)
+
     c1, c2 = st.columns([1, 3])
-    if c1.button("✅ Apply these prices", type="primary"):
-        if _apply_overrides(updates, result.get("vg30_base")):
+    if c1.button("✅ Apply these prices", type="primary", disabled=not confirmed):
+        if _apply_overrides(updates, result.get("vg30_base"), circular_date=circ_date_raw):
             st.success(f"Applied {len(updates)} prices. Now live across the dashboard.")
             st.session_state.pop("_circ_result", None)
+            st.session_state.pop("_circ_date", None)
             st.rerun()
         else:
             st.error("Could not write prices. Check file permissions.")
     if c2.button("Discard"):
         st.session_state.pop("_circ_result", None)
+        st.session_state.pop("_circ_date", None)
         st.rerun()
