@@ -454,31 +454,59 @@ Use our live `api_manager` USD/INR for actual.
     st.markdown("---")
     _hdr("📊", "Latest MEE Forecast vs Our Prediction", "#3b82f6")
 
+    import datetime as _dtm
+    _today = _dtm.date.today()
+    _last_rev = _today.replace(day=(16 if _today.day >= 16 else 1)).strftime("%d-%m-%Y")
     latest = MEE_FORECASTS.iloc[-1]
-    dt = latest['date']
+    dt = _today.strftime("%d-%m-%Y")           # current, not the frozen sample date
     bit_low  = latest['Bitumen_low']
     bit_high = latest['Bitumen_high']
     direction = latest['direction']
     d_icon  = DIRECTION_ICON.get(direction, "↕️")
     d_color = DIRECTION_COLOR.get(direction, "#f59e0b")
 
+    # Real VG30 base (single source) for the PSU card.
+    try:
+        from market_data import get_unified_prices
+        _vg30 = int(float(get_unified_prices().get("vg30") or 76870))
+    except Exception:
+        _vg30 = 76870
+
     c1, c2, c3, c4 = st.columns(4)
-    _card(c1, "MEE Forecast Date",       dt,                          "Latest bulletin",   "#06b6d4")
-    _card(c2, "MEE Bitumen Δ (₹/Ton)",  f"{d_icon} {bit_low} to {bit_high}", direction, d_color)
-    _card(c3, "PSU Actual (16-02-2026)", "VG-30 +₹60/MT",            "IOCL & HPCL confirmed", "#22c55e")
+    _card(c1, "MEE Forecast Date",       dt,                          "As of today",   "#06b6d4")
+    _card(c2, "MEE Bitumen Δ (₹/Ton)",  f"{d_icon} {bit_low} to {bit_high}", f"{direction} · illustrative", d_color)
+    _card(c3, f"PSU VG-30 ({_last_rev})", f"₹{_vg30:,}/MT",          "Live (price_master)", "#22c55e")
 
     # Live price from api_manager
     live_brent = get_brent_price()
     live_usd   = get_usdinr()
     live_str   = f"${live_brent:.2f}/bbl" if live_brent else "—"
     _card(c4, "Live Brent (api_manager)", live_str,                  "Real-time", "#8b5cf6")
+    st.caption("Brent, PSU VG-30 and the news below are live. The MEE Bitumen Δ is illustrative methodology (MEE's private bulletin has no public feed).")
 
     st.markdown("---")
-    _hdr("📰", "Latest MEE Industry News", "#f59e0b")
-    for n in NEWS_FEED[:4]:
+    _hdr("📰", "Latest Industry News (live)", "#f59e0b")
+    # Live bitumen/oil news from news_engine; fall back to the bundled sample.
+    news_items = []
+    try:
+        from news_engine import get_articles
+        for a in (get_articles(max_age_hours=168, impact_min=0) or [])[:4]:
+            if isinstance(a, dict):
+                news_items.append({
+                    "date": str(a.get("date_time") or a.get("date") or a.get("published") or "")[:10],
+                    "headline": a.get("headline") or a.get("title") or a.get("summary") or "",
+                })
+    except Exception:
+        pass
+    if not news_items:
+        news_items = [{"date": n["date"], "headline": n["headline"]} for n in NEWS_FEED[:4]]
+    _brent_tag = f" | Brent: ${live_brent:.2f}/bbl" if live_brent else ""
+    for n in news_items:
+        if not n.get("headline"):
+            continue
         st.markdown(
             f'<div style="border-left:3px solid #f59e0b;padding:6px 12px;margin-bottom:5px;background:#0f172a;border-radius:0 6px 6px 0">'
-            f'<span style="color:#94a3b8;font-size:0.75rem">{n["date"]} | WTI: ${n["wti_mentioned"]}/bbl</span><br>'
+            f'<span style="color:#94a3b8;font-size:0.75rem">{n["date"]}{_brent_tag}</span><br>'
             f'<span style="color:#f8fafc;font-size:0.88rem">{n["headline"]}</span></div>',
             unsafe_allow_html=True,
         )
