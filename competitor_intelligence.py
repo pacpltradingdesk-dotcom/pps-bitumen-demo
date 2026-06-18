@@ -421,6 +421,33 @@ def _card(col, label, val, sub="", color="#3b82f6"):
     )
 
 
+def _fresh_bitumen_news(limit: int = 4) -> list:
+    """Fresh, bitumen-relevant headlines from tbl_news_feed.json (Google News
+    RSS, refreshed by the 15-min cron). Newest first; relevance-filtered."""
+    import json as _json, pathlib as _pl
+    try:
+        p = _pl.Path(__file__).parent / "tbl_news_feed.json"
+        d = _json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
+        rows = d if isinstance(d, list) else d.get("data", d.get("records", []))
+        rows = [r for r in rows if isinstance(r, dict) and r.get("headline")]
+        rows.sort(key=lambda r: str(r.get("date_time") or ""), reverse=True)
+        kw = ("bitumen", "vg-30", "vg30", "vg-10", "asphalt", "road", "nhai",
+              "morth", "crude", "brent", "opec", "refinery", "iocl", "bpcl", "hpcl")
+        relevant = [r for r in rows if any(k in r["headline"].lower() for k in kw)]
+        chosen, out, seen = (relevant or rows), [], set()
+        for r in chosen:
+            h = r["headline"].strip()
+            if h[:80] in seen:
+                continue
+            seen.add(h[:80])
+            out.append({"date": str(r.get("date_time") or "")[:10], "headline": h})
+            if len(out) >= limit:
+                break
+        return out
+    except Exception:
+        return []
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # SECTION C — TAB RENDERERS
 # ─────────────────────────────────────────────────────────────────────────────
@@ -487,24 +514,7 @@ Use our live `api_manager` USD/INR for actual.
     st.markdown("---")
     _hdr("📰", "Latest Industry News (live)", "#f59e0b")
     # Live bitumen/oil news from news_engine; fall back to the bundled sample.
-    news_items = []
-    try:
-        from news_engine import get_articles
-        _arts = [a for a in (get_articles(max_age_hours=168, impact_min=0) or []) if isinstance(a, dict)]
-
-        def _pubkey(a):
-            try:
-                return _dtm.datetime.strptime(str(a.get("published_at_ist", ""))[:16], "%d-%m-%Y %H:%M")
-            except Exception:
-                return _dtm.datetime.min
-
-        for a in sorted(_arts, key=_pubkey, reverse=True)[:4]:
-            news_items.append({
-                "date": str(a.get("published_at_ist") or a.get("fetched_at_ist") or "")[:10],
-                "headline": a.get("headline") or a.get("summary") or "",
-            })
-    except Exception:
-        pass
+    news_items = _fresh_bitumen_news(4)
     if not news_items:
         news_items = [{"date": n["date"], "headline": n["headline"]} for n in NEWS_FEED[:4]]
     import html as _html
