@@ -82,7 +82,7 @@ MODULE_NAV: dict[str, dict] = {
             {"label": "PDF Archive", "page": "📁 PDF Archive"},
             {"label": "Contacts Directory", "page": "📱 Contacts Directory"},
             {"label": "Manual Price Entry", "page": "📝 Manual Price Entry"},
-            {"label": "Update from Circular", "page": "📋 Update from Circular"},
+            {"label": "Update from Circular", "page": "📋 Update from Circular", "star": True, "pill": ("AI", "indigo")},
             {"label": "Govt Data Hub", "page": "🏗️ Govt Data Hub"},
             {"label": "GST & Legal", "page": "🛡️ GST & Legal Monitor"},
             {"label": "Procurement Dir", "page": "🗂️ India Procurement Directory"},
