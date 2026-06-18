@@ -59,13 +59,17 @@ def _get_products():
 
 def _get_live_rates():
     lp = _load_json("live_prices.json")
+    from price_master import DRUM_PRICES as _d
+    mum30 = lp.get("DRUM_MUMBAI_VG30", _d["DRUM_MUMBAI_VG30"])
+    kan30 = lp.get("DRUM_KANDLA_VG30", _d["DRUM_KANDLA_VG30"])
+    mum10 = lp.get("DRUM_MUMBAI_VG10", _d["DRUM_MUMBAI_VG10"])
     return {
-        "VG30 Bulk (Mumbai)": lp.get("DRUM_MUMBAI_VG30", 37000) - 2000,
-        "VG30 Drum (Mumbai)": lp.get("DRUM_MUMBAI_VG30", 37000),
-        "VG30 Bulk (Kandla)": lp.get("DRUM_KANDLA_VG30", 35500) - 2000,
-        "VG30 Drum (Kandla)": lp.get("DRUM_KANDLA_VG30", 35500),
-        "VG10 Bulk (Mumbai)": lp.get("DRUM_MUMBAI_VG10", 38000) - 2000,
-        "VG10 Drum (Mumbai)": lp.get("DRUM_MUMBAI_VG10", 38000),
+        "VG30 Bulk (Mumbai)": mum30 - 2000,
+        "VG30 Drum (Mumbai)": mum30,
+        "VG30 Bulk (Kandla)": kan30 - 2000,
+        "VG30 Drum (Kandla)": kan30,
+        "VG10 Bulk (Mumbai)": mum10 - 2000,
+        "VG10 Drum (Mumbai)": mum10,
     }
 
 

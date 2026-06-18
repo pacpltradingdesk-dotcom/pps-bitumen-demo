@@ -268,7 +268,7 @@ class NegotiationAssistant:
         # Fallback estimate
         return {
             "source": "Market average",
-            "landed_cost": 42000,
+            "landed_cost": 76870,
             "note": "Using estimated market average. Update live prices for accuracy."
         }
 

@@ -281,11 +281,11 @@ def generate_forecast_calendar() -> pd.DataFrame:
             if best_match and best_delta <= 8:
                 # Convert crude price (USD/bbl) to bitumen price (₹/MT)
                 crude_usd = best_match["price"]
-                price = 38_000 + (crude_usd - 60) * 450 + (usdinr_now - 84) * 120
+                price = 76_870 +(crude_usd - 60) * 450 + (usdinr_now - 84) * 120
                 low = price - 500 if best_match["lower"] is None else (
-                    38_000 + (best_match["lower"] - 60) * 450 + (usdinr_now - 84) * 120)
+                    76_870 +(best_match["lower"] - 60) * 450 + (usdinr_now - 84) * 120)
                 high = price + 500 if best_match["upper"] is None else (
-                    38_000 + (best_match["upper"] - 60) * 450 + (usdinr_now - 84) * 120)
+                    76_870 +(best_match["upper"] - 60) * 450 + (usdinr_now - 84) * 120)
                 used_ml = True
 
                 # Plausibility gate: ARIMA on a wide/transformed series can emit
@@ -301,7 +301,7 @@ def generate_forecast_calendar() -> pd.DataFrame:
         # Reference: MEE Multi Energy Enterprises methodology
         # Crude sensitivity: ~₹450/MT per ₹ 1 Brent change (industry standard)
         # FX sensitivity: ~₹120/MT per ₹1 USD/INR change
-        # Base price at Brent ₹ 70, USD/INR 84 = ₹38,000/MT
+        # Base price at Brent $70, USD/INR 84 = ₹76,870/MT (real bulk VG30, Ex-Mumbai)
         if not used_ml:
             seas = _SEASON.get(d.month, 1.0)
             # Core drivers (industry-calibrated)
@@ -311,7 +311,7 @@ def generate_forecast_calendar() -> pd.DataFrame:
             freight = max(0, (brent_now - 80) * 5)     # freight rises with crude
 
             # Base calculated price
-            calc_price = 38_000 + crude_impact + fx_impact + fo_spread + freight
+            calc_price = 76_870 +crude_impact + fx_impact + fo_spread + freight
 
             # Per-revision drift (small random + seasonal adjustment)
             revision_drift = rng.normal(0, 200) * seas

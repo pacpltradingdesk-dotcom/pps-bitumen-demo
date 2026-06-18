@@ -138,8 +138,7 @@ def render(mkt: dict, _CONFIDENCE_OK: bool = False, render_data_health_card=None
         with open("live_prices.json", encoding="utf-8") as _f:
             _lp = _json.load(_f)
     except Exception:
-        _lp = {"DRUM_MUMBAI_VG30": 37000, "DRUM_KANDLA_VG30": 35500,
-               "DRUM_MUMBAI_VG10": 38000, "DRUM_KANDLA_VG10": 36500}
+        from price_master import DRUM_PRICES as _lp
 
     # API stats
     try:

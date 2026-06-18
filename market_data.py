@@ -128,12 +128,19 @@ def get_unified_prices() -> dict:
     except Exception:
         pass
 
-    # ── 3. VG30 bitumen (Indian domestic, not from crude/fx APIs) ────────
+    # ── 3. VG30 bitumen base (Indian domestic bulk, not from crude/fx APIs) ──
+    # Real Ex-Mumbai bulk VG30 (60/70) reference. Reads the dedicated VG30_BASE
+    # key; falls back to the legacy DRUM_KANDLA_VG30 key, then a real default.
+    # Source: All India Petroleum Products Price Revision (Multi Energy).
+    try:
+        from price_master import VG30_BASE as _VG30_BASE
+    except Exception:
+        _VG30_BASE = 76870
     try:
         lp = json.loads(_LIVE_PRICES_PATH.read_text(encoding="utf-8"))
-        out["vg30"] = float(lp.get("DRUM_KANDLA_VG30") or 35500)
+        out["vg30"] = float(lp.get("VG30_BASE") or lp.get("DRUM_KANDLA_VG30") or _VG30_BASE)
     except Exception:
-        out["vg30"] = 35500.0
+        out["vg30"] = float(_VG30_BASE)
 
     # ── 4. Deterministic defaults (NEVER random) ─────────────────────────
     if out["brent"] is None:

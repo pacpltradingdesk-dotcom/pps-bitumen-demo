@@ -59,18 +59,18 @@ def get_price_snapshot() -> dict:
         from feasibility_engine import get_live_prices
         p = get_live_prices()
         return {
-            "source": "feasibility_engine → live_prices.json (defaults: IOCL circular 16-02-2026)",
+            "source": "feasibility_engine → live_prices.json (defaults: All India Petroleum Price Revision 16-06-2026)",
             # PSU bulk basics
-            "VG30_IOCL_Koyali_basic_per_MT":       p.get("IOCL Koyali",          48302),
-            "VG30_IOCL_Mathura_basic_per_MT":       p.get("IOCL Mathura",         48450),
-            "VG30_IOCL_Haldia_basic_per_MT":        p.get("IOCL Haldia",          48500),
-            "VG30_BPCL_Mumbai_basic_per_MT":        p.get("BPCL Mumbai",          48200),
-            "VG30_HPCL_Mumbai_basic_per_MT":        p.get("HPCL Mumbai",          48100),
-            "VG30_HPCL_Ghaziabad_basic_per_MT":     p.get("HPCL Bhatinda",        46390),
-            "VG30_CPCL_Chennai_basic_per_MT":       p.get("CPCL Chennai",         47800),
+            "VG30_IOCL_Koyali_basic_per_MT":       p.get("IOCL Koyali",          78260),
+            "VG30_IOCL_Mathura_basic_per_MT":       p.get("IOCL Mathura",         76382),
+            "VG30_IOCL_Haldia_basic_per_MT":        p.get("IOCL Haldia",          77382),
+            "VG30_BPCL_Mumbai_basic_per_MT":        p.get("BPCL Mumbai",          76870),
+            "VG30_HPCL_Mumbai_basic_per_MT":        p.get("HPCL Mumbai",          76870),
+            "VG30_HPCL_Ghaziabad_basic_per_MT":     p.get("HPCL Bhatinda",        76370),
+            "VG30_CPCL_Chennai_basic_per_MT":       p.get("CPCL Chennai",         74582),
             # Drum — fallbacks aligned with calculation_engine.py canonical map
-            "DRUM_Mumbai_VG30_per_MT":              p.get("DRUM_MUMBAI_VG30",     37000),
-            "DRUM_Kandla_VG30_per_MT":              p.get("DRUM_KANDLA_VG30",     35500),
+            "DRUM_Mumbai_VG30_per_MT":              p.get("DRUM_MUMBAI_VG30",     76870),
+            "DRUM_Kandla_VG30_per_MT":              p.get("DRUM_KANDLA_VG30",     78260),
             # Logistics
             "bulk_transport_per_km_per_MT":         p.get("BULK_RATE_PER_KM",       2.5),
             "drum_transport_per_km_per_MT":         p.get("DRUM_RATE_PER_KM",       6.0),
@@ -512,13 +512,13 @@ def get_chart_data(chart_key: str, role: str = "Admin") -> dict | None:
         elif chart_key == "price_trend_refinery":
             p = get_price_snapshot()
             refineries = {
-                "IOCL Koyali":    p.get("VG30_IOCL_Koyali_basic_per_MT",    48302),
-                "IOCL Mathura":   p.get("VG30_IOCL_Mathura_basic_per_MT",   48450),
-                "IOCL Haldia":    p.get("VG30_IOCL_Haldia_basic_per_MT",    48500),
-                "BPCL Mumbai":    p.get("VG30_BPCL_Mumbai_basic_per_MT",    48200),
-                "HPCL Mumbai":    p.get("VG30_HPCL_Mumbai_basic_per_MT",    48100),
-                "HPCL Ghaziabad": p.get("VG30_HPCL_Ghaziabad_basic_per_MT",46390),
-                "CPCL Chennai":   p.get("VG30_CPCL_Chennai_basic_per_MT",   47800),
+                "IOCL Koyali":    p.get("VG30_IOCL_Koyali_basic_per_MT",    78260),
+                "IOCL Mathura":   p.get("VG30_IOCL_Mathura_basic_per_MT",   76382),
+                "IOCL Haldia":    p.get("VG30_IOCL_Haldia_basic_per_MT",    77382),
+                "BPCL Mumbai":    p.get("VG30_BPCL_Mumbai_basic_per_MT",    76870),
+                "HPCL Mumbai":    p.get("VG30_HPCL_Mumbai_basic_per_MT",    76870),
+                "HPCL Ghaziabad": p.get("VG30_HPCL_Ghaziabad_basic_per_MT", 76382),
+                "CPCL Chennai":   p.get("VG30_CPCL_Chennai_basic_per_MT",   74582),
             }
             return {"type": "bar", "title": "VG-30 Basic Ex-Refinery Prices (₹/MT) — Current",
                     "x": list(refineries.keys()), "y": list(refineries.values()),

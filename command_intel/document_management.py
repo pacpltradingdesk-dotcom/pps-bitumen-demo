@@ -228,7 +228,7 @@ def _po_create_form():
         default_product = "BITUMEN VG30"
         default_packing = "BULK"
         default_qty = 20.0
-        default_rate = 35000.0
+        default_rate = 76870.0
         if deal_data:
             grade = deal_data.get("grade", "")
             if "VG40" in str(grade).upper():

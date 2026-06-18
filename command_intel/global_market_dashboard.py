@@ -249,26 +249,18 @@ def _render_bitumen_prices(st) -> None:
         "fortnightly (1st and 16th of each month)."
     )
 
-    lp = {}
+    # Same real, base-consistent prices as the Command Center ticker.
     try:
+        from price_board import build_price_board
+        from market_data import get_unified_prices
+        _lp = {}
         _lp_path = BASE / "live_prices.json"
         if _lp_path.exists():
-            lp = json.loads(_lp_path.read_text(encoding="utf-8")) or {}
+            _lp = json.loads(_lp_path.read_text(encoding="utf-8")) or {}
+        _base = float(get_unified_prices().get("vg30") or 76870)
+        refineries = build_price_board(_base, _lp)["refinery"]
     except Exception:
-        lp = {}
-    refineries = [
-        ("IOCL Koyali", "VG30", lp.get("IOCL_KOYALI_VG30", 42000)),
-        ("IOCL Mathura", "VG30", lp.get("IOCL_MATHURA_VG30", 42500)),
-        ("IOCL Haldia", "VG30", lp.get("IOCL_HALDIA_VG30", 41800)),
-        ("BPCL Mumbai", "VG30", lp.get("BPCL_MUMBAI_VG30", 43000)),
-        ("HPCL Mumbai", "VG30", lp.get("HPCL_MUMBAI_VG30", 42900)),
-        ("HPCL Vizag", "VG30", lp.get("HPCL_VIZAG_VG30", 41600)),
-        ("CPCL Chennai", "VG30", lp.get("CPCL_CHENNAI_VG30", 42100)),
-        ("MRPL Mangalore", "VG30", lp.get("MRPL_MANGALORE_VG30", 41900)),
-        ("IOCL Panipat", "VG30", lp.get("IOCL_PANIPAT_VG30", 42200)),
-        ("IOCL Barauni", "VG30", lp.get("IOCL_BARAUNI_VG30", 41500)),
-        ("BPCL Kochi", "VG30", lp.get("BPCL_KOCHI_VG30", 42800)),
-    ]
+        refineries = []
     rows = [{"Refinery": n, "Grade": g, "Price (₹/MT)": f"₹{int(p):,}"}
             for n, g, p in refineries if p]
     if rows and _PANDAS:

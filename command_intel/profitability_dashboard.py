@@ -42,7 +42,7 @@ def _get_mock_deals():
 
     deals = []
     for i in range(100):
-        base = random.randint(33000, 38000)
+        base = random.randint(74000, 79000)
         landed = base + random.randint(1000, 4000)
         selling = landed + random.randint(400, 2000)
         qty = random.choice([20, 25, 30, 40, 50, 60, 80, 100])

@@ -159,31 +159,10 @@ except ImportError:
 
 PRICE_CONFIG_FILE = Path(__file__).parent / "live_prices.json"
 
-_DEFAULT_LIVE_PRICES: Dict[str, float] = {
-    # PSU Refineries (VG30 Bulk ex-refinery Rs./MT)
-    "IOCL Koyali": 42_000, "IOCL Mathura": 42_500, "IOCL Haldia": 41_800,
-    "IOCL Barauni": 41_500, "IOCL Panipat": 42_200, "IOCL Digboi": 41_000,
-    "IOCL Guwahati": 41_200, "IOCL Bongaigaon": 41_100,
-    "BPCL Mumbai": 43_000, "BPCL Kochi": 42_800,
-    "HPCL Mumbai": 42_900, "HPCL Visakhapatnam": 41_600,
-    "CPCL Chennai": 42_100, "MRPL Mangalore": 41_900,
-    "NRL Numaligarh": 41_300, "ONGC Tatipaka": 41_500,
-    "HMEL Bhatinda": 42_000, "BORL Bina": 41_700,
-    "RIL Jamnagar": 42_400, "Nayara Vadinar": 42_200,
-    # Import terminals (landed at port, Rs./MT)
-    "Mangalore Port Import": 38_500, "Karwar Port Import": 38_800,
-    "Digi Port Import": 39_000, "Taloja Terminal": 39_500,
-    "VVF Mumbai Terminal": 39_200, "Kandla Port Import": 38_000,
-    "Mundra Port Import": 37_800, "JNPT Import Terminal": 39_800,
-    "Haldia Port Import": 39_000, "Ennore Port Import": 39_200,
-    # Drum prices
-    "DRUM_MUMBAI_VG30": 37_000, "DRUM_KANDLA_VG30": 35_500,
-    "DRUM_MUMBAI_VG10": 38_000, "DRUM_KANDLA_VG10": 36_500,
-    # Operational constants
-    "DECANTER_CONVERSION_COST": 500,
-    "BULK_RATE_PER_KM": 5.5,
-    "DRUM_RATE_PER_KM": 6.0,
-}
+# All bitumen prices come from the single price master (price_master.py) so the
+# calculator, feasibility engine and ticker can never diverge. Edit prices there.
+import price_master
+_DEFAULT_LIVE_PRICES: Dict[str, float] = price_master.default_prices()
 
 
 def _load_live_prices() -> Dict[str, float]:
@@ -331,7 +310,7 @@ class BitumenCalculationEngine:
 
     def _get_base_price(self, source_name: str) -> float:
         """Return ex-refinery / ex-terminal base price for *source_name*."""
-        return float(self._prices.get(source_name, 42_000))
+        return float(self._prices.get(source_name, 76_870))
 
     def _safe_distance(self, source: str, destination: str) -> float:
         """
@@ -584,11 +563,11 @@ class BitumenCalculationEngine:
         drum_source = _drum_source_for(destination)
 
         if drum_source == "Kandla":
-            drum_base = float(self._prices.get(f"DRUM_KANDLA_{grade}", 35_500))
+            drum_base = float(self._prices.get(f"DRUM_KANDLA_{grade}", 78_260))
             src_coords = KANDLA_COORDS
             src_label = "Kandla"
         else:
-            drum_base = float(self._prices.get(f"DRUM_MUMBAI_{grade}", 37_000))
+            drum_base = float(self._prices.get(f"DRUM_MUMBAI_{grade}", 76_870))
             src_coords = MUMBAI_COORDS
             src_label = "Mumbai"
 

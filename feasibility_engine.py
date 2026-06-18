@@ -22,48 +22,10 @@ PRICE_CONFIG_FILE = Path(__file__).parent / "live_prices.json"
 
 def get_live_prices():
     """Load live prices from config file."""
-    default_prices = {
-        # PSU Refineries (VG30 Bulk)
-        "IOCL Koyali": 42000,
-        "IOCL Mathura": 42500,
-        "IOCL Haldia": 41800,
-        "IOCL Barauni": 41500,
-        "IOCL Panipat": 42200,
-        "BPCL Mumbai": 43000,
-        "BPCL Kochi": 42800,
-        "HPCL Mumbai": 42900,
-        "HPCL Visakhapatnam": 41600,
-        "CPCL Chennai": 42100,
-        "MRPL Mangalore": 41900,
-        "IOCL Digboi": 41000,
-        "IOCL Guwahati": 41200,
-        "IOCL Bongaigaon": 41100,
-        "NRL Numaligarh": 41300,
-        "ONGC Tatipaka": 41500,
-        
-        # Import Bulk Terminals
-        "Mangalore Port Import": 38500,
-        "Karwar Port Import": 38800,
-        "Digi Port Import": 39000,
-        "Taloja Terminal": 39500,
-        "VVF Mumbai Terminal": 39200,
-        "Kandla Port Import": 38000,
-        "Mundra Port Import": 37800,
-        "JNPT Import Terminal": 39800,
-        
-        # DRUM BITUMEN PRICES (Only 2 locations)
-        "DRUM_MUMBAI_VG30": 37000,
-        "DRUM_KANDLA_VG30": 35500,
-        "DRUM_MUMBAI_VG10": 38000,
-        "DRUM_KANDLA_VG10": 36500,
-        
-        # Decanter Conversion Cost
-        "DECANTER_CONVERSION_COST": 500,
-        
-        # Transport Rates
-        "BULK_RATE_PER_KM": 5.5,
-        "DRUM_RATE_PER_KM": 6.0,
-    }
+    # All prices come from the single price master so this engine, the
+    # calculator and the ticker can never diverge. Edit prices in price_master.py.
+    import price_master
+    default_prices = price_master.default_prices()
     
     if os.path.exists(PRICE_CONFIG_FILE):
         try:
@@ -131,7 +93,7 @@ def calculate_landed_cost(source_name, destination, base_price=None, rate_per_km
     prices = get_live_prices()
     
     if base_price is None:
-        base_price = prices.get(source_name, 42000)
+        base_price = prices.get(source_name, 76870)
     
     if rate_per_km is None:
         rate_per_km = prices.get("BULK_RATE_PER_KM", 5.5)
@@ -168,10 +130,10 @@ def calculate_decanter_cost(destination, grade="VG30"):
     
     # Get drum base price
     if drum_source == "Kandla":
-        drum_price = prices.get(f"DRUM_KANDLA_{grade}", 35500)
+        drum_price = prices.get(f"DRUM_KANDLA_{grade}", 78260)
         drum_coords = KANDLA_COORDS
     else:
-        drum_price = prices.get(f"DRUM_MUMBAI_{grade}", 37000)
+        drum_price = prices.get(f"DRUM_MUMBAI_{grade}", 76870)
         drum_coords = MUMBAI_COORDS
     
     # Distance from drum source to destination
@@ -214,11 +176,11 @@ def calculate_drum_direct_cost(destination, grade="VG30"):
     drum_source = get_drum_source_for_city(destination)
     
     if drum_source == "Kandla":
-        base_price = prices.get(f"DRUM_KANDLA_{grade}", 35500)
+        base_price = prices.get(f"DRUM_KANDLA_{grade}", 78260)
         source_coords = KANDLA_COORDS
         source_name = "Kandla Drum Import"
     else:
-        base_price = prices.get(f"DRUM_MUMBAI_{grade}", 37000)
+        base_price = prices.get(f"DRUM_MUMBAI_{grade}", 76870)
         source_coords = MUMBAI_COORDS
         source_name = "Mumbai Drum Import"
     
