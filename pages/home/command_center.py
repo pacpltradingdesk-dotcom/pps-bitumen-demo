@@ -250,8 +250,33 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
         return dt
     news_data = sorted(news_data, key=_sortable_date, reverse=True)
 
-    # Market signals
-    signals_data = _load_json("tbl_market_signals.json", {})
+    # Market signals — tbl_market_signals.json is a time-series LIST of computed
+    # snapshots ([{computed_at, signals:{crude_market:{direction,confidence}, ...,
+    # master:{...}}}]). Take the latest record and map each signal to a 0-100
+    # bullish score (UP -> high, DOWN -> low, SIDEWAYS -> mid) the grid expects.
+    def _signal_score(d):
+        conf = float(d.get("confidence", 50) or 50)
+        direction = str(d.get("direction") or d.get("market_direction") or "SIDEWAYS").upper()
+        if direction in ("UP", "BULLISH"):
+            return min(100.0, 50 + conf / 2)
+        if direction in ("DOWN", "BEARISH"):
+            return max(0.0, 50 - conf / 2)
+        return 50.0
+
+    _sig_raw = _load_json("tbl_market_signals.json", {})
+    _latest = {}
+    if isinstance(_sig_raw, list) and _sig_raw and isinstance(_sig_raw[-1], dict):
+        _latest = _sig_raw[-1].get("signals", {}) or {}
+    elif isinstance(_sig_raw, dict):
+        _latest = _sig_raw
+    signals_data = {}
+    for _k, _v in _latest.items():
+        if _k == "master" or not isinstance(_v, dict):
+            continue
+        signals_data[_v.get("signal_name", _k.replace("_", " ").title())] = {
+            "score": _signal_score(_v),
+            "label": _v.get("direction") or _v.get("market_direction") or "",
+        }
 
     # Alerts
     alerts_data = _load_json("sre_alerts.json", [])
