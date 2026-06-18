@@ -220,7 +220,9 @@ def _forecast_arima(df: pd.DataFrame, days_ahead: int, label: str) -> dict:
     try:
         series = df.set_index("ds")["y"].asfreq("D", method="ffill")
         model = StatsARIMA(series, order=(2, 1, 2))
-        fit = model.fit(disp=False)
+        # Modern statsmodels ARIMA.fit() takes no `disp` kwarg (it raised
+        # TypeError, silently dropping ARIMA from the ensemble every run).
+        fit = model.fit()
         fc = fit.forecast(steps=days_ahead)
         conf = fit.get_forecast(steps=days_ahead).conf_int()
 
