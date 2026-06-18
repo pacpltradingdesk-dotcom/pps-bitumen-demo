@@ -512,13 +512,13 @@ def get_chart_data(chart_key: str, role: str = "Admin") -> dict | None:
         elif chart_key == "price_trend_refinery":
             p = get_price_snapshot()
             refineries = {
-                "IOCL Koyali":    p.get("VG30_IOCL_Koyali_basic_per_MT",    48302),
-                "IOCL Mathura":   p.get("VG30_IOCL_Mathura_basic_per_MT",   48450),
-                "IOCL Haldia":    p.get("VG30_IOCL_Haldia_basic_per_MT",    48500),
-                "BPCL Mumbai":    p.get("VG30_BPCL_Mumbai_basic_per_MT",    48200),
-                "HPCL Mumbai":    p.get("VG30_HPCL_Mumbai_basic_per_MT",    48100),
-                "HPCL Ghaziabad": p.get("VG30_HPCL_Ghaziabad_basic_per_MT",46390),
-                "CPCL Chennai":   p.get("VG30_CPCL_Chennai_basic_per_MT",   47800),
+                "IOCL Koyali":    p.get("VG30_IOCL_Koyali_basic_per_MT",    78260),
+                "IOCL Mathura":   p.get("VG30_IOCL_Mathura_basic_per_MT",   76382),
+                "IOCL Haldia":    p.get("VG30_IOCL_Haldia_basic_per_MT",    77382),
+                "BPCL Mumbai":    p.get("VG30_BPCL_Mumbai_basic_per_MT",    76870),
+                "HPCL Mumbai":    p.get("VG30_HPCL_Mumbai_basic_per_MT",    76870),
+                "HPCL Ghaziabad": p.get("VG30_HPCL_Ghaziabad_basic_per_MT", 76382),
+                "CPCL Chennai":   p.get("VG30_CPCL_Chennai_basic_per_MT",   74582),
             }
             return {"type": "bar", "title": "VG-30 Basic Ex-Refinery Prices (₹/MT) — Current",
                     "x": list(refineries.keys()), "y": list(refineries.values()),

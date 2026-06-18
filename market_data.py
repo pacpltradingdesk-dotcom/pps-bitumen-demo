@@ -133,10 +133,14 @@ def get_unified_prices() -> dict:
     # key; falls back to the legacy DRUM_KANDLA_VG30 key, then a real default.
     # Source: All India Petroleum Products Price Revision (Multi Energy).
     try:
-        lp = json.loads(_LIVE_PRICES_PATH.read_text(encoding="utf-8"))
-        out["vg30"] = float(lp.get("VG30_BASE") or lp.get("DRUM_KANDLA_VG30") or 76870)
+        from price_master import VG30_BASE as _VG30_BASE
     except Exception:
-        out["vg30"] = 76870.0
+        _VG30_BASE = 76870
+    try:
+        lp = json.loads(_LIVE_PRICES_PATH.read_text(encoding="utf-8"))
+        out["vg30"] = float(lp.get("VG30_BASE") or lp.get("DRUM_KANDLA_VG30") or _VG30_BASE)
+    except Exception:
+        out["vg30"] = float(_VG30_BASE)
 
     # ── 4. Deterministic defaults (NEVER random) ─────────────────────────
     if out["brent"] is None:

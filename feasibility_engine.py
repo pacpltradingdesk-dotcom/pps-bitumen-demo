@@ -22,51 +22,10 @@ PRICE_CONFIG_FILE = Path(__file__).parent / "live_prices.json"
 
 def get_live_prices():
     """Load live prices from config file."""
-    # Real bitumen basic prices, Rs./MT. VG30 == 60/70 (IS 73:2013).
-    # Source: All India Petroleum Products Price Revision 16-06-2026 (Multi Energy).
-    # Kept in sync with calculation_engine._DEFAULT_LIVE_PRICES.
-    default_prices = {
-        # PSU Refineries (VG30 / 60-70 Bulk)
-        "IOCL Koyali": 78260,
-        "IOCL Mathura": 76382,
-        "IOCL Haldia": 77382,
-        "IOCL Barauni": 78412,
-        "IOCL Panipat": 76382,
-        "BPCL Mumbai": 76870,
-        "BPCL Kochi": 76870,
-        "HPCL Mumbai": 76870,
-        "HPCL Visakhapatnam": 77670,
-        "CPCL Chennai": 74582,
-        "MRPL Mangalore": 78850,
-        "IOCL Digboi": 77090,
-        "IOCL Guwahati": 77090,
-        "IOCL Bongaigaon": 77090,
-        "NRL Numaligarh": 77090,
-        "ONGC Tatipaka": 77670,
-
-        # Import Bulk Terminals (≈ nearest PSU depot − ~Rs 6k landed discount)
-        "Mangalore Port Import": 72850,
-        "Karwar Port Import": 72230,
-        "Digi Port Import": 70870,
-        "Taloja Terminal": 70870,
-        "VVF Mumbai Terminal": 70870,
-        "Kandla Port Import": 72260,
-        "Mundra Port Import": 71390,
-        "JNPT Import Terminal": 70870,
-
-        # Bulk VG30 / VG10 base prices by drum-source region
-        "DRUM_MUMBAI_VG30": 76870,
-        "DRUM_KANDLA_VG30": 78260,
-        "DRUM_MUMBAI_VG10": 75910,
-        "DRUM_KANDLA_VG10": 76960,
-
-        # Decanter Conversion Cost
-        "DECANTER_CONVERSION_COST": 500,
-
-        # Transport Rates
-        "BULK_RATE_PER_KM": 5.5,
-        "DRUM_RATE_PER_KM": 6.0,
-    }
+    # All prices come from the single price master so this engine, the
+    # calculator and the ticker can never diverge. Edit prices in price_master.py.
+    import price_master
+    default_prices = price_master.default_prices()
     
     if os.path.exists(PRICE_CONFIG_FILE):
         try:

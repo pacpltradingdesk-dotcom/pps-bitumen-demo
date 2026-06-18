@@ -22,11 +22,11 @@ from __future__ import annotations
 
 from typing import NamedTuple
 
-# Reference VG30 base at which the REF prices below hold true. Every reference
-# price is scaled by (current_base / REF_BASE). Keep this in sync with the rates.
-# = Mumbai/JNPT bulk VG30 (60/70), the "Ex-Mumbai" national reference.
-# Source: All India Petroleum Products Price Revision 16-06-2026 (Multi Energy).
-REF_BASE = 76870.0
+import price_master
+
+# Reference VG30 base at which the REF prices hold true. Every reference price is
+# scaled by (current_base / REF_BASE). Sourced from the single price master.
+REF_BASE = float(price_master.VG30_BASE)
 
 # An override more than this fraction away from the derived price is treated as
 # a data-entry error and ignored (the derived price is shown instead).
@@ -46,36 +46,18 @@ class ImportItem(NamedTuple):
     override_key: str
 
 
-# ─── REAL RATE TABLE — Bitumen Bulk VG30 (60/70) ex-location, Rs/MT. ───
-# Source: All India Petroleum Products Price Revision 16-06-2026 (Multi Energy).
-# VG30 == 60/70 penetration grade (IS 73:2013). These are real published basic
-# prices, treated as correct at REF_BASE; they scale with the live base and a
-# real published rate can be pinned per location via Manual Price Entry.
+# Refinery + import ticker rows, derived from the single price master so the
+# ticker, the calculator and the feasibility engine can never show different
+# numbers for the same location. Prices scale with the live base; a real
+# published rate can be pinned per location via Manual Price Entry.
 REFINERY_ITEMS: list[RefineryItem] = [
-    RefineryItem("IOCL Koyali",    "VG30", 78260, "IOCL_KOYALI_VG30"),     # Koyali/Baroda
-    RefineryItem("IOCL Mathura",   "VG30", 76382, "IOCL_MATHURA_VG30"),
-    RefineryItem("IOCL Haldia",    "VG30", 77382, "IOCL_HALDIA_VG30"),
-    RefineryItem("BPCL Mumbai",    "VG30", 76870, "BPCL_MUMBAI_VG30"),     # Mumbai/JNPT
-    RefineryItem("HPCL Mumbai",    "VG30", 76870, "HPCL_MUMBAI_VG30"),     # Mumbai/JNPT
-    RefineryItem("HPCL Vizag",     "VG30", 77670, "HPCL_VIZAG_VG30"),
-    RefineryItem("CPCL Chennai",   "VG30", 74582, "CPCL_CHENNAI_VG30"),
-    RefineryItem("MRPL Mangalore", "VG30", 78850, "MRPL_MANGALORE_VG30"),
-    RefineryItem("IOCL Panipat",   "VG30", 76382, "IOCL_PANIPAT_VG30"),
-    RefineryItem("IOCL Barauni",   "VG30", 78412, "IOCL_BARAUNI_VG30"),
-    RefineryItem("BPCL Kochi",     "VG30", 76870, "BPCL_KOCHI_VG30"),      # Coimbatore/Kochi
+    RefineryItem(name, grade, price, key)
+    for name, grade, key, price in price_master.board_items("refinery")
 ]
 
-# Import-port bulk VG30 (60/70). Kandla is not separately listed on the sheet;
-# Koyali/Baroda (Gujarat mainland refinery feeding the Kandla region) is used as
-# its proxy. Imported (landed) bitumen is typically ~Rs 5-8k/MT below these PSU
-# depot prices — pin the actual import quote via Manual Price Entry when known.
 IMPORT_ITEMS: list[ImportItem] = [
-    ImportItem("Bulk Kandla Import", 78260, "BULK_KANDLA_IMPORT"),   # Koyali/Baroda proxy
-    ImportItem("Bulk Mundra Import", 77390, "BULK_MUNDRA_IMPORT"),
-    ImportItem("Bulk JNPT Import",   76870, "BULK_JNPT_IMPORT"),     # Mumbai/JNPT
-    ImportItem("Bulk Mangalore",     78850, "BULK_MANGALORE_IMPORT"),
-    ImportItem("Bulk Vizag Import",  77670, "BULK_VIZAG_IMPORT"),
-    ImportItem("Bulk Haldia Import", 77382, "BULK_HALDIA_IMPORT"),
+    ImportItem(name, price, key)
+    for name, grade, key, price in price_master.board_items("import")
 ]
 
 

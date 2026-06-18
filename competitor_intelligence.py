@@ -1065,7 +1065,7 @@ def get_mock_revisions():
     competitors = ["IOCL", "HPCL", "BPCL"]
     regions = ["North", "West", "South", "East"]
     revisions = []
-    base_prices = {"IOCL": 36000, "HPCL": 36500, "BPCL": 35800}
+    base_prices = {"IOCL": 78260, "HPCL": 76870, "BPCL": 76870}
 
     for i in range(30):
         comp = random.choice(competitors)
