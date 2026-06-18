@@ -681,6 +681,8 @@ PAGE_DISPATCH = {
         lambda: __import__("command_intel.price_prediction", fromlist=["render"]).render(), "Price Prediction"),
     "📝 Manual Price Entry": lambda: _safe_render(
         lambda: __import__("command_intel.manual_entry", fromlist=["render"]).render(), "Manual Price Entry"),
+    "📋 Update from Circular": lambda: _safe_render(
+        lambda: __import__("command_intel.circular_upload_dashboard", fromlist=["render"]).render(), "Update from Circular"),
     "🚨 SPECIAL PRICE (SOS)": _page_sos,
     "⏳ Past Predictions": lambda: _safe_render(
         lambda: __import__("command_intel.historical_revisions", fromlist=["render"]).render(), "Past Predictions"),
