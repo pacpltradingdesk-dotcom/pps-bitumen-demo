@@ -350,8 +350,13 @@ class HealthCheckEngine:
         thr = cfg["alert_thresholds"]
         stats: dict = _load(_F_STATS, {})
         results = []
+        # Skip connectors disabled in api_config.json (e.g. dead REST-Countries)
+        # so their stale failure stats don't raise perpetual health alerts.
+        _wcfg = (_load(BASE / "api_config.json", {}) or {}).get("widgets", {})
 
         for api_id, s in stats.items():
+            if isinstance(_wcfg.get(api_id), dict) and _wcfg[api_id].get("enabled", True) is False:
+                continue
             consec_fail = s.get("consecutive_failures", 0)
             latency     = s.get("avg_latency_ms", 0)
             status_raw  = s.get("status", "Unknown")
@@ -992,7 +997,8 @@ class SmartAlertEngine:
         # KPIs) raise P0/P1. Supplementary feeds (weather, country, World Bank)
         # are not production-blocking, so they cap at P2/P3 and never trigger the
         # red "P0 errors open" banner.
-        _NONCRIT_API = ("weather", "forecast", "restcountries", "country", "world_bank", "worldbank")
+        _NONCRIT_API = ("weather", "forecast", "rest_countr", "restcountr",
+                    "countr", "world_bank", "worldbank")
         for r in health_results.get("api_health", []):
             entity = r["entity"]
             _ent = str(entity).lower()
