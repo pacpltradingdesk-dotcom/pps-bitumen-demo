@@ -49,17 +49,38 @@ def _safe(fn, label: str, fallback=None):
         return result
 
 
+# ── Live single-source helpers (no frozen literals fed to the AI) ─────────────
+def _live_unified() -> dict:
+    """Live brent / wti / usdinr / vg30 from the single source of truth."""
+    try:
+        from market_data import get_unified_prices
+        return get_unified_prices() or {}
+    except Exception:
+        return {}
+
+
+def _next_revision_date() -> datetime.date:
+    """Next PSU fortnightly revision (1st or 16th), today or later."""
+    t = datetime.date.today()
+    if t.day < 16:
+        return t.replace(day=16)
+    if t.month == 12:
+        return datetime.date(t.year + 1, 1, 1)
+    return datetime.date(t.year, t.month + 1, 1)
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # INDIVIDUAL DATA GETTERS
 # ══════════════════════════════════════════════════════════════════════════════
 
 def get_price_snapshot() -> dict:
     """Return key live prices from feasibility_engine."""
+    u = _live_unified()
     def _inner():
         from feasibility_engine import get_live_prices
         p = get_live_prices()
         return {
-            "source": "feasibility_engine → live_prices.json (defaults: All India Petroleum Price Revision 16-06-2026)",
+            "source": "feasibility_engine → live_prices.json + market_data.get_unified_prices (live FX/Brent)",
             # PSU bulk basics
             "VG30_IOCL_Koyali_basic_per_MT":       p.get("IOCL Koyali",          78260),
             "VG30_IOCL_Mathura_basic_per_MT":       p.get("IOCL Mathura",         76382),
@@ -75,12 +96,13 @@ def get_price_snapshot() -> dict:
             "bulk_transport_per_km_per_MT":         p.get("BULK_RATE_PER_KM",       2.5),
             "drum_transport_per_km_per_MT":         p.get("DRUM_RATE_PER_KM",       6.0),
             "decanter_conversion_cost_per_MT":      p.get("DECANTER_CONVERSION_COST", 500),
-            # FX / Commodity
-            "USD_INR_rate":                         p.get("USD_INR",              86.87),
-            "Brent_crude_USD_per_barrel":           p.get("BRENT_CRUDE",          74.50),
+            # FX / Commodity — live single source of truth (was frozen 86.87 / 74.50)
+            "USD_INR_rate":                         u.get("usdinr") or p.get("USD_INR", 86.87),
+            "Brent_crude_USD_per_barrel":           u.get("brent")  or p.get("BRENT_CRUDE", 74.50),
         }
     return _safe(_inner, "get_price_snapshot",
-                 {"VG30_IOCL_Koyali_basic_per_MT": 48302, "USD_INR_rate": 86.87})
+                 {"VG30_IOCL_Koyali_basic_per_MT": int(u.get("vg30") or 76870),
+                  "USD_INR_rate": u.get("usdinr") or 86.87})
 
 
 def get_api_health_summary() -> dict:
@@ -231,6 +253,12 @@ def get_india_consumption_series() -> dict:
 
 def get_prediction_context() -> dict:
     """Price prediction context and forecast calendar."""
+    u = _live_unified()
+    vg30 = int(u.get("vg30") or 76870)
+    nrev = _next_revision_date().strftime("%d-%m-%Y")
+    brent = u.get("brent"); fx = u.get("usdinr")
+    _live_txt = (f"Live: Brent ${float(brent):.1f}/bbl, USD/INR {float(fx):.2f}"
+                 if brent and fx else "Live market-tracked")
     def _inner():
         import sys, os
         sys.path.insert(0, str(BASE_DIR / "command_intel"))
@@ -241,14 +269,14 @@ def get_prediction_context() -> dict:
             "source": "command_intel/price_prediction.py",
             "model":  "Statistical random walk + seasonal adjustment (seed=42)",
             "disclaimer": "Claimed 91.4% accuracy / MAE ₹384 is from seed-based simulation, not live ML.",
-            "current_base_VG30_per_MT": 48302,
-            "next_revision_date":       "01-03-2026 (1st fortnightly)",
-            "forecast_direction":       "STABLE to SLIGHT_UP (Brent ₹ 74-76, INR ~86-87)",
+            "current_base_VG30_per_MT": vg30,
+            "next_revision_date":       f"{nrev} (next fortnightly)",
+            "forecast_direction":       _live_txt,
             "upcoming_revisions_top6":  records,
         }
     return _safe(_inner, "get_prediction_context", {
-        "current_base_VG30_per_MT": 48302,
-        "next_revision_date": "01-03-2026",
+        "current_base_VG30_per_MT": vg30,
+        "next_revision_date": nrev,
     })
 
 
