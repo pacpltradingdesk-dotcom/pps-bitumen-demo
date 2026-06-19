@@ -10,6 +10,12 @@ tbl_port_arrivals.json
 # server's fresh daily write persists across deploys.
 tbl_price_history_snapshot.json
 
+# Runtime price overrides written by the Update-from-Circular flow + manual
+# price entry (VG30 base, per-location prices, grade premiums). Must persist on
+# the server across deploys — tracking it meant each deploy could revert applied
+# circular prices. All keys fall back to price_master defaults when absent.
+live_prices.json
+
 # Python
 __pycache__/
 *.py[cod]
