@@ -774,6 +774,7 @@ def handle_whatsapp_opt_out(from_number: str) -> dict:
     if not valid:
         return {"success": False, "message": "Invalid number"}
 
+    conn = None
     try:
         from database import _get_conn
         conn = _get_conn()
@@ -791,17 +792,21 @@ def handle_whatsapp_opt_out(from_number: str) -> dict:
                 (row["id"],)
             )
             conn.commit()
-            conn.close()
             return {
                 "success": True,
                 "contact_name": row["name"],
                 "message": f"Opt-out processed for {row['name']}",
             }
         else:
-            conn.close()
             return {"success": False, "message": "Contact not found"}
     except Exception as e:
         return {"success": False, "message": str(e)}
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 
 def check_message_for_opt_out(message_text: str) -> bool:

@@ -244,8 +244,8 @@ def generate_forecast_calendar() -> pd.DataFrame:
         brent_stable = True
         fx_stable = True
     except Exception:
-        brent_now  = 109.0   # Mar 2026 actual
-        usdinr_now = 93.6    # Mar 2026 actual
+        brent_now  = 72.5    # baseline (matches market_data fallback)
+        usdinr_now = 86.8    # baseline (matches market_data fallback)
         brent_stable = False  # crude is elevated
         fx_stable = False     # rupee under pressure
 
@@ -450,10 +450,10 @@ def _render_future_view(df: pd.DataFrame):
     try:
         from market_data import get_unified_prices
         _up = get_unified_prices()
-        brent = float(_up.get("brent") or 109.0)
-        usdinr = float(_up.get("usdinr") or 93.6)
+        brent = float(_up.get("brent") or 72.5)
+        usdinr = float(_up.get("usdinr") or 86.8)
     except Exception:
-        brent, usdinr = 109.0, 93.6
+        brent, usdinr = 72.5, 86.8
 
     # Industry-calibrated sensitivities (matches MEE/industry benchmarks)
     brent_impact  = round((brent - 70) * 450, 0)    # ₹450/MT per ₹ 1 Brent

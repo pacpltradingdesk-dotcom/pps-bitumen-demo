@@ -195,8 +195,13 @@ class OpportunityEngine:
                 "Visakhapatnam", "Kochi", "Mangalore", "Raipur", "Dehradun"
             ]
 
-            # Typical market rate benchmark (average bitumen rate in India)
-            market_rate = 45000  # ₹/MT approximate
+            # Typical market rate benchmark — live VG30 (was a stale 45000
+            # literal, ~40% below real ~76870, so "below market" never triggered)
+            try:
+                from market_data import get_unified_prices
+                market_rate = int(get_unified_prices().get("vg30") or 76870)
+            except Exception:
+                market_rate = 76870
 
             for city in cities:
                 try:
