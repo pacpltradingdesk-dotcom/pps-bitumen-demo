@@ -143,12 +143,14 @@ def get_unified_prices() -> dict:
         out["vg30"] = float(_VG30_BASE)
 
     # ── 4. Deterministic defaults (NEVER random) ─────────────────────────
+    # Aligned with get_simulated_data() Q1-2026 baselines so the two last-resort
+    # fallback paths don't disagree ~25% (was 98/89/93 here vs 75.5/71.5/86.8).
     if out["brent"] is None:
-        out["brent"] = 98.0
+        out["brent"] = 75.5
     if out["wti"] is None:
-        out["wti"] = 89.0
+        out["wti"] = 71.5
     if out["usdinr"] is None:
-        out["usdinr"] = 93.0
+        out["usdinr"] = 86.8
     if not out["timestamp"]:
         out["timestamp"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M IST")
     if out["source"] == "unknown":

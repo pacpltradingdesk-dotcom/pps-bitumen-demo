@@ -634,6 +634,15 @@ class AIReplyEngine:
             from_number = msg.get("from_number", "")
 
             if not text.strip():
+                # Mark empty messages processed too — otherwise they stay
+                # processed=0 and get re-fetched every batch, crowding out
+                # the 50-row LIMIT and starving real inbound messages.
+                try:
+                    conn.execute(
+                        "UPDATE wa_incoming SET processed = 1 WHERE id = ?",
+                        (msg.get("id"),))
+                except Exception:
+                    pass
                 continue
 
             stats["processed"] += 1

@@ -180,7 +180,9 @@ def _rsi(values: list[float], period: int = 14) -> float:
     avg_gain = np.mean(gains) if len(gains) else 0.001
     avg_loss = np.mean(losses) if len(losses) else 0.001
     if avg_loss == 0:
-        return 100.0
+        # No losses: a genuinely flat series (no gains either) is neutral ~50,
+        # not 100 — only pure upward movement is true OVERBOUGHT.
+        return 50.0 if avg_gain == 0 else 100.0
     rs = avg_gain / avg_loss
     return round(100.0 - (100.0 / (1.0 + rs)), 1)
 
