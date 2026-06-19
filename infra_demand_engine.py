@@ -1014,21 +1014,24 @@ def generate_demand_alerts() -> List[dict]:
     finally:
         conn.close()
 
-    # Insert new alerts (skip if similar recent alert exists)
-    for alert in alerts:
-        try:
-            existing = conn if False else _get_conn()
+    # Insert new alerts (skip if similar recent alert exists).
+    # Reuse a single connection for the dedup checks instead of opening one
+    # per alert (the old `conn if False else _get_conn()` was dead code that
+    # churned a fresh connection every iteration).
+    chk = _get_conn()
+    try:
+        for alert in alerts:
             try:
-                row = existing.execute(
+                row = chk.execute(
                     "SELECT id FROM infra_alerts WHERE alert_type=? AND state=? AND status='new' AND created_at>=?",
                     (alert["alert_type"], alert.get("state"), (now - datetime.timedelta(hours=24)).strftime("%Y-%m-%d %H:%M:%S"))
                 ).fetchone()
                 if not row:
                     _insert_infra_alert(alert)
-            finally:
-                existing.close()
-        except Exception:
-            pass
+            except Exception:
+                pass
+    finally:
+        chk.close()
 
     return alerts
 

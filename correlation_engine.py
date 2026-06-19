@@ -371,7 +371,9 @@ def _ols(X_cols: List[List[float]], y: List[float]) -> Dict:
     y_pred  = [sum(beta[c] * X[i][c] for c in range(nf)) for i in range(nc)]
     ss_res  = sum((Y[i] - y_pred[i]) ** 2 for i in range(nc))
     ss_tot  = sum((Y[i] - y_mean)    ** 2 for i in range(nc))
-    r2      = 1.0 - ss_res / ss_tot if ss_tot > 0 else 0.0
+    # Guard near-constant Y (e.g. ffill/bfill-flattened series): a tiny ss_tot
+    # makes ss_res/ss_tot explode into a nonsense R². Treat as no fit.
+    r2      = 1.0 - ss_res / ss_tot if ss_tot > 1e-9 else 0.0
 
     return {
         "intercept":    round(beta[0], 6),

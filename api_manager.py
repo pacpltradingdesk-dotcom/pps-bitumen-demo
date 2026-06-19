@@ -271,9 +271,8 @@ def _get_local_holidays() -> dict:
     """Return built-in India public holidays for the current year."""
     year = now_ist().year
     holidays = [h for h in _INDIA_HOLIDAYS_2026 if h["date"].startswith(str(year))]
-    if not holidays:
-        # Fallback to full list if year not matching
-        holidays = _INDIA_HOLIDAYS_2026
+    # No fallback to the full 2026 list: in 2027+ that would serve last year's
+    # dates as "current". Better to return none than wrong holiday dates.
     return {"current": len(holidays), "holidays": holidays}
 
 def _parse_rest_countries(response_json) -> dict:
