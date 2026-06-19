@@ -50,9 +50,12 @@ highest-impact problem: different screens show different Brent/VG30/USD-INR.
 
 ---
 
-## 🎯 PRIORITIZED IMPROVEMENT PLAN (Top 10)
+## 🎯 PRIORITIZED IMPROVEMENT PLAN (Top 10)  —  STATUS
+- ✅ DONE #1 price single-source (commit ea73b98), ✅ DONE #4 quote-cheapest (e8690e6).
+- ⏳ NEXT: #2 %-change adjacent-period, #3 one AI signal, then #5-#10.
+
 ### 🔴 P0 — wrong/inconsistent data (fix first; trust-critical for a price platform)
-1. **One price source on every surface.** Make Market Pulse bar, ticker, KPIs all
+1. ✅ DONE — **One price source on every surface.** Make Market Pulse bar, ticker, KPIs all
    read `get_unified_prices()`. Today CC shows Brent $80.03/VG30 ₹76,870 while Live
    Market shows $75.19/₹78,260 and Sales shows Brent $80.14 — three truths.
    Add a render-layer consistency test (extend test_price_consistency).
