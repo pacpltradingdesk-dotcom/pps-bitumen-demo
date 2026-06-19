@@ -805,7 +805,8 @@ def _monitor_loop():
         with _lock:
             if _G["active_idx"] == 0:
                 continue   # Already on primary — nothing to do
-        # Test if primary (Ollama — free, local) is back
+        # Test if the configured primary provider is back (only reached while
+        # currently on a fallback — see active_idx check above).
         primary = PROVIDER_CHAIN[0]
         if not _pkg_ok(primary["pkg"]):
             continue

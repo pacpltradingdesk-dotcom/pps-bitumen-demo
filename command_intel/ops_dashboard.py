@@ -371,7 +371,7 @@ def _render_error_log():
             "source": "API Error",
             "severity": e.get("severity", "ERROR"),
             "message": e.get("message", e.get("error", str(e))),
-            "timestamp": e.get("timestamp", e.get("created_at", "")),
+            "timestamp": e.get("timestamp", e.get("created_at", e.get("datetime_ist", ""))),
             "details": e.get("details", e.get("stack_trace", "")),
         })
     for a in (alerts if isinstance(alerts, list) else []):

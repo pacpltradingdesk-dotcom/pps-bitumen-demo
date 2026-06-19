@@ -80,15 +80,21 @@ def run() -> dict:
     """Fetch + parse + merge all ports; write the snapshot; return it."""
     records: list[dict] = []
     for p in PORTS:
-        gov_url, myst_url = p.get("gov"), p.get("myst")
-        if gov_url:
-            html = _fetch(gov_url)
-            if html:
-                records += ps.parse_deendayal(html, p["name"], p["lat"], p["lon"])
-        if myst_url:
-            html = _fetch(myst_url)
-            if html:
-                records += ps.parse_myshiptracking(html, p["name"], p["lat"], p["lon"])
+        # Guard per-port: one port's fetch/parse failure must not abort the
+        # whole snapshot (otherwise a single bad page loses ALL ports' data).
+        try:
+            gov_url, myst_url = p.get("gov"), p.get("myst")
+            if gov_url:
+                html = _fetch(gov_url)
+                if html:
+                    records += ps.parse_deendayal(html, p["name"], p["lat"], p["lon"])
+            if myst_url:
+                html = _fetch(myst_url)
+                if html:
+                    records += ps.parse_myshiptracking(html, p["name"], p["lat"], p["lon"])
+        except Exception as e:
+            log.warning("port %s scrape failed: %s", p.get("name"), e)
+            continue
 
     merged = _dedupe(records)
     snap = {"updated_utc": _now_iso(), "source": "port-pages", "vessels": merged}

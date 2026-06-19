@@ -934,8 +934,21 @@ class MarketPulseEngine:
             except (ValueError, TypeError):
                 continue
 
-            if created_dt >= cutoff:
-                active.append(a)
+            if created_dt < cutoff:
+                continue
+            # Honor the per-alert expiry (docstring promises "not yet expired"
+            # but this previously only checked age, so short-TTL alerts lingered).
+            exp_str = a.get("expires_at", "")
+            if exp_str:
+                try:
+                    exp_dt = datetime.strptime(
+                        exp_str.replace(" IST", ""), "%Y-%m-%d %H:%M"
+                    ).replace(tzinfo=IST)
+                    if exp_dt < now:
+                        continue
+                except (ValueError, TypeError):
+                    pass
+            active.append(a)
 
         # Sort by severity (P0 first) then by created_at descending
         severity_order = {"P0": 0, "P1": 1, "P2": 2}
