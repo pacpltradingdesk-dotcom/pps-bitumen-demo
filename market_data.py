@@ -179,43 +179,35 @@ def format_change(chg_7d):
 
 def get_live_market_data():
     """
-    Fetches LIVE market data using the robust API Manager data layer.
-    Includes caching, fallbacks, and multi-provider reliability.
+    Build the market dict from the SINGLE SOURCE OF TRUTH get_unified_prices()
+    so every surface (Command Center, Live Market pulse bar, ticker) shows the
+    SAME Brent / WTI / USD-INR. (Previously this hit fetch_api_data() directly
+    and the dashboard defaulted to get_simulated_data(), so pages disagreed.)
     """
     data = {}
-    
-    # 1. Brent Crude
-    brent_data = fetch_api_data("brent")
-    if brent_data and 'current' in brent_data:
-        curr = float(brent_data['current'])
-        hist = float(brent_data.get('history_7d', curr))
-        chg = ((curr - hist) / hist) * 100 if hist else 0.0
-        chg_str, color = format_change(chg)
-        data['brent'] = {"value": f"${curr:.2f}", "value_7d": f"${hist:.2f}", "change": chg_str, "color": color}
-    else:
-        data['brent'] = {"value": "N/A", "value_7d": "N/A", "change": "0.00%", "color": "grey"}
+    try:
+        u = get_unified_prices() or {}
+    except Exception:
+        u = {}
 
-    # 2. WTI Crude
-    wti_data = fetch_api_data("wti")
-    if wti_data and 'current' in wti_data:
-        curr = float(wti_data['current'])
-        hist = float(wti_data.get('history_7d', curr))
-        chg = ((curr - hist) / hist) * 100 if hist else 0.0
+    def _block(key, prefix):
+        val = u.get(key)
+        if val is None:
+            return {"value": "N/A", "value_7d": "N/A", "change": "0.00%", "color": "grey"}
+        chg = float(u.get(f"{key}_chg_pct", 0.0) or 0.0)
         chg_str, color = format_change(chg)
-        data['wti'] = {"value": f"${curr:.2f}", "value_7d": f"${hist:.2f}", "change": chg_str, "color": color}
-    else:
-        data['wti'] = {"value": "N/A", "value_7d": "N/A", "change": "0.00%", "color": "grey"}
+        v = float(val)
+        v7 = v / (1 + chg / 100) if chg else v
+        return {"value": f"{prefix}{v:.2f}", "value_7d": f"{prefix}{v7:.2f}",
+                "change": chg_str, "color": color}
 
-    # 3. USD/INR
-    usdinr_data = fetch_api_data("usdinr")
-    if usdinr_data and 'current' in usdinr_data:
-        curr = float(usdinr_data['current'])
-        hist = float(usdinr_data.get('history_7d', curr))
-        chg = ((curr - hist) / hist) * 100 if hist else 0.0
-        chg_str, color = format_change(chg)
-        data['usdinr'] = {"value": f"{curr:.2f}", "value_7d": f"{hist:.2f}", "change": chg_str, "color": color}
-    else:
-        data['usdinr'] = {"value": "N/A", "value_7d": "N/A", "change": "0.00%", "color": "grey"}
+    data['brent']  = _block('brent', "$")
+    data['wti']    = _block('wti', "$")
+    data['usdinr'] = _block('usdinr', "")
+
+    # If the single source has nothing at all, fall back to the offline simulator.
+    if data['brent']['value'] == "N/A" and data['usdinr']['value'] == "N/A":
+        return get_simulated_data()
 
     # 4. DXY
     dxy_data = fetch_api_data("dxy")

@@ -384,9 +384,13 @@ def _safe_render(render_fn, page_name: str):
 
 def _page_home():
     try:
-        from market_data import get_live_market_data, get_simulated_data
-        api_active = st.session_state.get("_api_toggle_v3", False)
-        mkt = get_live_market_data() if api_active else get_simulated_data()
+        from market_data import get_live_market_data
+        # Always use the single source of truth (get_live_market_data now builds
+        # from get_unified_prices and self-falls-back to the simulator only when
+        # there's truly no data). Previously this defaulted to get_simulated_data
+        # whenever the api toggle was off, so Live Market disagreed with the
+        # Command Center's live prices.
+        mkt = get_live_market_data()
         from pages.home.live_market import render
         render(mkt=mkt, _CONFIDENCE_OK=_CONFIDENCE_OK,
                render_data_health_card=render_data_health_card if _CONFIDENCE_OK else None)

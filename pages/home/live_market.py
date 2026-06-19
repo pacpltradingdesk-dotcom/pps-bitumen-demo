@@ -231,7 +231,7 @@ def render(mkt: dict, _CONFIDENCE_OK: bool = False, render_data_health_card=None
       <span style="color:{mkt['usdinr']['color']};font-weight:600;"> {mkt['usdinr']['change']}</span>
     </span>
     <span style="color:#fcd34d;font-size:0.82rem;font-weight:600;">
-      VG30: {_fmt_inr_home(_lp.get("DRUM_KANDLA_VG30", 78260))}
+      VG30: {_fmt_inr_home(_lp.get("VG30_BASE", 76870))}
     </span>
   </div>
   <div style="font-size:0.72rem;color:#93c5fd;white-space:nowrap;">
