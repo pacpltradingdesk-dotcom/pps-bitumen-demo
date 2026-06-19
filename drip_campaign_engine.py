@@ -255,9 +255,12 @@ def process_due_campaigns():
                     _now(),
                 ))
             except Exception:
-                pass
+                # Queue insert failed → do NOT advance the drip step or count it
+                # as processed, else the customer silently skips this email
+                # forever. Leave as-is so it retries next cycle.
+                continue
 
-            # Move to next step
+            # Move to next step (only after the email actually queued)
             next_step = step + 1
             if next_step > len(DRIP_SEQUENCE):
                 conn.execute("UPDATE drip_campaigns SET status = 'completed', completed_at = ?, last_sent_at = ? WHERE id = ?",

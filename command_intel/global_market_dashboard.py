@@ -148,18 +148,20 @@ def _render_crude_markets(st) -> None:
             latest_brent = 0.0
         if latest_brent is not None:
             c1.metric("Brent (Latest)", f"${latest_brent:,.2f}")
-            if len(df) >= 2:
-                prev = df[brent_col].dropna().iloc[-2]
-                c2.metric("Brent Change", f"${latest_brent - prev:+,.2f}")
+            # Guard the dropna'd series length, not len(df): a column with <2
+            # non-null values made .iloc[-2] raise IndexError on every render.
+            _bs = df[brent_col].dropna()
+            if len(_bs) >= 2:
+                c2.metric("Brent Change", f"${latest_brent - _bs.iloc[-2]:+,.2f}")
     if wti_col:
         latest_wti = df[wti_col].dropna().iloc[-1] if not df[wti_col].dropna().empty else None
         if latest_wti is None or (isinstance(latest_wti, float) and math.isnan(latest_wti)):
             latest_wti = 0.0
         if latest_wti is not None:
             c3.metric("WTI (Latest)", f"${latest_wti:,.2f}")
-            if len(df) >= 2:
-                prev = df[wti_col].dropna().iloc[-2]
-                c4.metric("WTI Change", f"${latest_wti - prev:+,.2f}")
+            _ws = df[wti_col].dropna()
+            if len(_ws) >= 2:
+                c4.metric("WTI Change", f"${latest_wti - _ws.iloc[-2]:+,.2f}")
 
     # Plotly chart
     if _PLOTLY:

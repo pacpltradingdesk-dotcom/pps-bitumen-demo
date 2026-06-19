@@ -658,7 +658,9 @@ def _tab_market_data():
 
     if PLOTLY_OK:
         df = MEE_MARKET.copy()
-        df["dt"] = pd.to_datetime(df["datetime_ist"], format="%Y-%m-%d %H:%M")
+        # MEE_MARKET stores datetime_ist as DD-MM-YYYY HH:MM — the ISO format
+        # string raised ValueError and crashed the whole chart block.
+        df["dt"] = pd.to_datetime(df["datetime_ist"], format="%d-%m-%Y %H:%M", errors="coerce")
         df = df.sort_values("dt")
 
         fig = go.Figure()
