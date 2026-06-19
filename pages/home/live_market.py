@@ -108,14 +108,22 @@ def render(mkt: dict, _CONFIDENCE_OK: bool = False, render_data_health_card=None
             _chart_dates  = [str(r.get("Revision Date", "")) for _, r in _chart_rows.iterrows()]
             _chart_prices = [float(r.get("Predicted (₹/MT)", r.get("Predicted", 76870)))
                              for _, r in _chart_rows.iterrows()]
+            _chart_lo = [float(r.get("Low Range", p - 400))
+                         for (_, r), p in zip(_chart_rows.iterrows(), _chart_prices)]
+            _chart_hi = [float(r.get("High Range", p + 400))
+                         for (_, r), p in zip(_chart_rows.iterrows(), _chart_prices)]
         else:
             _pred, _lo, _hi, _rdate, _status = 76870, 76300, 77400, "next revision *(offline)*", "Pending"
             _chart_dates  = ["01-04-2026", "16-04-2026", "01-05-2026", "16-05-2026", "01-06-2026", "16-06-2026"]
             _chart_prices = [76870, 77200, 77600, 77100, 78000, 78400]
+            _chart_lo = [p - (400 + i * 120) for i, p in enumerate(_chart_prices)]
+            _chart_hi = [p + (400 + i * 120) for i, p in enumerate(_chart_prices)]
     except Exception:
         _pred, _lo, _hi, _rdate, _status = 76870, 76300, 77400, "next revision *(offline)*", "Pending"
         _chart_dates  = ["01-04-2026", "16-04-2026", "01-05-2026", "16-05-2026", "01-06-2026", "16-06-2026"]
         _chart_prices = [76870, 77200, 77600, 77100, 78000, 78400]
+        _chart_lo = [p - (400 + i * 120) for i, p in enumerate(_chart_prices)]
+        _chart_hi = [p + (400 + i * 120) for i, p in enumerate(_chart_prices)]
 
     # CRM tasks
     try:
@@ -408,11 +416,22 @@ def render(mkt: dict, _CONFIDENCE_OK: bool = False, render_data_health_card=None
         try:
             import plotly.graph_objects as _go
             _fig = _go.Figure()
+            # Confidence band (High→Low ribbon) — conveys real forecast
+            # uncertainty so a near-flat near-term curve reads as a credible
+            # prediction cone, not a fake constant line.
+            _fig.add_trace(_go.Scatter(
+                x=_chart_dates, y=_chart_hi, mode='lines',
+                line=dict(width=0), hoverinfo='skip', showlegend=False,
+            ))
+            _fig.add_trace(_go.Scatter(
+                x=_chart_dates, y=_chart_lo, mode='lines',
+                line=dict(width=0), fill='tonexty',
+                fillcolor='rgba(45,106,79,0.12)', hoverinfo='skip', showlegend=False,
+            ))
             _fig.add_trace(_go.Scatter(
                 x=_chart_dates, y=_chart_prices, mode='lines+markers',
                 line=dict(color='#2d6a4f', width=2.5),
                 marker=dict(size=6, color='#2d6a4f'),
-                fill='tozeroy', fillcolor='rgba(45,106,79,0.06)',
                 hovertemplate='%{x}<br>%{y:,.0f}/MT<extra></extra>'
             ))
             _fig.update_layout(

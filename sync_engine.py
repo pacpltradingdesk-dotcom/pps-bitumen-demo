@@ -117,6 +117,7 @@ class SyncEngine:
             ("validate", self._validate_data),
             ("calculations", self._refresh_calculations),
             ("opportunities", self._scan_opportunities),
+            ("price_snapshot", self._sync_price_snapshot),
         ])
 
         # Batch 3 (parallel): CRM + communications + automation
@@ -763,6 +764,40 @@ class SyncEngine:
         except Exception as e:
             step["details"].append(f"Market signals: Error — {str(e)[:100]}")
             self.results["errors"].append(f"Market signals: {str(e)[:100]}")
+        step["status"] = "done"
+        step["completed_at"] = _now()
+        self.results["steps"].append(step)
+
+    # ─── Step 18b: Daily price-history snapshot ──────────────────────────────
+
+    def _sync_price_snapshot(self):
+        """Persist the day's reference prices for the KPI % change badges.
+
+        Command Center compares today's live prices against this file. With no
+        writer it stayed an April fossil, producing a bogus "USD/INR ▼7.4%".
+        Captured once per calendar day so the badge reads as a stable intraday
+        move; the render guard ignores it once it ages out (>2 days)."""
+        step = {"name": "Price History Snapshot", "status": "running",
+                "started_at": _now(), "details": []}
+        try:
+            existing = _load_json(BASE / "tbl_price_history_snapshot.json", {})
+            existing = existing if isinstance(existing, dict) else {}
+            today = datetime.datetime.now(IST).strftime("%Y-%m-%d")
+            if str(existing.get("captured_at", ""))[:10] == today:
+                step["details"].append("Already captured today — kept as daily reference")
+            else:
+                from market_data import get_unified_prices
+                up = get_unified_prices() or {}
+                snap = {
+                    "brent": up.get("brent"), "wti": up.get("wti"),
+                    "usdinr": up.get("usdinr"), "vg30": up.get("vg30"),
+                    "captured_at": _now(),
+                }
+                _save_json(BASE / "tbl_price_history_snapshot.json", snap)
+                step["details"].append(f"Snapshot: Brent {snap['brent']} / VG30 {snap['vg30']}")
+                self.results["records_updated"] += 1
+        except Exception as e:
+            step["details"].append(f"Price snapshot: skipped — {str(e)[:80]}")
         step["status"] = "done"
         step["completed_at"] = _now()
         self.results["steps"].append(step)
