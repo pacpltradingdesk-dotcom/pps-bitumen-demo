@@ -224,7 +224,9 @@ def render():
             # ---------------------------
 
         # 2. Product Info
-        product_grade = st.radio("Select Grade", ["VG30", "VG10"], horizontal=True)
+        product_grade = st.radio("Select Grade", ["VG30", "VG10", "VG40", "CRMB", "PMB"], horizontal=True)
+        if product_grade in ("VG40", "CRMB", "PMB"):
+            st.caption("⚠️ VG40 / CRMB / PMB use estimated premiums over VG30 — confirm with the desk before quoting.")
 
         load_type = "Bulk"
         if search_mode == "Location":

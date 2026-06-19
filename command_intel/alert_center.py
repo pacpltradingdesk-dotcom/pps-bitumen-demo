@@ -328,9 +328,22 @@ def get_p0_alert_banner() -> str:
     """Return HTML for P0 alert banner (for Home page). Empty string if no P0 alerts."""
     try:
         from database import get_alerts
-        p0 = get_alerts(status="new", priority="P0", limit=5)
+        p0 = get_alerts(status="new", priority="P0", limit=20)
         if not p0:
             return ""
+        # De-noise: escalation + repeated price moves create near-identical
+        # alerts ("Brent moved -4.0%" / "-4.1%", repeated "[ESCALATED] INR ...").
+        # Collapse by normalized title (drop the [ESCALATED] tag and any numbers),
+        # keeping the first (newest) of each kind.
+        import re as _re
+        _seen, _uniq = set(), []
+        for a in p0:
+            _norm = _re.sub(r"[-+]?\d[\d,.]*%?", "", a.get("title", "")) \
+                       .replace("[ESCALATED]", "").strip().lower()
+            if _norm and _norm not in _seen:
+                _seen.add(_norm)
+                _uniq.append(a)
+        p0 = _uniq
         titles = " | ".join([a.get("title", "")[:60] for a in p0[:3]])
         return f"""
         <div style="background:#b85c38;color:white;padding:8px 15px;border-radius:6px;

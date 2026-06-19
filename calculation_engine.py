@@ -779,6 +779,16 @@ class BitumenCalculationEngine:
                 "landed_cost": dec_result["landed_cost"],
             })
 
+        # --- Dedup by source name (a location can surface twice — e.g. as an
+        # import terminal AND as the auto-selected private decanter, giving two
+        # different landed costs). Keep only the cheapest occurrence per source. ---
+        _by_source: Dict[str, Dict[str, Any]] = {}
+        for opt in options:
+            key = str(opt["source"]).strip().lower()
+            if key not in _by_source or opt["landed_cost"] < _by_source[key]["landed_cost"]:
+                _by_source[key] = opt
+        options = list(_by_source.values())
+
         # --- Sort by landed cost ---
         options.sort(key=lambda x: x["landed_cost"])
 

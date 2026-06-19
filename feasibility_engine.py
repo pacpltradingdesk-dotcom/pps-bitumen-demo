@@ -241,7 +241,21 @@ def get_feasibility_assessment(destination, top_n=2, grade="VG30"):
     
     # Direct Drum option
     drum_direct = calculate_drum_direct_cost(destination, grade)
-    
+
+    # Premium modified grades (VG40 / CRMB / PMB) — add the flat differential
+    # (GST-inclusive) to every option so this preview matches the quote engine
+    # (optimizer.calculate_best_price). Estimate-grade pricing.
+    _PREM_KEYS = {"VG40": "VG-40", "CRMB": "CRMB-60", "PMB": "PMB"}
+    if grade in _PREM_KEYS:
+        try:
+            from price_master import GRADE_DIFFERENTIALS
+            _prem = GRADE_DIFFERENTIALS.get(_PREM_KEYS[grade], 0) * 1.18
+            for _opt in refinery_options + import_options + [local_decanter, drum_direct]:
+                if isinstance(_opt, dict) and _opt.get("landed_cost") is not None:
+                    _opt["landed_cost"] = round(_opt["landed_cost"] + _prem, 2)
+        except Exception:
+            pass
+
     # Sort by landed cost
     refinery_options.sort(key=lambda x: x['landed_cost'])
     import_options.sort(key=lambda x: x['landed_cost'])

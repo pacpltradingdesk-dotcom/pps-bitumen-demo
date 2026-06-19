@@ -352,13 +352,28 @@ STATE_HOLIDAYS_ATMOSPHERE = {
 
 MONTH_NAMES = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
+# National bitumen construction-season fallback for destinations not mapped
+# individually in CITY_SEASONS. Indian road-laying follows the dry/monsoon
+# cycle — peak in the post-monsoon and pre-monsoon dry months, paused during
+# the Jun-Sep monsoon. Used so every destination shows a meaningful season
+# instead of "Unknown".
+DEFAULT_CITY_SEASON = {
+    "peak": [(2, 5), (10, 11)],      # Feb-May, Oct-Nov dry-weather construction
+    "moderate": [(1, 1), (12, 12)],  # Jan, Dec mild winter
+    "off": [(6, 9)],                  # Jun-Sep monsoon pause
+    "monsoon_start": 6, "monsoon_end": 9,
+    "remarks": "National estimate: peak Feb-May & Oct-Nov, monsoon pause Jun-Sep.",
+}
+
+
 def get_season_status(city: str, month: int) -> Dict:
-    """Returns season status object for a given city and month."""
-    city_data = CITY_SEASONS.get(city)
-    
-    if not city_data:
-        return {"status": "unknown", "color": "#9be3e3", "label": "Unknown"}
-        
+    """Returns season status object for a given city and month.
+
+    Falls back to a national bitumen construction-season pattern for cities
+    not individually mapped, so the result is never "Unknown".
+    """
+    city_data = CITY_SEASONS.get(city) or DEFAULT_CITY_SEASON
+
     # Check Peak
     for start, end in city_data.get("peak", []):
         if start <= month <= end:

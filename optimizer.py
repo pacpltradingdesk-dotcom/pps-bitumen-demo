@@ -162,6 +162,18 @@ class CostOptimizer:
         df_cust['base_price_calc'] = pd.to_numeric(df_cust[base_col], errors='coerce').fillna(0)
         df_cust['discount_calc'] = pd.to_numeric(df_cust[disc_col], errors='coerce').fillna(0)
         df_cust['transport_calc'] = pd.to_numeric(df_cust[transport_col], errors='coerce').fillna(0)
+
+        # Premium modified grades (VG40 / CRMB / PMB) — flat differential over the
+        # VG30 base from price_master.GRADE_DIFFERENTIALS (the same source the rate
+        # card uses). VG10 keeps its city-specific diff map above. Estimate-grade.
+        _PREMIUM_GRADE_KEYS = {"VG40": "VG-40", "CRMB": "CRMB-60", "PMB": "PMB"}
+        if product_grade in _PREMIUM_GRADE_KEYS:
+            try:
+                from price_master import GRADE_DIFFERENTIALS
+                _prem = GRADE_DIFFERENTIALS.get(_PREMIUM_GRADE_KEYS[product_grade], 0)
+                df_cust['base_price_calc'] = df_cust['base_price_calc'] + _prem
+            except Exception:
+                pass
         
         # --- REAL TIME UPDATES (Apply Manual Overrides if any passed) ---
         if price_overrides:

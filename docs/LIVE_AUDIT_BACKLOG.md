@@ -90,3 +90,76 @@ Hub, AI, Knowledge Base, Sync).
 2. 🔴 One AI signal everywhere — single composite, persisted; kill the
    "awaiting computation" empty-state (show last-known).
 3. 🟠 Fix all "% change" to use adjacent periods (kills the 7-8% USD/INR artifact).
+
+---
+
+## 🔎 LIVE BROWSER WALK — 19-Jun-2026 (full re-verification on ppsanatams.cloud)
+Walked all 6 sections + 14 pages as admin. Results:
+
+### ✅ VERIFIED FIXED (live)
+- **P0 #1 price single-source** — Command Center, Live Market Pulse, ticker, refinery
+  strip, Pricing Calculator base all show Brent $79.48 / WTI $75.74 / USD-INR 86.17 /
+  VG30 ₹76,870. The earlier 3-way mismatch is GONE. Intra-page VG30 (top bar vs Market
+  Pulse) also consistent.
+- **P1 #4 quote auto-cheapest** — calculator auto-selects Ennore Port ₹86,201.26 (the
+  cheapest of 6), not Mumbai Drum ₹95,350 (most expensive). Green "Selected" confirms.
+- **Feasibility ↔ Calculator consistency** — both rank by landed cost, same numbers
+  (CPCL Chennai ₹93,407.76, BORL Bina ₹94,303.60).
+- **Maritime AIS / Port congestion** — live (Mumbai/Kandla/Mundra congestion + ETA).
+- **Rate Card Image** (today's feature) — renders branded card in Share Center.
+
+### ⏳ STILL PENDING (confirmed live)
+- **P0 #2 one AI signal** — on ONE screen: hero SECURE / sidebar NEUTRAL 60 / ticker
+  HOLD 44% / KPI HOLD 44% / CC "Market Signals Overview" widget NEUTRAL 50% (ALL 9
+  sub-signals flat 50% = placeholder), while the real **Market Signals page computes
+  SIDEWAYS 60%** with differentiated sub-signals (Crude SIDEWAYS, Currency LOW, Weather
+  GOOD, News HIGH, Govt FALLING, Tender MEDIUM). ROOT: CC signal widgets are NOT reading
+  the live signal engine — they show a frozen 50% placeholder. Live Market agrees with
+  Market Signals page (SIDEWAYS), so divergence is concentrated in Command Center.
+- **P0 #3 % change** — USD/INR KPI "▼ ₹6.93 (7.4%)" (stale Mar-vs-today) still on CC,
+  Live Market, Price Prediction header. Market Pulse bar shows +0.00% (different calc).
+- **P1 #5 dedup** — calculator list is clean (Taloja once); still must check the
+  "Sales landing Top-5 Cheapest" surface specifically.
+- **P1 #7 Season: Unknown** — pricing calculator (Adilabad) still "Season: Unknown".
+- **P1 #8 grades** — calculator offers only VG30/VG10 (no VG40/CRMB/PMB/Emulsion).
+- **P1 #9 alert dedup** — Live Market/Sales bar still "[ESCALATED] Brent moved -4.0% |
+  Brent moved -4.1%" (dupe) + "INR strengthened 8.2%" (stale).
+- **P2 #10 empty stats + formatting** — CC Quick Stats SUPPLIERS "—" / ACTIVE DEALS "—",
+  but Ecosystem page HAS Suppliers=63 (just not wired to CC). News page shows
+  GDP 6.49476552383821% / CPI 4.95303550973656% (unrounded, ~15 decimals).
+
+### 🛠️ FIXED IN CODE — 19-Jun (post-walk, NOT yet deployed)
+- **P0 #3 % change** — `command_center.py`: drop the price-history snapshot when it
+  is >2 days old (it was an 11-Apr fossil: usd 93.1 → bogus -7.4%). Badges now fall
+  back to the adjacent-period 7-day feed change.
+- **P0 #2 composite (core)** — `command_center.py`: the "Market Signals Overview"
+  now reads the live `MarketIntelligenceEngine` master (SIDEWAYS 73%) instead of
+  averaging stale sub-scores (which gave the contradictory NEUTRAL 50%). Now matches
+  the dedicated Market Signals page. RESOLVED (per decision: distinct labels) — the
+  headline buy-action KPI + ticker are relabelled "Buy Call" (HOLD) so they read as a
+  separate signal from the market-direction "Composite Signal" (SIDEWAYS). Hero
+  "Today's Call" (SECURE) stays a third distinct label.
+- **P1 #5 dedup** — `calculation_engine.py`: cheapest-sources list now dedups by
+  source name (Taloja was both an import terminal AND the auto-decanter), keeping the
+  cheapest occurrence.
+- **P1 #7 Season Unknown** — `sales_calendar.py`: unmapped cities now fall back to a
+  national bitumen construction-season pattern (peak Feb-May & Oct-Nov, monsoon-off
+  Jun-Sep) instead of "Unknown".
+- **P1 #9 alert dedup** — `alert_center.py`: P0 banner dedups by normalized title
+  (drops [ESCALATED] tag + numbers) so "Brent moved -4.0%/-4.1%" collapse to one.
+- **P2 #10** — `command_center.py` wires Suppliers/Customers to `party_master`
+  counts when the relational tables are empty (CC now shows 63 like Ecosystem);
+  `market_signals_dashboard.py` rounds GDP/CPI (6.49476552383821% → 6.5%).
+- **P1 #8 grades** — DONE (estimate-grade): calculator radio now offers VG30/VG10/
+  VG40/CRMB/PMB. VG40/CRMB/PMB apply the flat differential from
+  `price_master.GRADE_DIFFERENTIALS` (same source as the rate card: VG40 +2680,
+  CRMB +1594, PMB +1644) in BOTH the optimizer (quote) and feasibility (preview),
+  with an on-screen "estimate — confirm with desk" caption. Swap in PPS's real
+  modified-grade premiums in `GRADE_DIFFERENTIALS` when available.
+
+### 🆕 NEW FINDINGS (not in original backlog) — all STALE-DATA
+- **Price Prediction** page banner: "🔴 Data stale · 3153 min old" (~52h).
+- **Port Import Tracker**: "LAST UPDATE 02-03-2026" (~3.5 months old).
+- **Telegram Analyzer**: "🔴 Data missing — click Refresh"; last run 2026-03-25 (~3mo).
+  → Suggests one or more cron/refresh jobs (prediction, port-allocation, telegram-fetch)
+    are not running on the VPS. Worth a systemd/cron audit alongside the P0/P1 fixes.

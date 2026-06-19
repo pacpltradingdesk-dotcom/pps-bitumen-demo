@@ -29,6 +29,18 @@ _STATUS_COLORS = {
     "MAJOR": _FIRE,
 }
 
+
+def _fmt_num(value, dp: int = 1, dash: str = "—") -> str:
+    """Round a numeric value for display; pass non-numerics through as the dash.
+
+    Prevents raw API floats like 6.49476552383821 from rendering with ~15
+    decimal places.
+    """
+    try:
+        return f"{float(value):.{dp}f}"
+    except (TypeError, ValueError):
+        return dash
+
 _DIR_ARROWS = {"UP": "▲", "DOWN": "▼", "SIDEWAYS": "►"}
 
 # ── Signal display config ────────────────────────────────────────────────────
@@ -168,7 +180,7 @@ def _render_signal_card(col, sig: dict, label: str, key_field: str, icon: str) -
     elif sig_id == "tenders":
         detail = f"Found: {sig.get('new_tenders', 0)} | {sig.get('top_state', '—')}"
     elif sig_id == "economic":
-        detail = f"GDP: {sig.get('gdp_growth', '—')}% | CPI: {sig.get('cpi', '—')}%"
+        detail = f"GDP: {_fmt_num(sig.get('gdp_growth'))}% | CPI: {_fmt_num(sig.get('cpi'))}%"
     elif sig_id == "search":
         detail = f"Score: {sig.get('interest_score', '—')} | {sig.get('signal_strength', '—')}"
     elif sig_id == "ports":
@@ -293,8 +305,8 @@ def _render_signal_details(signals: dict) -> None:
         econ = signals.get("economic", {})
         search = signals.get("search", {})
         ports = signals.get("ports", {})
-        c1.metric("GDP Growth", f"{econ.get('gdp_growth', '—')}%")
-        c1.metric("CPI", f"{econ.get('cpi', '—')}%")
+        c1.metric("GDP Growth", f"{_fmt_num(econ.get('gdp_growth'))}%")
+        c1.metric("CPI", f"{_fmt_num(econ.get('cpi'))}%")
         c1.metric("Outlook", econ.get("construction_outlook", "—"))
         c2.metric("Search Interest", search.get("demand_interest", "—"))
         c2.metric("Interest Score", search.get("interest_score", "—"))

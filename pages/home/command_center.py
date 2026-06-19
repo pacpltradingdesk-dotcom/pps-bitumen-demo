@@ -263,12 +263,23 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
             return max(0.0, 50 - conf / 2)
         return 50.0
 
-    _sig_raw = _load_json("tbl_market_signals.json", {})
+    # Use the LIVE MarketIntelligenceEngine — the same source the dedicated
+    # Market Signals page uses — so the Command Center composite MATCHES it.
+    # Previously this read a stale tbl_market_signals.json snapshot where most
+    # directions were None, collapsing every sub-signal to a flat 50% (a
+    # "NEUTRAL 50%" that contradicted the page's live SIDEWAYS 60%). The engine
+    # caches internally, so this stays cheap. Fall back to the snapshot only if
+    # the engine is unavailable.
     _latest = {}
-    if isinstance(_sig_raw, list) and _sig_raw and isinstance(_sig_raw[-1], dict):
-        _latest = _sig_raw[-1].get("signals", {}) or {}
-    elif isinstance(_sig_raw, dict):
-        _latest = _sig_raw
+    try:
+        from market_intelligence_engine import MarketIntelligenceEngine
+        _latest = MarketIntelligenceEngine().compute_all_signals() or {}
+    except Exception:
+        _sig_raw = _load_json("tbl_market_signals.json", {})
+        if isinstance(_sig_raw, list) and _sig_raw and isinstance(_sig_raw[-1], dict):
+            _latest = _sig_raw[-1].get("signals", {}) or {}
+        elif isinstance(_sig_raw, dict):
+            _latest = _sig_raw
     signals_data = {}
     for _k, _v in _latest.items():
         if _k == "master" or not isinstance(_v, dict):
@@ -277,6 +288,10 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
             "score": _signal_score(_v),
             "label": _v.get("direction") or _v.get("market_direction") or "",
         }
+    # Canonical composite — the engine's master signal (market_direction +
+    # confidence). The Overview banner uses this directly so it always matches
+    # the dedicated Market Signals page instead of an averaged sub-score.
+    _master = _latest.get("master", {}) if isinstance(_latest, dict) else {}
 
     # Alerts
     alerts_data = _load_json("sre_alerts.json", [])
@@ -361,7 +376,7 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
     # Global markets data
     global_markets = [
         f"Brent: ${brent}", f"WTI: ${wti}", f"USD/INR: {usdinr}",
-        f"VG30: {_fmt(vg30_k)}/MT", f"AI: {pa_action} ({pa_urgency}%)",
+        f"VG30: {_fmt(vg30_k)}/MT", f"Buy Call: {pa_action} ({pa_urgency}%)",
     ]
     try:
         hub_cache = _load_json("hub_cache.json", {})
@@ -470,8 +485,20 @@ document.getElementById('btnR').onclick=function(e){{e.stopPropagation();if(froz
     # 3. KPI ROW — 5 cards (with change indicators + sparkline context)
     # ═══════════════════════════════════════════════════════════════════════
 
-    # Load previous prices for change calculation
+    # Load previous prices for change calculation. Only trust the snapshot if it
+    # is recent (an adjacent period). A months-old snapshot produces bogus
+    # "daily" moves — e.g. USD/INR ▼₹6.93 (7.4%) comparing an April reference
+    # (93.1) against today (86.17). When the snapshot is stale, drop it so every
+    # badge falls back to the real adjacent-period feed change (_pct_badge below).
+    _SNAP_MAX_AGE_DAYS = 2.0
     prev_prices = _load_json("tbl_price_history_snapshot.json", {})
+    try:
+        import time as _time
+        _snap_age_days = (_time.time() - (ROOT / "tbl_price_history_snapshot.json").stat().st_mtime) / 86400.0
+        if _snap_age_days > _SNAP_MAX_AGE_DAYS:
+            prev_prices = {}  # stale snapshot — use adjacent-period feed instead
+    except Exception:
+        pass
     prev_brent = prev_prices.get("brent", brent_val)
     prev_wti = prev_prices.get("wti", wti_val)
     prev_usdinr = prev_prices.get("usdinr", 0)
@@ -563,7 +590,7 @@ document.getElementById('btnR').onclick=function(e){{e.stopPropagation();if(froz
 <div class="kpi-chg" style="padding-left:8px;">{vg30_chg}</div>
 </div>
 <div class="kpi" style="border:2px solid {sig_color};background:{sig_bg};">
-<div class="kpi-label" style="color:{sig_color};">AI Signal</div>
+<div class="kpi-label" style="color:{sig_color};">Buy Call</div>
 <div class="kpi-val" style="color:{sig_color};">{pa_action}</div>
 <div style="background:rgba(0,0,0,0.06);border-radius:3px;height:5px;overflow:hidden;margin-top:4px;">
 <div style="background:{sig_color};height:100%;width:{urg_w}%;border-radius:3px;transition:width 1s ease;"></div>
@@ -837,15 +864,27 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
                 signal_items.append({"name": key.replace("_", " ").title(), "score": val, "label": ""})
 
         if signal_items:
-            # Composite score
-            all_scores = []
-            for sig in signal_items:
-                try: all_scores.append(float(sig.get("score", 50)))
-                except Exception: pass
-            composite = sum(all_scores) / len(all_scores) if all_scores else 50
-            comp_color = "#10B981" if composite > 60 else "#EF4444" if composite < 40 else "#F59E0B"
-            comp_label = "BULLISH" if composite > 60 else "BEARISH" if composite < 40 else "NEUTRAL"
-            comp_bg = "#F0FDF4" if composite > 60 else "#FEF2F2" if composite < 40 else "#FFFBEB"
+            # Composite — prefer the engine's MASTER signal (the exact value the
+            # dedicated Market Signals page shows) so the two never disagree.
+            # Only fall back to averaging sub-scores if no master is available.
+            _md = str(_master.get("market_direction", "")).upper() if isinstance(_master, dict) else ""
+            if _md:
+                composite = float(_master.get("confidence", 50) or 50)
+                if _md in ("UP", "BULLISH", "RISING"):
+                    comp_label, comp_color, comp_bg = "BULLISH", "#10B981", "#F0FDF4"
+                elif _md in ("DOWN", "BEARISH", "FALLING"):
+                    comp_label, comp_color, comp_bg = "BEARISH", "#EF4444", "#FEF2F2"
+                else:
+                    comp_label, comp_color, comp_bg = (_md or "NEUTRAL"), "#F59E0B", "#FFFBEB"
+            else:
+                all_scores = []
+                for sig in signal_items:
+                    try: all_scores.append(float(sig.get("score", 50)))
+                    except Exception: pass
+                composite = sum(all_scores) / len(all_scores) if all_scores else 50
+                comp_color = "#10B981" if composite > 60 else "#EF4444" if composite < 40 else "#F59E0B"
+                comp_label = "BULLISH" if composite > 60 else "BEARISH" if composite < 40 else "NEUTRAL"
+                comp_bg = "#F0FDF4" if composite > 60 else "#FEF2F2" if composite < 40 else "#FFFBEB"
 
             # Master signal banner
             st.markdown(f"""
@@ -959,8 +998,21 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
         _sup, _cus, _deals = (db_stats.get('total_suppliers'),
                               db_stats.get('total_customers'),
                               db_stats.get('total_deals'))
-        _sup_label = f"{_sup} (estimated)" if (_sup and not _db_stats_live) else (_sup if _sup else "—")
-        _cus_label = f"{_cus} (estimated)" if (_cus and not _db_stats_live) else (_cus if _cus else "—")
+        # The relational suppliers/customers tables can be empty even when the
+        # party_master store (the source the Ecosystem page counts) has records.
+        # Fall back to that count so this stat matches Ecosystem (e.g. 63
+        # suppliers) instead of a misleading "—".
+        if not _sup or not _cus:
+            try:
+                from party_master import load_suppliers, load_customers
+                if not _sup:
+                    _sup = len(load_suppliers())
+                if not _cus:
+                    _cus = len(load_customers())
+            except Exception:
+                pass
+        _sup_label = _sup if _sup else "—"
+        _cus_label = _cus if _cus else "—"
         stats = [
             ("🏭", "Suppliers",
                 _sup_label,
