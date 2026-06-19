@@ -1606,14 +1606,18 @@ _sre_thread_started = False
 _sre_thread_lock    = threading.Lock()
 
 
-def start_sre_background(interval_min: int = 15) -> None:
+def start_sre_background(interval_min: int = 15, force: bool = False) -> None:
     """
     Start a background daemon thread that runs SREOrchestrator.run_cycle()
     every `interval_min` minutes. Safe to call multiple times (runs only once).
+
+    `force=True` (used by the heartbeat restart_fn) bypasses the started-flag
+    so a dead worker can actually be respawned — otherwise the flag stays True
+    forever and "auto-restart" is a silent no-op.
     """
     global _sre_thread_started
     with _sre_thread_lock:
-        if _sre_thread_started:
+        if _sre_thread_started and not force:
             return
         _sre_thread_started = True
 
@@ -1640,7 +1644,7 @@ def start_sre_background(interval_min: int = 15) -> None:
         from resilience_manager import HeartbeatMonitor
         HeartbeatMonitor.register(
             "SREBackground",
-            restart_fn=lambda: start_sre_background(interval_min),
+            restart_fn=lambda: start_sre_background(interval_min, force=True),
             expected_interval_sec=interval_min * 60,
         )
     except Exception:

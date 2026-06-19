@@ -307,6 +307,24 @@ def _parse_standard(response_json, rules: dict):
 # CORE FETCH WITH AUTO-REPAIR
 # ─────────────────────────────────────────────────────────────────────────────
 
+# Map widget_id → resilience_config.VALIDATION_RULES key for range sanity checks.
+_VALIDATION_KEY = {"brent": "brent_usd", "wti": "wti_usd",
+                   "usdinr": "usdinr", "eurinr": "eurinr"}
+
+def _value_in_range(widget_id: str, value) -> bool:
+    """True if `value` is within the configured sane range (or no rule exists).
+    Rejects 0/garbage values that would otherwise be cached as a 'live' price
+    and poison every Brent/VG-30/FX calculation downstream."""
+    try:
+        from resilience_config import VALIDATION_RULES
+        rule = VALIDATION_RULES.get(_VALIDATION_KEY.get(widget_id, widget_id))
+        if not rule:
+            return True
+        return float(rule["min"]) <= float(value) <= float(rule["max"])
+    except Exception:
+        return True
+
+
 def fetch_api_data(widget_id: str, force: bool = False):
     """
     Main fetch function.
@@ -365,10 +383,12 @@ def fetch_api_data(widget_id: str, force: bool = False):
             elif provider == "yfinance" or endpoint == "yfinance":
                 sym = config.get("fallback_symbol", "")
                 val, val_7d = fetch_yfinance_with_history(sym)
-                if val is not None:
+                if val is not None and _value_in_range(widget_id, val):
                     result_data = {"current": float(val), "history_7d": float(val_7d)}
                     success = True
                     break
+                elif val is not None:
+                    error_detail = f"yfinance value {val} out of sane range for {widget_id}"
 
             elif provider == "local_datetime":
                 result_data = {"current": now_ist().strftime("%H:%M:%S")}
@@ -424,7 +444,9 @@ def fetch_api_data(widget_id: str, force: bool = False):
                     if raw is not None:
                         if isinstance(raw, str):
                             result_data = {"current": raw}
-                        else:
+                            success = True
+                            break
+                        elif _value_in_range(widget_id, raw):
                             val_7d_supp = None
                             if config.get("history_needed"):
                                 sym = config.get("fallback_symbol")
@@ -434,8 +456,11 @@ def fetch_api_data(widget_id: str, force: bool = False):
                                 "current": float(raw),
                                 "history_7d": float(val_7d_supp) if val_7d_supp else float(raw),
                             }
-                        success = True
-                        break
+                            success = True
+                            break
+                        else:
+                            # out-of-range numeric (e.g. 0.0) — reject, try next source/fallback
+                            error_detail = f"value {raw} out of sane range for {widget_id}"
 
         except requests.exceptions.Timeout:
             error_detail = "Timeout (>8s)"
@@ -458,7 +483,7 @@ def fetch_api_data(widget_id: str, force: bool = False):
 
         if fb == "yfinance" and fb_sym and YFINANCE_AVAILABLE:
             val, val_7d = fetch_yfinance_with_history(fb_sym)
-            if val is not None:
+            if val is not None and _value_in_range(widget_id, val):
                 result_data = {"current": float(val), "history_7d": float(val_7d)}
                 success = True
                 action_taken = f"Fallback activated → yfinance ({fb_sym})"
@@ -490,20 +515,29 @@ def fetch_api_data(widget_id: str, force: bool = False):
     # ── Latency calculation ──────────────────────────────────────────────────
     latency_ms = int((time.time() - start) * 1000)
 
-    # ── Update stats ─────────────────────────────────────────────────────────
-    stats[widget_id]["last_call_time"] = ts_str()
-    stats[widget_id]["calls"] = stats[widget_id].get("calls", 0) + 1
+    # ── Update stats (atomic read-modify-write under the shared file lock) ─────
+    # Re-read fresh inside the lock so concurrent fetches can't clobber each
+    # other's counter updates (lost increments delayed the P0 escalation).
+    with _lock:
+      stats = load_stats()
+      st = stats.setdefault(widget_id, {
+          "status": "Unknown", "last_call_time": None, "avg_latency_ms": 0,
+          "failures": 0, "calls": 0, "consecutive_failures": 0, "plan": "Free",
+          "auto_repair_count": 0, "fallback_activations": 0,
+      })
+      st["last_call_time"] = ts_str()
+      st["calls"] = st.get("calls", 0) + 1
 
-    if success:
-        stats[widget_id]["status"] = "OK"
-        stats[widget_id]["consecutive_failures"] = 0
-        old_avg = stats[widget_id].get("avg_latency_ms", 0)
-        stats[widget_id]["avg_latency_ms"] = int((old_avg + latency_ms) / 2) if old_avg > 0 else latency_ms
-    else:
-        prev_consec = stats[widget_id].get("consecutive_failures", 0)
-        stats[widget_id]["status"] = "Fail"
-        stats[widget_id]["failures"] = stats[widget_id].get("failures", 0) + 1
-        stats[widget_id]["consecutive_failures"] = prev_consec + 1
+      if success:
+        st["status"] = "OK"
+        st["consecutive_failures"] = 0
+        old_avg = st.get("avg_latency_ms", 0)
+        st["avg_latency_ms"] = int((old_avg + latency_ms) / 2) if old_avg > 0 else latency_ms
+      else:
+        prev_consec = st.get("consecutive_failures", 0)
+        st["status"] = "Fail"
+        st["failures"] = st.get("failures", 0) + 1
+        st["consecutive_failures"] = prev_consec + 1
 
         # Only price-critical feeds (crude / FX — they drive VG30 + KPIs) escalate
         # to P0/P1. Supplementary feeds (weather, country, World Bank) are not
@@ -530,17 +564,17 @@ def fetch_api_data(widget_id: str, force: bool = False):
 
         # Alert threshold
         alert_threshold = hc.get("alert_on_consecutive_failures", 3)
-        if stats[widget_id]["consecutive_failures"] >= alert_threshold:
+        if st["consecutive_failures"] >= alert_threshold:
             log_dev_activity(
                 activity_type="Alert",
-                title=f"CRITICAL: {widget_id} failed {stats[widget_id]['consecutive_failures']} times consecutively",
+                title=f"CRITICAL: {widget_id} failed {st['consecutive_failures']} times consecutively",
                 description=f"API: {config.get('name', widget_id)} | Endpoint: {endpoint} | Error: {error_detail}. Manual intervention required.",
                 status="Pending",
                 component=widget_id,
                 department="Technology",
             )
 
-    save_stats(stats)
+      save_stats(stats)
 
     # ── Health log entry ─────────────────────────────────────────────────────
     log_health(
