@@ -126,6 +126,14 @@ def render():
         st.subheader("Quick Share")
         st.caption("Select a page, choose recipients, and send instantly.")
 
+        # Branded rate-card image — download / WhatsApp share.
+        with st.expander("📸 Bitumen Rate Card Image", expanded=False):
+            try:
+                from rate_image_engine import render_rate_image_panel
+                render_rate_image_panel()
+            except Exception as _e:
+                st.caption(f"Rate image unavailable: {_e}")
+
         contacts = _load_json(_CONTACTS_FILE, [])
 
         # ── Source selection ─────────────────────────────────────────────

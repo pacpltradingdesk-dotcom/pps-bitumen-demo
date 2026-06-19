@@ -75,6 +75,17 @@ DRUM_PRICES: dict[str, int] = {
     "DRUM_MUMBAI_VG10": 75910, "DRUM_KANDLA_VG10": 76960,
 }
 
+# Per-grade Rs/MT differential vs VG-30, from the IOCL fortnightly circular
+# relationships already encoded in competitor_intelligence.PSU_PRICES
+# (VG-10 ≈ VG-30 −1300, VG-40 ≈ +2680, CRMB-60 ≈ +1594, PMB ≈ CRMB premium).
+# Lets every grade derive from VG30_BASE so displays never drift.
+GRADE_DIFFERENTIALS: dict[str, int] = {
+    "VG-10": -1300, "VG-30": 0, "VG-40": 2680, "CRMB-60": 1594, "PMB": 1644,
+}
+
+# Drum (packed) premium over bulk = DRUM_KANDLA_VG30 (78260) − VG30_BASE (76870).
+DRUM_PREMIUM: int = 1390
+
 # Non-price operational constants used by the cost engines.
 OPERATIONAL: dict[str, float] = {
     "DECANTER_CONVERSION_COST": 500,
