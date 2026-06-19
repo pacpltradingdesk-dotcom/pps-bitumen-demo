@@ -41,8 +41,8 @@ def _get_company():
 
 def _get_live_rates():
     try:
-        with open(os.path.join(BASE_DIR, "live_prices.json"), "r") as f:
-            lp = json.load(f)
+        from price_master import default_prices  # single source of truth
+        lp = default_prices()
         return {
             "VG30 Bulk (Mumbai)": lp.get("DRUM_MUMBAI_VG30", 76870) - 2000,
             "VG30 Drum (Mumbai)": lp.get("DRUM_MUMBAI_VG30", 76870),

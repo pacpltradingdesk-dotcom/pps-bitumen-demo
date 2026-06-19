@@ -34,8 +34,10 @@ def _get_company():
 
 def _get_live_rates():
     try:
-        with open(os.path.join(BASE_DIR, "live_prices.json"), "r") as f:
-            lp = json.load(f)
+        # Single source of truth — was reading live_prices.json keys that
+        # don't exist there (always hit literals) and a 34k except-fallback.
+        from price_master import default_prices
+        lp = default_prices()
         return {
             "VG30 Bulk (Mumbai)": lp.get("DRUM_MUMBAI_VG30", 76870) - 2000,
             "VG30 Drum (Mumbai)": lp.get("DRUM_MUMBAI_VG30", 76870),
@@ -43,7 +45,9 @@ def _get_live_rates():
             "VG30 Drum (Kandla)": lp.get("DRUM_KANDLA_VG30", 78260),
         }
     except Exception:
-        return {"VG30 Bulk": 34000, "VG30 Drum": 36000, "VG10 Bulk": 35000, "VG10 Drum": 37000}
+        from price_master import VG30_BASE
+        return {"VG30 Bulk": VG30_BASE - 2000, "VG30 Drum": VG30_BASE,
+                "VG10 Bulk": VG30_BASE - 2960, "VG10 Drum": VG30_BASE - 960}
 
 
 def generate_showcase_html():

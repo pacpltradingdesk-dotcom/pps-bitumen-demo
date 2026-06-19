@@ -888,11 +888,13 @@ def generate_rate_card_message():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     today = datetime.date.today().strftime("%d %b %Y")
 
-    # Load live prices
+    # Load prices from the single source of truth (price_master) — this
+    # customer-facing rate card previously read live_prices.json keys that
+    # don't exist there, so it always sent the same hardcoded literals.
     rates = {}
     try:
-        with open(os.path.join(base_dir, "live_prices.json"), "r") as f:
-            lp = json.load(f)
+        from price_master import default_prices
+        lp = default_prices()
         rates = {
             "VG30 Bulk": lp.get("DRUM_KANDLA_VG30", 78260) - 2000,
             "VG30 Drum": lp.get("DRUM_KANDLA_VG30", 78260),
@@ -900,7 +902,9 @@ def generate_rate_card_message():
             "VG10 Drum": lp.get("DRUM_MUMBAI_VG10", 75910),
         }
     except Exception:
-        rates = {"VG30 Bulk": 76260, "VG30 Drum": 78260, "VG10 Bulk": 73910, "VG10 Drum": 75910}
+        from price_master import VG30_BASE
+        rates = {"VG30 Bulk": VG30_BASE - 610, "VG30 Drum": VG30_BASE + 1390,
+                 "VG10 Bulk": VG30_BASE - 2960, "VG10 Drum": VG30_BASE - 960}
 
     # Format rates
     rate_lines = ""
