@@ -137,6 +137,24 @@ def normalize_grade(text: str | None) -> str | None:
     return None
 
 
+def normalize_premium_grade(text: str | None) -> str | None:
+    """Map a modified-grade label to its price_master.GRADE_DIFFERENTIALS key
+    (VG40 -> 'VG-40', CRMB -> 'CRMB-60', PMB -> 'PMB'), or None.
+
+    Lets the circular auto-update grade premiums when those grades appear; for a
+    VG30-only circular this simply never matches (no-op)."""
+    if not text:
+        return None
+    t = str(text).upper().replace(" ", "").replace("-", "")
+    if "VG40" in t:
+        return "VG-40"
+    if "CRMB" in t:
+        return "CRMB-60"
+    if "PMB" in t:
+        return "PMB"
+    return None
+
+
 def is_sane_price(price) -> bool:
     """True only for a plausible bitumen ₹/MT value (rejects OCR misreads)."""
     try:
@@ -182,12 +200,19 @@ def build_updates(rows: list[dict]) -> dict:
     unmatched: list[dict] = []
     rejected: list[dict] = []
     vg30_base = None
+    _premium_rows: list[tuple[str, int]] = []  # (GRADE_DIFFERENTIALS key, price)
 
     for r in rows or []:
         grade = normalize_grade(r.get("grade"))
         location = r.get("location") or ""
         price = r.get("price")
         if grade is None:
+            # Not VG30/VG10 — maybe a modified grade (VG40/CRMB/PMB) whose
+            # premium over VG30 we can auto-update. (No-op for VG30-only circulars.)
+            pg = normalize_premium_grade(r.get("grade"))
+            if pg and is_sane_price(price):
+                _premium_rows.append((pg, int(float(price))))
+                continue
             unmatched.append({"row": r, "reason": "unknown grade"})
             continue
         keys = match_keys(location, grade)
@@ -203,5 +228,13 @@ def build_updates(rows: list[dict]) -> dict:
         if grade == "VG30" and _is_base_location(location):
             vg30_base = ip
 
+    # Grade premiums = (grade price − VG30 base). Needs a VG30 base in the same
+    # circular to anchor the difference; otherwise the premiums are left as-is.
+    grade_differentials: dict[str, int] = {}
+    if vg30_base and _premium_rows:
+        for gk, gp in _premium_rows:
+            grade_differentials[gk] = gp - int(vg30_base)
+
     return {"updates": updates, "vg30_base": vg30_base,
+            "grade_differentials": grade_differentials,
             "unmatched": unmatched, "rejected": rejected}

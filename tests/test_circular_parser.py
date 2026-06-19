@@ -101,6 +101,24 @@ def test_build_updates_rejects_insane_price():
 
 
 def test_build_updates_skips_unknown_grade():
-    out = cp.build_updates([{"location": "Mathura", "grade": "PMB", "price": 90000}])
+    # A genuinely unrecognized grade is skipped to unmatched.
+    out = cp.build_updates([{"location": "Mathura", "grade": "ZZ-99", "price": 90000}])
     assert out["updates"] == {}
     assert out["unmatched"]
+
+
+def test_build_updates_extracts_grade_premiums():
+    # A modified grade alongside a VG30 base yields its premium over VG30.
+    out = cp.build_updates([
+        {"location": "Mumbai", "grade": "VG30", "price": 78000},
+        {"location": "Mumbai", "grade": "VG40", "price": 80680},
+        {"location": "Mumbai", "grade": "PMB", "price": 79644},
+    ])
+    assert out["vg30_base"] == 78000
+    assert out["grade_differentials"] == {"VG-40": 2680, "PMB": 1644}
+
+
+def test_build_updates_vg30_only_has_no_premiums():
+    # A VG30-only circular (the common case) produces no premium changes.
+    out = cp.build_updates([{"location": "Mumbai", "grade": "VG30", "price": 78000}])
+    assert out["grade_differentials"] == {}

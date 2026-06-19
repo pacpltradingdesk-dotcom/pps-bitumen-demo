@@ -77,7 +77,7 @@ def get_card_rates() -> list[dict]:
             rows.append({"grade": g, "bulk": None, "drum": None,
                          "direction": arrow, "on_request": True})
             continue
-        bulk = vg30 + price_master.GRADE_DIFFERENTIALS.get(g, 0)
+        bulk = vg30 + price_master.get_grade_differentials().get(g, 0)
         rows.append({"grade": g, "bulk": bulk, "drum": bulk + price_master.DRUM_PREMIUM,
                      "direction": arrow, "on_request": False})
     return rows

@@ -169,8 +169,8 @@ class CostOptimizer:
         _PREMIUM_GRADE_KEYS = {"VG40": "VG-40", "CRMB": "CRMB-60", "PMB": "PMB"}
         if product_grade in _PREMIUM_GRADE_KEYS:
             try:
-                from price_master import GRADE_DIFFERENTIALS
-                _prem = GRADE_DIFFERENTIALS.get(_PREMIUM_GRADE_KEYS[product_grade], 0)
+                from price_master import get_grade_differentials
+                _prem = get_grade_differentials().get(_PREMIUM_GRADE_KEYS[product_grade], 0)
                 df_cust['base_price_calc'] = df_cust['base_price_calc'] + _prem
             except Exception:
                 pass

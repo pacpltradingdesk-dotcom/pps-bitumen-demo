@@ -65,8 +65,9 @@ def _last_circular_date():
     return None
 
 
-def _apply_overrides(updates: dict, vg30_base, circular_date: str | None = None) -> bool:
-    """Merge updates (+ VG30_BASE) into live_prices.json. Returns success."""
+def _apply_overrides(updates: dict, vg30_base, circular_date: str | None = None,
+                     grade_differentials: dict | None = None) -> bool:
+    """Merge updates (+ VG30_BASE + grade premiums) into live_prices.json."""
     try:
         lp = {}
         if _LIVE_PRICES.exists():
@@ -75,6 +76,14 @@ def _apply_overrides(updates: dict, vg30_base, circular_date: str | None = None)
         if vg30_base:
             lp["VG30_BASE"] = int(vg30_base)
             lp["VG30_ANCHOR"] = _make_anchor(int(vg30_base))
+        if grade_differentials:
+            # Merge onto any existing override so each circular only updates the
+            # grades it actually carried. price_master.get_grade_differentials()
+            # reads this back, layered on the code defaults — no redeploy needed.
+            existing = lp.get("GRADE_DIFFERENTIALS", {})
+            existing = existing if isinstance(existing, dict) else {}
+            existing.update({str(k): int(v) for k, v in grade_differentials.items()})
+            lp["GRADE_DIFFERENTIALS"] = existing
         if circular_date:
             lp["LAST_CIRCULAR_DATE"] = str(circular_date)
         _LIVE_PRICES.write_text(json.dumps(lp, indent=4, ensure_ascii=False), encoding="utf-8")
@@ -187,8 +196,11 @@ def render():
 
     c1, c2 = st.columns([1, 3])
     if c1.button("✅ Apply these prices", type="primary", disabled=not confirmed):
-        if _apply_overrides(updates, result.get("vg30_base"), circular_date=circ_date_raw):
-            st.success(f"Applied {len(updates)} prices. Now live across the dashboard.")
+        _gd = result.get("grade_differentials") or {}
+        if _apply_overrides(updates, result.get("vg30_base"), circular_date=circ_date_raw,
+                            grade_differentials=_gd):
+            _extra = f" + {len(_gd)} grade premium(s)" if _gd else ""
+            st.success(f"Applied {len(updates)} prices{_extra}. Now live across the dashboard.")
             st.session_state.pop("_circ_result", None)
             st.session_state.pop("_circ_date", None)
             st.rerun()

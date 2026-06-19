@@ -83,6 +83,32 @@ GRADE_DIFFERENTIALS: dict[str, int] = {
     "VG-10": -1300, "VG-30": 0, "VG-40": 2680, "CRMB-60": 1594, "PMB": 1644,
 }
 
+
+def get_grade_differentials() -> dict:
+    """Grade premiums over VG30, with runtime overrides layered on the defaults.
+
+    Lets the fortnightly circular (or a one-time manual edit) update the
+    VG40/CRMB/PMB premiums WITHOUT a code change or redeploy. Override source:
+    live_prices.json["GRADE_DIFFERENTIALS"] — a {grade_key: premium} dict written
+    by the Update-from-Circular flow. Falls back to the GRADE_DIFFERENTIALS
+    defaults for any grade not overridden. Set-and-forget."""
+    diffs = dict(GRADE_DIFFERENTIALS)
+    try:
+        import json as _json
+        from pathlib import Path as _Path
+        _lp = _Path(__file__).parent / "live_prices.json"
+        if _lp.exists():
+            ov = _json.loads(_lp.read_text(encoding="utf-8")).get("GRADE_DIFFERENTIALS", {})
+            if isinstance(ov, dict):
+                for k, v in ov.items():
+                    try:
+                        diffs[str(k)] = int(float(v))
+                    except (TypeError, ValueError):
+                        continue
+    except Exception:
+        pass
+    return diffs
+
 # Drum (packed) premium over bulk = DRUM_KANDLA_VG30 (78260) − VG30_BASE (76870).
 DRUM_PREMIUM: int = 1390
 

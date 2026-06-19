@@ -248,8 +248,8 @@ def get_feasibility_assessment(destination, top_n=2, grade="VG30"):
     _PREM_KEYS = {"VG40": "VG-40", "CRMB": "CRMB-60", "PMB": "PMB"}
     if grade in _PREM_KEYS:
         try:
-            from price_master import GRADE_DIFFERENTIALS
-            _prem = GRADE_DIFFERENTIALS.get(_PREM_KEYS[grade], 0) * 1.18
+            from price_master import get_grade_differentials
+            _prem = get_grade_differentials().get(_PREM_KEYS[grade], 0) * 1.18
             for _opt in refinery_options + import_options + [local_decanter, drum_direct]:
                 if isinstance(_opt, dict) and _opt.get("landed_cost") is not None:
                     _opt["landed_cost"] = round(_opt["landed_cost"] + _prem, 2)
