@@ -57,18 +57,42 @@ def _write_override_key(key, price):
         return False
 
 
+def _location_options() -> list:
+    """Full Sub-Location list for the manual-entry dropdown — same universe the
+    Pricing Calculator uses (distance_matrix destination cities) plus the import
+    terminals (Kandla, Mundra, …). Sorted, deduped. Falls back to a small set."""
+    opts: set[str] = set()
+    try:
+        import distance_matrix as dm
+        opts.update(getattr(dm, "DESTINATION_COORDS", {}).keys())
+        for s in getattr(dm, "SOURCE_COORDS", {}):
+            # "Kandla Port Import" -> "Kandla", "Taloja Terminal" -> "Taloja"
+            short = (s.replace(" Port Import", "").replace(" Import Terminal", "")
+                      .replace(" Terminal", "").replace(" Import", "").strip())
+            if short and not any(r in short for r in ("IOCL", "BPCL", "HPCL", "CPCL",
+                                                       "MRPL", "NRL", "ONGC", "HMEL",
+                                                       "BORL", "RIL", "Nayara")):
+                opts.add(short)
+    except Exception:
+        pass
+    if not opts:
+        opts = {"Mumbai", "Gujarat", "Delhi", "Chennai", "Kandla", "Mundra"}
+    return sorted(opts)
+
+
+def _drum_prefix(location: str) -> str:
+    """Map a (possibly free-typed) location to a live_prices drum key prefix.
+    Gujarat/Kandla/Mundra region → DRUM_KANDLA, everything else → DRUM_MUMBAI."""
+    loc = (location or "").lower()
+    if any(k in loc for k in ("kandla", "mundra", "gujarat", "gandhidham")):
+        return "DRUM_KANDLA"
+    return "DRUM_MUMBAI"
+
+
 def _update_live_prices(location, grade, price):
     """Update a DRUM field-quote price so it reflects everywhere (Command
     Center ticker, Market Snapshot, Pricing Calculator, Rate Broadcast)."""
-    # Map location + grade to the live_prices drum keys.
-    loc_map = {
-        "Mumbai": "DRUM_MUMBAI",
-        "Gujarat": "DRUM_KANDLA",
-        "Kandla": "DRUM_KANDLA",
-        "Delhi": "DRUM_MUMBAI",
-        "Chennai": "DRUM_MUMBAI",
-    }
-    prefix = loc_map.get(location, "DRUM_MUMBAI")
+    prefix = _drum_prefix(location)
     return _write_override_key(f"{prefix}_{grade.upper()}", price)
 
 
@@ -117,7 +141,15 @@ def render():
             c1, c2, c3 = st.columns(3)
 
             rev_date = c1.date_input("Target Revision Date", value=default_rev, format="DD-MM-YYYY")
-            loc = c2.selectbox("Sub-Location", ["Mumbai", "Gujarat", "Delhi", "Chennai", "Custom"])
+            _loc_opts = _location_options()
+            _def_idx = _loc_opts.index("Mumbai") if "Mumbai" in _loc_opts else 0
+            loc_pick = c2.selectbox("Sub-Location", _loc_opts, index=_def_idx,
+                                    help="Type to search any city/terminal (Kandla, Mundra…), or use the custom box below")
+            # st.form can't reactively show/hide, so the custom box is always
+            # present and overrides the dropdown when filled.
+            _custom_loc = c2.text_input("…or type a custom location",
+                                        placeholder="e.g. Kandla, Mundra, any city")
+            loc = _custom_loc.strip() or loc_pick
             grade = c3.selectbox("Grade", ["VG30", "VG10", "PMB", "CRMB"])
 
             c4, c5, c6 = st.columns(3)
