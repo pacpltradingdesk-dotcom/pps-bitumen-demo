@@ -268,17 +268,7 @@ INTL_DAILY_PRICES = pd.DataFrame([
     {"date": "13-Feb-26", "Naphtha_PMT": 548, "LDO_Gasoil_PKL": 597, "SKO_PKL": 659},
 ])
 
-# ── A8. Industry News Feed ────────────────────────────────────────────────────
-NEWS_FEED = [
-    {"date": "28-02-2026", "wti_mentioned": 67.02, "headline": "Crude rises on positive sentiment; WTI at ₹ 67.02"},
-    {"date": "27-02-2026", "wti_mentioned": 66.21, "headline": "Brent recovers +₹ 1.04; market eyes March 1st revision"},
-    {"date": "26-02-2026", "wti_mentioned": 64.87, "headline": "IOCL-BPCL-HPCL may take 35% stake in SCI shipping JV (₹17,000 Cr); India to continue Russia crude imports; BMC Mumbai record budget ₹80,953 Cr for coastal roads"},
-    {"date": "25-02-2026", "wti_mentioned": 65.97, "headline": "NRL expansion cost may rise ₹5,900 Cr to ₹34,000 Cr; IOCL Panipat refinery labour clash; BPCL tax demand ₹1,817 Cr; Road Ministry quality pilot in Raj-Guj-Karn-Odisha"},
-    {"date": "23-02-2026", "wti_mentioned": 66.26, "headline": "Goldman Sachs forecasts crude ~₹ 60/bbl for 2026; India ethanol production grows to 20 bn litres/yr; BMC fined 9 contractors ₹49 Cr for poor road quality"},
-    {"date": "20-02-2026", "wti_mentioned": 66.03, "headline": "BPCL & HMEL buy 1 mn barrels Venezuela Merey crude; India-US trade deal may increase US crude/coal imports; India crude import bill -19% in Jan on lower prices"},
-]
-
-# ── A9. Indian Bitumen Export/Import Key Players ─────────────────────────────
+# ── A8. Indian Bitumen Export/Import Key Players ─────────────────────────────
 BITUMEN_EXPORTERS = [
     "Amber Petrochemicals", "Bankey Bihari Petro Products", "Bitumix India LLP",
     "Commodities Trading", "Dhamtari KPEX Pvt Ltd", "Diamond Tar Industries",
@@ -421,6 +411,38 @@ def _card(col, label, val, sub="", color="#3b82f6"):
     )
 
 
+def _pick_fresh_bitumen(rows: list, limit: int = 4) -> list:
+    """Relevance-filter + newest-first sort over raw news rows.
+
+    Pure (no I/O) so it is unit-testable. Sorts by *parsed* datetime — robust
+    to mixed ISO / DD-MM-YYYY date strings — instead of a raw-string sort that
+    would surface old "28-..." dates above "2026-..." ones. Returns [] when
+    there is nothing relevant; callers must NOT substitute stale sample data.
+    """
+    import datetime as _dt
+    try:
+        from news_engine import _parse_ist as _p
+    except Exception:
+        _p = lambda s: None  # noqa: E731
+
+    rows = [r for r in rows if isinstance(r, dict) and r.get("headline")]
+    rows.sort(key=lambda r: _p(str(r.get("date_time") or "")) or _dt.datetime.min,
+              reverse=True)
+    kw = ("bitumen", "vg-30", "vg30", "vg-10", "asphalt", "road", "nhai",
+          "morth", "crude", "brent", "opec", "refinery", "iocl", "bpcl", "hpcl")
+    relevant = [r for r in rows if any(k in r["headline"].lower() for k in kw)]
+    chosen, out, seen = (relevant or rows), [], set()
+    for r in chosen:
+        h = r["headline"].strip()
+        if h[:80] in seen:
+            continue
+        seen.add(h[:80])
+        out.append({"date": str(r.get("date_time") or "")[:10], "headline": h})
+        if len(out) >= limit:
+            break
+    return out
+
+
 def _fresh_bitumen_news(limit: int = 4) -> list:
     """Fresh, bitumen-relevant headlines from tbl_news_feed.json (Google News
     RSS, refreshed by the 15-min cron). Newest first; relevance-filtered."""
@@ -429,21 +451,7 @@ def _fresh_bitumen_news(limit: int = 4) -> list:
         p = _pl.Path(__file__).parent / "tbl_news_feed.json"
         d = _json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
         rows = d if isinstance(d, list) else d.get("data", d.get("records", []))
-        rows = [r for r in rows if isinstance(r, dict) and r.get("headline")]
-        rows.sort(key=lambda r: str(r.get("date_time") or ""), reverse=True)
-        kw = ("bitumen", "vg-30", "vg30", "vg-10", "asphalt", "road", "nhai",
-              "morth", "crude", "brent", "opec", "refinery", "iocl", "bpcl", "hpcl")
-        relevant = [r for r in rows if any(k in r["headline"].lower() for k in kw)]
-        chosen, out, seen = (relevant or rows), [], set()
-        for r in chosen:
-            h = r["headline"].strip()
-            if h[:80] in seen:
-                continue
-            seen.add(h[:80])
-            out.append({"date": str(r.get("date_time") or "")[:10], "headline": h})
-            if len(out) >= limit:
-                break
-        return out
+        return _pick_fresh_bitumen(rows, limit)
     except Exception:
         return []
 
@@ -513,26 +521,28 @@ Use our live `api_manager` USD/INR for actual.
 
     st.markdown("---")
     _hdr("📰", "Latest Industry News (live)", "#f59e0b")
-    # Live bitumen/oil news from news_engine; fall back to the bundled sample.
+    # Live bitumen/oil news from the Google-News cron store. If genuinely
+    # empty, show an honest "unavailable" note — never the stale Feb sample.
     news_items = _fresh_bitumen_news(4)
     if not news_items:
-        news_items = [{"date": n["date"], "headline": n["headline"]} for n in NEWS_FEED[:4]]
-    import html as _html
-    _brent_tag = f" | Brent: ${live_brent:.2f}/bbl" if live_brent else ""
-    for n in news_items:
-        _hl = (n.get("headline") or "").strip()
-        if not _hl:
-            continue
-        # Headlines/dates come from a live external news feed (untrusted) — escape
-        # before embedding in raw HTML to prevent XSS.
-        _safe_date = _html.escape(str(n.get("date", "")))
-        _safe_hl = _html.escape(_hl)
-        st.markdown(
-            f'<div style="border-left:3px solid #f59e0b;padding:6px 12px;margin-bottom:5px;background:#0f172a;border-radius:0 6px 6px 0">'
-            f'<span style="color:#94a3b8;font-size:0.75rem">{_safe_date}{_brent_tag}</span><br>'
-            f'<span style="color:#f8fafc;font-size:0.88rem">{_safe_hl}</span></div>',
-            unsafe_allow_html=True,
-        )
+        st.caption("📰 Live industry news temporarily unavailable — refreshes on the next cron cycle.")
+    else:
+        import html as _html
+        _brent_tag = f" | Brent: ${live_brent:.2f}/bbl" if live_brent else ""
+        for n in news_items:
+            _hl = (n.get("headline") or "").strip()
+            if not _hl:
+                continue
+            # Headlines/dates come from a live external news feed (untrusted) — escape
+            # before embedding in raw HTML to prevent XSS.
+            _safe_date = _html.escape(str(n.get("date", "")))
+            _safe_hl = _html.escape(_hl)
+            st.markdown(
+                f'<div style="border-left:3px solid #f59e0b;padding:6px 12px;margin-bottom:5px;background:#0f172a;border-radius:0 6px 6px 0">'
+                f'<span style="color:#94a3b8;font-size:0.75rem">{_safe_date}{_brent_tag}</span><br>'
+                f'<span style="color:#f8fafc;font-size:0.88rem">{_safe_hl}</span></div>',
+                unsafe_allow_html=True,
+            )
 
     # Live PSU Rates from api_hub_engine
     st.markdown("---")
