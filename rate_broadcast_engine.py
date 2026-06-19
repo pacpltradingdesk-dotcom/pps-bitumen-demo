@@ -288,9 +288,15 @@ def execute_broadcast(city_filter=None, grade_filter=None, vip_filter=None, trig
         if phone and customer.get("wa_opted_in", True):
             try:
                 msg = generate_wa_message(customer, rates, trigger_type)
-                from whatsapp_engine import queue_message
-                queue_message(phone, msg, customer.get("name", ""))
-                wa_sent += 1          # only count after the queue actually accepts it
+                # queue_message is a WhatsAppEngine method (to_number, message_type,
+                # session_text=…) — not a module function. Count only on a real queue id.
+                from whatsapp_engine import WhatsAppEngine
+                _qid = WhatsAppEngine().queue_message(
+                    phone, "session", session_text=msg, broadcast_id=broadcast_id)
+                if _qid and _qid > 0:
+                    wa_sent += 1
+                else:
+                    wa_failed += 1
             except Exception:
                 wa_failed += 1        # queue/import failure must not report "sent"
 
@@ -300,12 +306,13 @@ def execute_broadcast(city_filter=None, grade_filter=None, vip_filter=None, trig
             try:
                 subject = f"PPS Anantams — {grade} Rates for {city} ({datetime.date.today().strftime('%d %b')})"
                 html = generate_email_html(customer, rates, trigger_type)
-                try:
-                    from email_engine import queue_email
-                    queue_email(email, customer.get("name", ""), subject, html, "rate_broadcast")
-                except Exception:
-                    pass
-                email_sent += 1
+                # queue_email is an EmailEngine method (to_email, subject, body_html,…).
+                from email_engine import EmailEngine
+                _eid = EmailEngine().queue_email(email, subject, html, email_type="rate_broadcast")
+                if _eid and _eid > 0:
+                    email_sent += 1
+                else:
+                    email_failed += 1
             except Exception:
                 email_failed += 1
 

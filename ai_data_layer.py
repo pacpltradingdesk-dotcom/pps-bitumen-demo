@@ -491,8 +491,8 @@ def get_logistics_context() -> dict:
     """Get logistics-specific context for chatbot."""
     ctx = {}
     try:
-        from maritime_intelligence_engine import get_maritime_summary
-        ctx["maritime_summary"] = get_maritime_summary()
+        from maritime_intelligence_engine import generate_daily_summary
+        ctx["maritime_summary"] = generate_daily_summary()
     except Exception:
         pass
     try:

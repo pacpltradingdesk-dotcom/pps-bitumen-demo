@@ -229,8 +229,8 @@ def _run_extractor() -> dict:
 def _run_forecast() -> dict:
     """Run price/demand forecasting."""
     try:
-        from ml_forecast_engine import forecast_price
-        result = forecast_price(days=7)
+        from ml_forecast_engine import forecast_crude_price
+        result = forecast_crude_price(days_ahead=7)
         return {
             "forecast_days": 7,
             "model": result.get("model", "unknown"),

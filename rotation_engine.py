@@ -207,31 +207,37 @@ class ContactRotationEngine:
 
         if channel == "whatsapp":
             try:
-                from whatsapp_engine import queue_message
+                # queue_message is a WhatsAppEngine METHOD (not a module fn) and
+                # takes (to_number, message_type, session_text=…) — the old
+                # module-import + to=/template=/body= kwargs raised every time,
+                # so outreach silently never queued. auto_send left default
+                # (draft) — flip to True only when mass auto-send is approved.
+                from whatsapp_engine import WhatsAppEngine
                 mobile = contact.get("mobile1", "")
                 if not mobile:
                     return False
                 msg = self._build_outreach_message(name, company, "whatsapp",
                                                     segment=segment, city=city)
-                queue_message(to=mobile, template="daily_outreach_v1",
-                              body=msg, contact_name=name)
-                return True
+                qid = WhatsAppEngine().queue_message(mobile, "session", session_text=msg)
+                return bool(qid and qid > 0)
             except Exception as e:
                 logger.error(f"WhatsApp send failed: {e}")
                 return False
 
         elif channel == "email":
             try:
-                from email_engine import queue_email
+                # queue_email is an EmailEngine METHOD taking
+                # (to_email, subject, body_html, …) — old module-import +
+                # to=/body= raised every time, so outreach email never queued.
+                from email_engine import EmailEngine
                 email = contact.get("email", "")
                 if not email:
                     return False
                 subject = f"Bitumen Market Update - {company or name}"
                 body = self._build_outreach_message(name, company, "email",
                                                      segment=segment, city=city)
-                queue_email(to=email, subject=subject, body=body,
-                            email_type="outreach")
-                return True
+                qid = EmailEngine().queue_email(email, subject, body, email_type="outreach")
+                return bool(qid and qid > 0)
             except Exception as e:
                 logger.error(f"Email send failed: {e}")
                 return False
