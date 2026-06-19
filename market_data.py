@@ -10,6 +10,30 @@ _ROOT = Path(__file__).parent
 _HUB_CACHE_PATH = _ROOT / "hub_cache.json"
 _LIVE_PRICES_PATH = _ROOT / "live_prices.json"
 
+# Reject time-series records older than this when picking the "current" price.
+# Prevents a stalled feed (multi-month gap) from surfacing a months-old record
+# as today's price — the root cause of brent 95.68 (April) / usdinr 93.1 (March)
+# leaking in. When every record is stale, selection falls through to the live
+# fetch / deterministic default instead.
+_MAX_PRICE_AGE_DAYS = 3.0
+_TS_FORMATS = ("%Y-%m-%d %H:%M:%S", "%d-%m-%Y %H:%M:%S", "%Y-%m-%d", "%d-%m-%Y")
+
+
+def _rec_too_old(rec: dict, max_days: float = _MAX_PRICE_AGE_DAYS) -> bool:
+    """True if rec's timestamp is older than max_days. Missing/unparseable
+    timestamps are treated as fresh (False) so we never over-reject good data."""
+    ts = str(rec.get("date_time") or rec.get("date") or rec.get("timestamp") or "").strip()
+    if not ts:
+        return False
+    ts = ts.replace(" IST", "").strip()[:19]
+    for fmt in _TS_FORMATS:
+        try:
+            dt = datetime.datetime.strptime(ts, fmt)
+            return (datetime.datetime.now() - dt).total_seconds() > max_days * 86400
+        except ValueError:
+            continue
+    return False
+
 
 def get_unified_prices() -> dict:
     """SINGLE SOURCE OF TRUTH for Brent/WTI/USD-INR/VG30 across every UI component.
@@ -45,6 +69,8 @@ def get_unified_prices() -> dict:
         for rec in reversed(rows if isinstance(rows, list) else []):
             if not isinstance(rec, dict):
                 continue
+            if _rec_too_old(rec):
+                continue
             b = str(rec.get("benchmark", "")).lower()
             p = rec.get("price")
             if p is None:
@@ -63,6 +89,8 @@ def get_unified_prices() -> dict:
         rows = fx if isinstance(fx, list) else fx.get("data", [])
         for rec in reversed(rows if isinstance(rows, list) else []):
             if isinstance(rec, dict) and "INR" in str(rec.get("pair", "")).upper():
+                if _rec_too_old(rec):
+                    continue
                 r = rec.get("rate")
                 if r:
                     out["usdinr"] = float(r)
@@ -80,6 +108,8 @@ def get_unified_prices() -> dict:
             for rec in crude_rows:
                 if not isinstance(rec, dict):
                     continue
+                if _rec_too_old(rec):
+                    continue
                 b = rec.get("benchmark", "").lower()
                 p = rec.get("price")
                 if p is None:
@@ -93,6 +123,8 @@ def get_unified_prices() -> dict:
         if isinstance(fx_rows, list):
             for rec in fx_rows:
                 if not isinstance(rec, dict):
+                    continue
+                if _rec_too_old(rec):
                     continue
                 if "INR" in rec.get("pair", "").upper() and out["usdinr"] is None:
                     out["usdinr"] = float(rec.get("rate", 0) or 0) or None
