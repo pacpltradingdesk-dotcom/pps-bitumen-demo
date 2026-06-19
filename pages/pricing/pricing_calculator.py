@@ -346,7 +346,16 @@ def render():
                     st.info("No pricing options available for this route.")
                     selected_label = None
                 else:
-                    selected_label = st.radio("Choose option for PDF", option_labels, key="pdf_price_select", label_visibility="collapsed")
+                    # Default to the CHEAPEST source (not the first/most-expensive
+                    # in the grouped display) so a salesperson never accidentally
+                    # quotes a higher price than necessary.
+                    _cheapest_idx = min(
+                        range(len(price_options)),
+                        key=lambda i: (price_options[i].get('price')
+                                       or price_options[i].get('landed_cost') or float('inf')))
+                    selected_label = st.radio("Choose option for PDF", option_labels,
+                                              index=_cheapest_idx, key="pdf_price_select",
+                                              label_visibility="collapsed")
 
                 # Find selected option
                 for opt in price_options:
