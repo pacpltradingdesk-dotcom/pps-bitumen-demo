@@ -455,12 +455,37 @@ def _fmt_ist(dt: datetime.datetime) -> str:
     return dt.strftime("%Y-%m-%d %H:%M IST")
 
 def _parse_ist(s: str) -> Optional[datetime.datetime]:
-    for fmt in ("%Y-%m-%d %H:%M IST", "%Y-%m-%d %H:%M:%S IST", "%Y-%m-%d"):
+    """Parse an IST timestamp string into a naive datetime.
+
+    Tolerant of BOTH date layouts that exist in stored data:
+      • ISO  ``YYYY-MM-DD`` (current ``_fmt_ist`` output)
+      • Legacy ``DD-MM-YYYY`` (older fetch code / seed data)
+    …with or without seconds and the trailing " IST" suffix.
+
+    A single shared parser keeps the age filter and the sort key in
+    agreement — the stale-news bug was caused by them disagreeing.
+    """
+    if not s:
+        return None
+    for fmt in (
+        "%Y-%m-%d %H:%M IST", "%Y-%m-%d %H:%M:%S IST", "%Y-%m-%d %H:%M", "%Y-%m-%d",
+        "%d-%m-%Y %H:%M IST", "%d-%m-%Y %H:%M:%S IST", "%d-%m-%Y %H:%M", "%d-%m-%Y",
+    ):
         try:
             return datetime.datetime.strptime(s, fmt)
         except ValueError:
             pass
     return None
+
+def _article_dt(a: dict) -> Optional[datetime.datetime]:
+    """Best-effort publish datetime for an article.
+
+    Falls back to ``fetched_at_ist`` when ``published_at_ist`` is missing
+    or unparseable, so an article with an unknown date never silently
+    masquerades as fresh (it sorts/ages as its fetch time, or as unknown).
+    """
+    return (_parse_ist(a.get("published_at_ist", ""))
+            or _parse_ist(a.get("fetched_at_ist", "")))
 
 # ══════════════════════════════════════════════════════════════════════════════
 # CONFIG
@@ -550,9 +575,13 @@ def get_articles(region: str = "All", tags: list[str] = None,
     now = _now_ist()
     result = []
     for a in articles:
-        # Age filter
-        pub = _parse_ist(a.get("published_at_ist", ""))
-        if pub:
+        # Age filter — parse published date (handles ISO *and* legacy
+        # DD-MM-YYYY), falling back to fetch time. An unknown/unparseable
+        # date is treated as very old so it cannot leak into a recent window.
+        pub = _article_dt(a)
+        if max_age_hours < 99999:  # 99999h == "All Time" → skip age gate
+            if pub is None:
+                continue
             age_h = (now - pub).total_seconds() / 3600
             if age_h > max_age_hours:
                 continue
@@ -578,8 +607,10 @@ def get_articles(region: str = "All", tags: list[str] = None,
             if search.lower() not in text:
                 continue
         result.append(a)
-    # Sort newest first
-    result.sort(key=lambda x: x.get("published_at_ist",""), reverse=True)
+    # Sort newest first by *parsed* datetime (not raw string — mixed
+    # date formats made lexical sort surface old "28-..." dates at the top).
+    _MIN_DT = datetime.datetime.min
+    result.sort(key=lambda x: _article_dt(x) or _MIN_DT, reverse=True)
     return result
 
 def get_breaking_news(region: str = "All") -> list[dict]:
@@ -1064,7 +1095,17 @@ def mark_article(article_id: str, status: str, actor: str = "User"):
     save_articles(articles)
 
 def get_last_fetch_time() -> str:
-    return _G_fetch.get("last_run", "Not yet fetched")
+    last = _G_fetch.get("last_run")
+    if last:
+        return last
+    # In-memory global is empty after a restart — derive from the newest
+    # stored article so the "Last Fetch" pill never shows blank/"Not yet".
+    newest = None
+    for a in load_articles():
+        dt = _parse_ist(a.get("fetched_at_ist", "")) or _article_dt(a)
+        if dt and (newest is None or dt > newest):
+            newest = dt
+    return _fmt_ist(newest) if newest else "Not yet fetched"
 
 def get_article_sources(region: str = "All") -> list[str]:
     articles = load_articles()

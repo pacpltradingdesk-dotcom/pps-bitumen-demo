@@ -315,8 +315,15 @@ def _render_sticky_notes():
             with open(articles_path, "r", encoding="utf-8") as f:
                 all_articles = json.load(f)
             major = [a for a in all_articles if (a.get("impact_score") or 0) >= 70]
-            major.sort(key=lambda a: a.get("published_at_ist", a.get("fetched_at_ist", "")),
-                       reverse=True)
+            # Sort by parsed datetime, not raw string — mixed ISO/DD-MM-YYYY
+            # date formats otherwise float old "28-..." dates to the top.
+            import datetime as _dt
+            try:
+                import news_engine as _ne
+                _key = lambda a: _ne._article_dt(a) or _dt.datetime.min
+            except Exception:
+                _key = lambda a: a.get("published_at_ist", a.get("fetched_at_ist", ""))
+            major.sort(key=_key, reverse=True)
             seen = set()
             for a in major:
                 h = a.get("headline", "")
