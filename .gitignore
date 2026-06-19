@@ -4,6 +4,12 @@ tbl_live_vessels.json
 # Port-page vessel arrivals (written by port_scraper cron at runtime)
 tbl_port_arrivals.json
 
+# Daily KPI %-change reference (written by pps-price-snapshot cron at runtime).
+# Tracking it made every deploy (git pull/stash) revert it to a stale committed
+# fossil, producing a bogus "USD/INR ▼7.4%" daily move. Untracked so the
+# server's fresh daily write persists across deploys.
+tbl_price_history_snapshot.json
+
 # Python
 __pycache__/
 *.py[cod]
