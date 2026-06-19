@@ -667,7 +667,7 @@ class WhatsAppEngine:
                 elif status == "read":
                     update_wa_status(item["id"], "read", read_at=now)
                 elif status == "failed":
-                    error = status_update.get("errors", [{}])[0].get("title", "")
+                    error = (status_update.get("errors") or [{}])[0].get("title", "")
                     update_wa_status(item["id"], "failed", error_message=error)
                 break
 

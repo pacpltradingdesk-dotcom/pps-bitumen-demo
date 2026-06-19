@@ -175,7 +175,7 @@ def _map_ais_to_vessel(v: dict) -> dict:
         eta_hours = None
         eta = "—"
 
-    name = v.get("name") or f"MMSI {v['mmsi']}"
+    name = v.get("name") or f"MMSI {v.get('mmsi', '?')}"
     imo = f"IMO{v['imo']}" if v.get("imo") else "—"
 
     return {
@@ -275,7 +275,17 @@ def get_live_vessels(path: "Path | None" = None,
         updated = snap.get("updated_utc")
         records = snap.get("vessels") or []
         if records and _is_fresh(updated, MARITIME_LIVE_MAX_AGE_MIN):
-            mapped = [_map_ais_to_vessel(r) for r in records if r.get("lat") is not None]
+            # Map per-record with a guard so ONE malformed AIS row (missing
+            # lat/lon/mmsi) can't wipe the whole live feed and silently drop
+            # us back to simulated data.
+            mapped = []
+            for r in records:
+                if r.get("lat") is None or r.get("lon") is None:
+                    continue
+                try:
+                    mapped.append(_map_ais_to_vessel(r))
+                except Exception:
+                    continue
             mapped = [x for x in mapped
                       if (not x["dest_inferred"]) or x["dist_to_port_nm"] <= MARITIME_LIVE_MAX_DIST_NM]
             mapped.sort(key=lambda x: x["dist_to_port_nm"])

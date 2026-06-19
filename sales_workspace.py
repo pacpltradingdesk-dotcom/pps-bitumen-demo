@@ -328,7 +328,7 @@ def render_deal_room():
             st.subheader("⚡ Action Center")
             
             # Smart Follow-up
-            follow_strat = get_followup_strategy(final_price, margin, days_passed=1)
+            follow_strat = get_followup_strategy(sell_price, margin, days_passed=1)
             with st.expander("💡 Smart Follow-up Suggestion (AI)", expanded=True):
                 st.write(f"**Strategy:** {follow_strat['action']}")
                 st.info(f"**Script:** \"{follow_strat['script']}\"")
@@ -345,7 +345,7 @@ def render_deal_room():
                             customer=selected_client,
                             grade=grade,
                             quantity_mt=qty,
-                            price_per_mt=final_price,
+                            price_per_mt=sell_price,
                             destination=dest_city,
                             why_us=comp_intel.get("our_strength", ""),
                         )
@@ -368,7 +368,7 @@ def render_deal_room():
                     wa_msg = f"""*BITUMEN OFFER - {datetime.date.today()}*
 📍 *Client:* {selected_client}
 🏗️ *Grade:* {grade} ({qty} MT)
-💰 *Rate:* {format_inr(final_price)}/MT (Landed {dest_city})
+💰 *Rate:* {format_inr(sell_price)}/MT (Landed {dest_city})
 
 ✅ *Why Us:* {comp_intel['our_strength']}
 🚚 *Dispatch:* {risk_data['dispatch_prob']}% Assurance (GPS Tracked)

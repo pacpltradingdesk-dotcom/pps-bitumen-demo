@@ -28,7 +28,11 @@ except ImportError:
 try:
     from india_localization import format_inr, format_date, format_inr_short
 except ImportError:
-    def format_inr(v, sym=True): return f"{format_inr(v)}"
+    def format_inr(v, sym=True):
+        try:
+            return f"₹ {float(v):,.0f}" if sym else f"{float(v):,.0f}"
+        except (TypeError, ValueError):
+            return "N/A"
     def format_inr_short(v): return f"₹ {v/100000:.2f} L" if v < 10000000 else f"₹ {v/10000000:.2f} Cr"
     def format_date(d): return d.strftime("%Y-%m-%d") if hasattr(d, 'strftime') else str(d)
 

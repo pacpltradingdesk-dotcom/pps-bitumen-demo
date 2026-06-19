@@ -689,7 +689,7 @@ class MarketPulseEngine:
         # Vessel tracking summary
         vessels = maritime.get("vessels", []) if isinstance(maritime, dict) else []
         delayed_vessels = [v for v in vessels if v.get("delay_factor", 1.0) > 1.15]
-        en_route_cargo_mt = sum(v.get("cargo_mt", 0) for v in vessels
+        en_route_cargo_mt = sum((v.get("cargo_mt") or 0) for v in vessels
                                 if v.get("status") in ("en_route", "arriving"))
 
         severity = None

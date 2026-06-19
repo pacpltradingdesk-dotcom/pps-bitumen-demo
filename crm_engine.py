@@ -18,7 +18,9 @@ from datetime import timedelta
 from pathlib import Path
 
 import pytz
+import logging
 
+logger = logging.getLogger(__name__)
 IST = pytz.timezone("Asia/Kolkata")
 BASE = Path(__file__).parent
 
