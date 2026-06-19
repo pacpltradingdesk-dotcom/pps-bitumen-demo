@@ -740,18 +740,47 @@ def _deduplicate(new_articles: list[dict], existing: list[dict]) -> list[dict]:
 # RSS FETCHER
 # ══════════════════════════════════════════════════════════════════════════════
 
+def _browser_headers() -> dict:
+    """Realistic browser-like headers.
+
+    Several publisher feeds (Business Standard, NDTV Hindi, etc.) return
+    HTTP 403 for non-browser User-Agents. A normal browser UA + Accept
+    headers gets us through without any API key.
+    """
+    return {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        ),
+        "Accept": "application/rss+xml, application/xml, text/xml, text/html;q=0.9, */*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9,hi;q=0.8",
+    }
+
+
 def _fetch_rss(source: dict) -> tuple[list[dict], Optional[str]]:
     """Fetch and parse an RSS feed. Returns (articles, error_or_None)."""
     try:
         import feedparser
         import urllib.request
+        import urllib.error
 
-        req = urllib.request.Request(
-            source["feed_url"],
-            headers={"User-Agent": "PPS-Anantams-Dashboard/2.0 RSS Reader"},
-        )
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            raw = resp.read()
+        req = urllib.request.Request(source["feed_url"], headers=_browser_headers())
+        try:
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                raw = resp.read()
+        except urllib.error.HTTPError as he:
+            # One retry for transient blocks (403/429) — some CDNs let the
+            # second hit through once a UA/cookie heuristic settles.
+            if he.code in (403, 429):
+                import time as _t
+                _t.sleep(1.5)
+                with urllib.request.urlopen(
+                    urllib.request.Request(source["feed_url"], headers=_browser_headers()),
+                    timeout=15,
+                ) as resp:
+                    raw = resp.read()
+            else:
+                raise
 
         feed = feedparser.parse(raw)
         if feed.bozo and not feed.entries:

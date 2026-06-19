@@ -30,6 +30,14 @@ def test_parse_ist_handles_iso():
     assert (dt.year, dt.month, dt.day) == (2026, 6, 18)
 
 
+def test_rss_request_uses_browser_like_headers():
+    """Many feeds 403 a non-browser UA. Requests must look like a browser."""
+    h = ne._browser_headers()
+    assert "Mozilla" in h["User-Agent"]
+    assert "PPS-Anantams" not in h["User-Agent"], "old blocked UA still in use"
+    assert h.get("Accept"), "Accept header required to avoid some 403s"
+
+
 def _fixed_articles():
     """Two genuinely-fresh ISO articles + two stale legacy DD-MM articles."""
     today = ne._now_ist()
