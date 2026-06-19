@@ -322,31 +322,51 @@ def auto_generate_tasks(client_data, deal_stage):
     return created_tasks
 
 
+def _parse_due_date(s) -> "datetime.datetime | None":
+    """Tolerant parse of a stored due_date. Handles ISO and legacy
+    DD-MM-YYYY / DD/MM/YYYY, with or without a time component."""
+    s = str(s or "").strip()
+    if not s:
+        return None
+    for fmt in ("%Y-%m-%d %H:%M", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d",
+                "%d-%m-%Y %H:%M", "%d-%m-%Y %H:%M:%S", "%d-%m-%Y",
+                "%d/%m/%Y %H:%M", "%d/%m/%Y"):
+        try:
+            return datetime.datetime.strptime(s, fmt)
+        except ValueError:
+            pass
+    return None
+
+
 def get_due_tasks(filter_type="Today"):
     """
     Filter options: Today, Overdue, Upcoming
     """
     all_tasks = get_tasks()
     pending = [t for t in all_tasks if t.get('status') == "Pending"]
-    now_str = datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M")
-    today_date = datetime.datetime.now(IST).strftime("%Y-%m-%d")
+    now = datetime.datetime.now(IST).replace(tzinfo=None)
+    today = now.date()
 
     filtered = []
     for t in pending:
-        due = t.get('due_date', '') or ''
-        t_date = due.split(' ')[0] if due else ''
+        # Parse due_date tolerantly — storage holds mixed ISO + legacy
+        # DD-MM-YYYY formats; a raw string compare mis-bucketed legacy dates.
+        due_dt = _parse_due_date(t.get('due_date', ''))
+        if due_dt is None:
+            continue
 
         if filter_type == "Overdue":
-            if due < now_str:
+            if due_dt < now:
                 filtered.append(t)
         elif filter_type == "Today":
-            if t_date == today_date and due >= now_str:
+            if due_dt.date() == today and due_dt >= now:
                 filtered.append(t)
         elif filter_type == "Upcoming":
-            if t_date > today_date:
+            if due_dt.date() > today:
                 filtered.append(t)
 
-    return sorted(filtered, key=lambda x: x.get('due_date', ''))
+    return sorted(filtered, key=lambda x: _parse_due_date(x.get('due_date', ''))
+                  or datetime.datetime.min)
 
 
 # ─── INTELLIGENT CRM ────────────────────────────────────────────────────────

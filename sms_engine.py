@@ -219,6 +219,7 @@ class SMSEngine:
         results = {"sent": 0, "failed": 0, "skipped": 0}
         now = datetime.datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
 
+        conn = None
         try:
             from database import _get_conn
             conn = _get_conn()
@@ -231,7 +232,6 @@ class SMSEngine:
             ).fetchall()
 
             if not rows:
-                conn.close()
                 return results
 
             cols = [d[0] for d in conn.execute(
@@ -267,9 +267,14 @@ class SMSEngine:
                     results["failed"] += 1
 
             conn.commit()
-            conn.close()
         except Exception as e:
             logger.error(f"SMS queue processing error: {e}")
+        finally:
+            if conn is not None:
+                try:
+                    conn.close()
+                except Exception:
+                    pass
 
         return results
 

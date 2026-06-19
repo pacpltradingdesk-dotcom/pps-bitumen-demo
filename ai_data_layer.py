@@ -446,13 +446,14 @@ def get_full_trading_context(role: str = "Admin") -> dict:
         crude_fc = forecast_crude_price(15)
         if crude_fc and crude_fc.get("predicted"):
             ctx["crude_forecast_15d"] = {
-                "trend": crude_fc.get("trend"),
+                # forecast engine returns "direction" (e.g. UP/DOWN), not "trend"
+                "trend": crude_fc.get("direction"),
                 "confidence": crude_fc.get("confidence"),
             }
         fx_fc = forecast_fx_rate(15)
         if fx_fc and fx_fc.get("predicted"):
             ctx["fx_forecast_15d"] = {
-                "trend": fx_fc.get("trend"),
+                "trend": fx_fc.get("direction"),
                 "confidence": fx_fc.get("confidence"),
             }
     except Exception:

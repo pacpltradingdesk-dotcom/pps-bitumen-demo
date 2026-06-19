@@ -288,14 +288,11 @@ def execute_broadcast(city_filter=None, grade_filter=None, vip_filter=None, trig
         if phone and customer.get("wa_opted_in", True):
             try:
                 msg = generate_wa_message(customer, rates, trigger_type)
-                try:
-                    from whatsapp_engine import queue_message
-                    queue_message(phone, msg, customer.get("name", ""))
-                except Exception:
-                    pass
-                wa_sent += 1
+                from whatsapp_engine import queue_message
+                queue_message(phone, msg, customer.get("name", ""))
+                wa_sent += 1          # only count after the queue actually accepts it
             except Exception:
-                wa_failed += 1
+                wa_failed += 1        # queue/import failure must not report "sent"
 
         # Send Email
         email = (customer.get("email") or "").strip()

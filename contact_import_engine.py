@@ -549,9 +549,11 @@ def _save_to_crm_tasks(contacts: list[dict]) -> tuple[int, list]:
 
 def _save_to_crm_activity(contacts: list[dict]) -> tuple[int, list]:
     try:
-        from crm_engine import add_activity
+        # crm_engine exposes log_activity(client_name, act_type, details),
+        # not add_activity — the old import silently failed and saved nothing.
+        from crm_engine import log_activity
     except ImportError:
-        return 0, ["crm_engine.add_activity not available."]
+        return 0, ["crm_engine.log_activity not available."]
 
     saved  = 0
     errors = []
@@ -559,7 +561,7 @@ def _save_to_crm_activity(contacts: list[dict]) -> tuple[int, list]:
         client_name = c.get("company_name") or c.get("person_name") or "Unknown"
         note = f"Contact imported via importer | {c.get('category_type','')} | {c.get('mobile1','')} | {c.get('email1','')}"
         try:
-            add_activity(client_name=client_name, activity_type="Import", note=note, automated=True)
+            log_activity(client_name, "Import", note)
             saved += 1
         except Exception as e:
             errors.append(f"{client_name}: {e}")

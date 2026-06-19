@@ -318,7 +318,8 @@ class NegotiationAssistant:
         try:
             crude_data = json.loads((BASE / "tbl_crude_prices.json").read_text(encoding="utf-8"))
             if crude_data:
-                latest = [r for r in crude_data if r.get("benchmark") == "Brent"]
+                latest = [r for r in crude_data
+                          if str(r.get("benchmark", "")).upper() == "BRENT"]
                 if latest:
                     context["brent_usd"] = latest[-1].get("price")
 
