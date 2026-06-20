@@ -250,7 +250,7 @@ def _render_api_changes(dev_log, filters):
             if val == "API Added":   return "color:#22c55e;font-weight:bold"
             if val == "API Removed": return "color:#ef4444;font-weight:bold"
             return ""
-        styled = df.style.applymap(color_api_type, subset=["activity_type"])
+        styled = df.style.map(color_api_type, subset=["activity_type"])
         st.dataframe(styled, use_container_width=True, hide_index=True)
 
 
@@ -278,7 +278,7 @@ def _render_system_updates(change_log, filters):
             if val == "Manual":      return "color:#3b82f6;font-weight:bold"
             if val == "Development": return "color:#22c55e;font-weight:bold"
             return ""
-        styled = df.style.applymap(color_trigger, subset=["trigger"])
+        styled = df.style.map(color_trigger, subset=["trigger"])
         st.dataframe(styled, use_container_width=True, hide_index=True)
 
 
@@ -306,7 +306,7 @@ def _render_pending_fixes(err_log, filters):
         "error_type", "message", "root_cause", "resolution_notes", "manual_required",
     ])
     if not df.empty:
-        styled = df.style.applymap(_color_status, subset=["severity"])
+        styled = df.style.map(_color_status, subset=["severity"])
         st.dataframe(styled, use_container_width=True, hide_index=True)
 
 
@@ -371,7 +371,7 @@ def _render_health_pulse(health_log, filters):
         return ""
 
     if "status" in df.columns:
-        styled = df.style.applymap(color_health_status, subset=["status"])
+        styled = df.style.map(color_health_status, subset=["status"])
         st.dataframe(styled, use_container_width=True, hide_index=True)
     else:
         st.dataframe(df, use_container_width=True, hide_index=True)

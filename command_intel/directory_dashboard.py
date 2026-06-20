@@ -440,7 +440,7 @@ def _render_coverage_tab() -> None:
                 return "background-color: #fff3cd; color: #856404;"
             return "background-color: #d4edda; color: #155724;"
         st.dataframe(
-            df.style.applymap(_color_status, subset=["Status"]),
+            df.style.map(_color_status, subset=["Status"]),
             use_container_width=True,
             hide_index=True,
         )

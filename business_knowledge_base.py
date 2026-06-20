@@ -1793,7 +1793,7 @@ def render():
             if val == "Medium": return "color:#d97706;font-weight:bold"
             return "color:#16a34a"
 
-        styled = df.style.applymap(colour_impact, subset=["impact"]).applymap(colour_prob, subset=["probability"])
+        styled = df.style.map(colour_impact, subset=["impact"]).map(colour_prob, subset=["probability"])
         st.dataframe(styled, use_container_width=True, hide_index=True)
 
         st.markdown("---")

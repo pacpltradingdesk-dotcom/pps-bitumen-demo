@@ -633,7 +633,7 @@ def _tab_forecast_timeline():
     def color_dir(val):
         c = DIRECTION_COLOR.get(val, "#94a3b8")
         return f"color:{c};font-weight:bold"
-    st.dataframe(disp.style.applymap(color_dir, subset=["Direction"]), use_container_width=True, hide_index=True)
+    st.dataframe(disp.style.map(color_dir, subset=["Direction"]), use_container_width=True, hide_index=True)
 
 
 def _tab_market_data():
@@ -838,7 +838,7 @@ def _tab_psu_circulars():
         if val == "HPCL": return "color:#3b82f6;font-weight:bold"
         return ""
 
-    styled = df_disp.style.applymap(color_psu, subset=["PSU"]).applymap(
+    styled = df_disp.style.map(color_psu, subset=["PSU"]).map(
         lambda x: "color:#22c55e;font-weight:bold" if "+" in str(x) else ("color:#ef4444;font-weight:bold" if "-" in str(x) else ""),
         subset=["Change"])
     st.dataframe(styled, use_container_width=True, hide_index=True)
@@ -877,7 +877,7 @@ def _tab_accuracy():
 
     disp = df[["date", "claim_by", "metric", "mee_value", "web_value", "deviation", "verdict_display", "notes"]].copy()
     disp.columns = ["Date", "Claim By", "Metric", "MEE Value", "Web Verified", "Deviation", "Verdict", "Notes"]
-    styled = disp.style.applymap(color_verdict, subset=["Verdict"])
+    styled = disp.style.map(color_verdict, subset=["Verdict"])
     st.dataframe(styled, use_container_width=True, hide_index=True)
 
     # Score summary

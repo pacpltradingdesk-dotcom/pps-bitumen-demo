@@ -1058,7 +1058,7 @@ def _tab_projects():
                 return f"color:{c}"
             except Exception:
                 return ""
-        styled = df.style.applymap(color_verified, subset=["Verified"]).applymap(color_conf, subset=["Conf %"])
+        styled = df.style.map(color_verified, subset=["Verified"]).map(color_conf, subset=["Conf %"])
         st.dataframe(styled, use_container_width=True, hide_index=True)
         st.caption(f"Showing {len(rows)} projects | All within last 183 days | VG-30 @ ₹78,260/MT")
     else:
@@ -1145,7 +1145,7 @@ def _tab_bitumen_demand():
     def color_conf(val):
         try: return f"color:{CONFIDENCE_COLOR(int(val))}"
         except Exception: return ""
-    st.dataframe(disp.style.applymap(color_conf, subset=["Conf%"]), use_container_width=True, hide_index=True)
+    st.dataframe(disp.style.map(color_conf, subset=["Conf%"]), use_container_width=True, hide_index=True)
 
     st.markdown("---")
     _hdr("📅", "Monthly Bitumen Demand Distribution (Seasonality-Adjusted)", "#3b82f6")

@@ -139,19 +139,19 @@ def _render_alerts(alerts: list, tab_key: str, severity: str = None):
         # Action buttons — keys include alert_id for uniqueness
         bcol1, bcol2, bcol3 = st.columns(3)
         with bcol1:
-            if st.button("Mark Acted", key=f"alert_act_{alert_id}",
+            if st.button("Mark Acted", key=f"alert_act_{tab_key}_{alert_id}_{i}",
                           use_container_width=True):
                 update_alert_status(alert["id"], "acted", acted_at=_now())
                 st.rerun()
         with bcol2:
-            if st.button("Snooze 4h", key=f"alert_snz_{alert_id}",
+            if st.button("Snooze 4h", key=f"alert_snz_{tab_key}_{alert_id}_{i}",
                           use_container_width=True):
                 snooze_until = (datetime.datetime.now(IST) + datetime.timedelta(hours=4)
                                 ).strftime("%Y-%m-%d %H:%M:%S")
                 update_alert_status(alert["id"], "snoozed", snoozed_until=snooze_until)
                 st.rerun()
         with bcol3:
-            if st.button("Dismiss", key=f"alert_dis_{alert_id}",
+            if st.button("Dismiss", key=f"alert_dis_{tab_key}_{alert_id}_{i}",
                           use_container_width=True):
                 update_alert_status(alert["id"], "expired")
                 st.rerun()

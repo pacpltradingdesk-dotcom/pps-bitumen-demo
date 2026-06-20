@@ -288,7 +288,7 @@ def get_live_vessels(path: "Path | None" = None,
                     continue
             mapped = [x for x in mapped
                       if (not x["dest_inferred"]) or x["dist_to_port_nm"] <= MARITIME_LIVE_MAX_DIST_NM]
-            mapped.sort(key=lambda x: x["dist_to_port_nm"])
+            mapped.sort(key=lambda x: x["dist_to_port_nm"] if x.get("dist_to_port_nm") is not None else 9e9)
             mapped = mapped[:MARITIME_LIVE_MAX_VESSELS]
             if mapped:
                 return mapped
@@ -466,7 +466,8 @@ class VesselSimulator:
             vessels.append(vessel)
 
         # Sort: container vessels FIRST
-        vessels.sort(key=lambda v: (0 if v["cargo_type"] == "container" else 1, v["eta_hours"]))
+        vessels.sort(key=lambda v: (0 if v["cargo_type"] == "container" else 1,
+                                    v["eta_hours"] if v.get("eta_hours") is not None else 9e9))
         return vessels
 
     @staticmethod

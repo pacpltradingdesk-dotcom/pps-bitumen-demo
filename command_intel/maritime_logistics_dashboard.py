@@ -593,7 +593,7 @@ def _render_port_activity(intel: dict):
         import plotly.graph_objects as go
 
         # Sort: priority first
-        sorted_ports = sorted(port_congestion, key=lambda p: (p["priority"], -p["score"]))
+        sorted_ports = sorted(port_congestion, key=lambda p: (p.get("priority") or "P9", -(p.get("score") or 0)))
 
         port_names = [p["port"] for p in sorted_ports]
         scores = [p["score"] for p in sorted_ports]

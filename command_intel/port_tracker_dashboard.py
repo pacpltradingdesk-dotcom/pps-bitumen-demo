@@ -196,8 +196,11 @@ def _render_country_port_flow() -> None:
         df = df.sort_values("TOTAL MT", ascending=False)
 
         st.markdown("##### Country → Port Flow Matrix (MT)")
-        st.dataframe(df.style.format("{:.1f}").background_gradient(cmap="Blues", axis=None),
-                     use_container_width=True)
+        try:
+            _styled = df.style.format("{:.1f}").background_gradient(cmap="Blues", axis=None)
+        except Exception:
+            _styled = df.style.format("{:.1f}")  # matplotlib missing → plain table
+        st.dataframe(_styled, use_container_width=True)
 
         # ── stacked bar ──────────────────────────────────────────────────
         if _ALTAIR:

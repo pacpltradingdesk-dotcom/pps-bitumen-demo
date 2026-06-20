@@ -142,26 +142,35 @@ def _render_crude_markets(st) -> None:
 
     # KPI cards
     c1, c2, c3, c4 = st.columns(4)
+    # "Latest" must reflect the LIVE price (same source as Command Center /
+    # ticker), not the tail of tbl_crude_prices.json which can be stale.
+    # Fall back to the historical series tail only if the live call is down.
+    try:
+        from api_manager import get_brent_price as _live_brent, get_wti_price as _live_wti
+        _lb, _lw = _live_brent(), _live_wti()
+    except Exception:
+        _lb = _lw = None
+
     if brent_col:
-        latest_brent = df[brent_col].dropna().iloc[-1] if not df[brent_col].dropna().empty else None
+        _hist_b = df[brent_col].dropna().iloc[-1] if not df[brent_col].dropna().empty else None
+        latest_brent = _lb if (_lb and _lb > 0) else _hist_b
         if latest_brent is None or (isinstance(latest_brent, float) and math.isnan(latest_brent)):
             latest_brent = 0.0
-        if latest_brent is not None:
-            c1.metric("Brent (Latest)", f"${latest_brent:,.2f}")
-            # Guard the dropna'd series length, not len(df): a column with <2
-            # non-null values made .iloc[-2] raise IndexError on every render.
-            _bs = df[brent_col].dropna()
-            if len(_bs) >= 2:
-                c2.metric("Brent Change", f"${latest_brent - _bs.iloc[-2]:+,.2f}")
+        c1.metric("Brent (Latest)", f"${latest_brent:,.2f}")
+        # Guard the dropna'd series length, not len(df): a column with <2
+        # non-null values made .iloc[-2] raise IndexError on every render.
+        _bs = df[brent_col].dropna()
+        if len(_bs) >= 2:
+            c2.metric("Brent Change", f"${latest_brent - _bs.iloc[-2]:+,.2f}")
     if wti_col:
-        latest_wti = df[wti_col].dropna().iloc[-1] if not df[wti_col].dropna().empty else None
+        _hist_w = df[wti_col].dropna().iloc[-1] if not df[wti_col].dropna().empty else None
+        latest_wti = _lw if (_lw and _lw > 0) else _hist_w
         if latest_wti is None or (isinstance(latest_wti, float) and math.isnan(latest_wti)):
             latest_wti = 0.0
-        if latest_wti is not None:
-            c3.metric("WTI (Latest)", f"${latest_wti:,.2f}")
-            _ws = df[wti_col].dropna()
-            if len(_ws) >= 2:
-                c4.metric("WTI Change", f"${latest_wti - _ws.iloc[-2]:+,.2f}")
+        c3.metric("WTI (Latest)", f"${latest_wti:,.2f}")
+        _ws = df[wti_col].dropna()
+        if len(_ws) >= 2:
+            c4.metric("WTI Change", f"${latest_wti - _ws.iloc[-2]:+,.2f}")
 
     # Plotly chart
     if _PLOTLY:

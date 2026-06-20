@@ -184,7 +184,7 @@ def _render_registry_table(config: dict, stats: dict, rel_scores: dict):
         except Exception:
             return ""
 
-    styled = df.style.applymap(color_status, subset=["St"]).applymap(color_rel, subset=["Reliability"])
+    styled = df.style.map(color_status, subset=["St"]).map(color_rel, subset=["Reliability"])
     st.dataframe(styled, use_container_width=True, hide_index=True)
 
 
@@ -359,7 +359,7 @@ def _render_reliability(config: dict, rel_scores: dict):
         except Exception:
             return ""
 
-    styled = df.style.applymap(grade_color, subset=["Grade"]).applymap(rel_color, subset=["Reliability"])
+    styled = df.style.map(grade_color, subset=["Grade"]).map(rel_color, subset=["Reliability"])
     st.dataframe(styled, use_container_width=True, hide_index=True)
 
 

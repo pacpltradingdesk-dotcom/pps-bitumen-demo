@@ -123,4 +123,4 @@ def render():
         for col in ['Actual Price (₹/MT)', 'Predicted Price (₹/MT)', 'Error (₹/MT)']:
             df_disp[col] = df_disp[col].apply(lambda x: format_inr(x, include_symbol=True) if not isinstance(x, str) else x)
 
-        st.dataframe(df_disp.style.applymap(style_status, subset=['Status']), use_container_width=True, hide_index=True)
+        st.dataframe(df_disp.style.map(style_status, subset=['Status']), use_container_width=True, hide_index=True)
