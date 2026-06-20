@@ -111,9 +111,8 @@ def render():
         )
 
     # ── Tabs ─────────────────────────────────────────────────────────────
-    tab_quick, tab_sched, tab_tpl, tab_hist, tab_contacts = st.tabs([
+    tab_quick, tab_tpl, tab_hist, tab_contacts = st.tabs([
         "\u26a1 Quick Share",
-        "\U0001f4c5 Scheduled",
         "\U0001f4dd Templates",
         "\U0001f4dc History",
         "\U0001f4c7 Contacts",
@@ -251,68 +250,6 @@ def render():
                     st.success(f"Sent to {success_count} recipient(s) via {channel}.")
                 if fail_count:
                     st.warning(f"Failed for {fail_count} recipient(s). Check History for details.")
-
-    # ══════════════════════════════════════════════════════════════════════
-    #  TAB 2 — Scheduled Shares
-    # ══════════════════════════════════════════════════════════════════════
-    with tab_sched:
-        st.subheader("Scheduled Shares")
-        st.caption("Optional: share/rate ko BAAD me auto-bhejne ke liye yahan schedule karo. "
-                   "Agar turant bhejte ho to is tab ki zaroorat nahi — Quick Share use karo.")
-
-        schedules = _load_json(_SCHEDULES_FILE, [])
-
-        if not schedules:
-            st.info("No scheduled shares. Use the Quick Share tab to schedule one.")
-        else:
-            # Build display table
-            display_rows = []
-            for idx, s in enumerate(schedules):
-                display_rows.append({
-                    "#": idx + 1,
-                    "Page": s.get("page_name", "—"),
-                    "Channel": s.get("channel", "—"),
-                    "Schedule Time": s.get("schedule_time", "—"),
-                    "Recipients": ", ".join(s.get("recipients", [])) if isinstance(s.get("recipients"), list) else str(s.get("recipients", "—")),
-                    "Status": s.get("status", "—"),
-                    "Created": s.get("created_at", "—"),
-                })
-
-            st.dataframe(
-                display_rows,
-                use_container_width=True,
-                hide_index=True,
-            )
-
-            # Delete schedule
-            st.markdown("---")
-            st.markdown("**Remove a Schedule**")
-            sched_labels = [
-                f"#{i+1} — {s.get('page_name', '?')} via {s.get('channel', '?')} at {s.get('schedule_time', '?')}"
-                for i, s in enumerate(schedules)
-            ]
-            to_delete = st.selectbox("Select schedule to remove", options=sched_labels, key="sched_del_sel")
-            if not st.session_state.get("_sched_del_confirm"):
-                if st.button("\U0001f5d1\ufe0f Delete Selected", key="sched_del_btn"):
-                    st.session_state["_sched_del_confirm"] = True
-                    st.rerun()
-            else:
-                st.warning(f"Delete **{to_delete}**? This cannot be undone.")
-                dc1, dc2 = st.columns(2)
-                with dc1:
-                    if st.button("Yes, Delete", type="primary", key="sched_del_yes"):
-                        del_idx = sched_labels.index(to_delete)
-                        schedules.pop(del_idx)
-                        st.session_state.pop("_sched_del_confirm", None)
-                        if _save_json(_SCHEDULES_FILE, schedules):
-                            st.success("Schedule removed.")
-                            st.rerun()
-                        else:
-                            st.error("Failed to save changes.")
-                with dc2:
-                    if st.button("Cancel", key="sched_del_no"):
-                        st.session_state.pop("_sched_del_confirm", None)
-                        st.rerun()
 
     # ══════════════════════════════════════════════════════════════════════
     #  TAB 3 — Templates
