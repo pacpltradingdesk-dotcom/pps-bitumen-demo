@@ -46,6 +46,107 @@ def _get_optimizer():
         return None
 
 
+def _render_manual_price_override():
+    """Inline manual price override — writes to live_prices.json (the SAME shared
+    store get_live_prices() reads), so a pinned rate shows EVERYWHERE: this
+    calculator, the ticker and the Command Center. Reuses manual_entry's proven
+    _write_override_key so there is one single write path (no divergence)."""
+    import os as _os
+    import json as _json
+    import feasibility_engine
+    with st.expander("✏️ Manual Price Override — yahin daalo, sab jagah lagega", expanded=False):
+        st.caption("Kisi refinery/import source ka real published rate yahan pin karo. Ye "
+                   "live_prices.json me save hota hai — calculator + ticker + Command Center "
+                   "sab pe wahi price aata hai. Galat values (₹10,000 se kam) reject ho jaati hain.")
+        try:
+            from command_intel.manual_entry import _write_override_key
+            from source_master import INDIAN_REFINERIES, IMPORT_TERMINALS
+            # name -> price_board override_key (for ticker sync; only board sources have one)
+            name_to_ovkey = {}
+            try:
+                from price_board import REFINERY_ITEMS, IMPORT_ITEMS
+                for it in list(REFINERY_ITEMS) + list(IMPORT_ITEMS):
+                    name_to_ovkey[it.name] = it.override_key
+            except Exception:
+                pass
+            # Dropdown keyed by location NAME — the exact key the calculator reads
+            # (calculate_landed_cost -> prices.get(source_name)). Drum uses DRUM_ keys.
+            sources = {}
+            for r in INDIAN_REFINERIES:
+                sources[f"\U0001f3ed {r['name']}"] = r['name']
+            for r in IMPORT_TERMINALS:
+                sources[f"\U0001f6a2 {r['name']}"] = r['name']
+            sources["\U0001f6e2️ Mumbai Drum (VG30)"] = "DRUM_MUMBAI_VG30"
+            sources["\U0001f6e2️ Kandla Drum (VG30)"] = "DRUM_KANDLA_VG30"
+
+            live = feasibility_engine.get_live_prices()
+            raw = {}
+            try:
+                if _os.path.exists(feasibility_engine.PRICE_CONFIG_FILE):
+                    with open(feasibility_engine.PRICE_CONFIG_FILE) as _f:
+                        raw = _json.load(_f)
+            except Exception:
+                raw = {}
+
+            c1, c2, c3 = st.columns([3, 2, 1])
+            with c1:
+                sel = st.selectbox("Source", list(sources.keys()), key="mpo_src")
+            key = sources[sel]          # calculator key (location name / DRUM_ key)
+            ov_key = name_to_ovkey.get(key)   # ticker key (may be None)
+            pinned = isinstance(raw.get(key), (int, float))
+            cur_val = int(live.get(key, 0) or 0)
+            with c2:
+                new_price = st.number_input("Real price (₹/MT)", min_value=0, step=100,
+                                            value=cur_val, key="mpo_price")
+            with c3:
+                st.write("")
+                st.write("")
+                apply = st.button("✅ Apply", key="mpo_apply", use_container_width=True)
+
+            st.caption((f"\U0001f4cc PINNED (manual)" if pinned else "⚙️ auto-derived")
+                       + f" — current: ₹{cur_val:,}/MT")
+
+            def _reload_and_clear():
+                try:
+                    from calculation_engine import get_engine
+                    get_engine().reload_prices()
+                except Exception:
+                    pass
+                try:
+                    st.cache_data.clear()
+                except Exception:
+                    pass
+
+            if apply:
+                if new_price >= 10000:
+                    if _write_override_key(key, int(new_price)):
+                        if ov_key:
+                            _write_override_key(ov_key, int(new_price))  # ticker sync
+                        _reload_and_clear()
+                        st.success(f"✅ {sel} → ₹{int(new_price):,}/MT pinned. Calculator + ticker sab jagah update.")
+                        st.rerun()
+                    else:
+                        st.error("Save fail — file permission check karo.")
+                else:
+                    st.warning("Price ₹10,000 se kam — typo lagta hai, reject kiya.")
+
+            if pinned and st.button(f"↩️ Reset to auto-derived", key="mpo_reset"):
+                raw.pop(key, None)
+                if ov_key:
+                    raw.pop(ov_key, None)
+                feasibility_engine.save_live_prices(raw)
+                _reload_and_clear()
+                st.success(f"↩️ {sel} wapas auto-derived price pe.")
+                st.rerun()
+
+            n_pinned = sum(1 for v in raw.values() if isinstance(v, (int, float)))
+            if n_pinned:
+                st.caption(f"\U0001f4cc Total active manual overrides: {n_pinned} "
+                           "— Manual Price Entry page se bhi manage kar sakte ho.")
+        except Exception as e:
+            st.warning(f"Override panel unavailable: {e}")
+
+
 def render():
     # Phase 2: standardized refresh bar (clears caches + reruns)
     try:
@@ -61,6 +162,9 @@ def render():
         pass
     st.markdown('<div class="pps-page-header"><div class="pps-page-title">\U0001f9ee Pricing Calculator</div></div>', unsafe_allow_html=True)
     display_badge("calculated")
+
+    # Inline manual price override — pin a real rate, propagates everywhere.
+    _render_manual_price_override()
 
     optimizer = _get_optimizer()
 
