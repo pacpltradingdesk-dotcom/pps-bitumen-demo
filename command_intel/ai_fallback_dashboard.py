@@ -90,15 +90,15 @@ def _card(col, label: str, val: str, sub: str = "", color: str = "#3b82f6"):
 
 def _provider_badge(p: dict):
     """Render a full provider status card."""
-    pid   = p["id"]
+    pid   = p.get("id", "?")
     color = PROVIDER_COLORS.get(pid, "#475569")
-    ready = p["ready"]
+    ready = p.get("ready", False)
     active= p.get("is_active", False)
     border = f"3px solid {color}" if not active else f"3px solid #fff"
     glow   = f"box-shadow:0 0 12px {color}88;" if active else ""
 
-    pkg_icon  = "✅" if p["pkg_installed"]  else "❌"
-    key_icon  = "✅" if p["has_key"]        else ("—" if not p["needs_key"] else "❌")
+    pkg_icon  = "✅" if p.get("pkg_installed")  else "❌"
+    key_icon  = "✅" if p.get("has_key")        else ("—" if not p.get("needs_key") else "❌")
     dmn_icon  = "✅" if p.get("daemon_ok", True) else "❌"
     rdy_icon  = "🟢" if ready               else "🔴"
     act_badge = ' <span style="background:#facc15;color:#000;padding:1px 7px;border-radius:8px;font-size:0.7rem">ACTIVE</span>' if active else ""

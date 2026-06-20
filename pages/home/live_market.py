@@ -166,24 +166,33 @@ def render(mkt: dict, _CONFIDENCE_OK: bool = False, render_data_health_card=None
     except Exception:
         _alerts, _alert_count, _alert_critical = [], 0, 0
 
-    # Cheapest sources (Top 5)
+    # Cheapest sources (Top 5) — use the SAME engine as the Pricing Calculator
+    # (feasibility_engine + price_master) so these numbers NEVER diverge from the
+    # calculator/ticker. De-duplicated by source name (the old per-city approach
+    # listed the same terminal twice). Single source of truth.
     _top_sources = []
+    _cheapest_dest = "Mumbai"
     try:
-        from calculation_engine import BitumenCalculationEngine as _CalcEngine
-        _calc = _CalcEngine()
-        _src_cities = ["Ahmedabad", "Mumbai", "Delhi", "Pune", "Indore"]
-        for _sc in _src_cities:
+        import feasibility_engine as _fe
+        from source_master import INDIAN_REFINERIES, IMPORT_TERMINALS
+        try:
+            from navigation_engine import get_context
+            _cheapest_dest = get_context("customer_city", "") or "Mumbai"
+        except Exception:
+            _cheapest_dest = "Mumbai"
+        _best = {}
+        for _r in list(INDIAN_REFINERIES) + list(IMPORT_TERMINALS):
             try:
-                _srcs = _calc.find_best_sources(_sc, grade="VG30", top_n=1)
-                if _srcs:
-                    _top_sources.append({
-                        "city": _sc,
-                        "source": _srcs[0].get("source", "Unknown"),
-                        "landed": _srcs[0].get("landed_cost", 0),
-                    })
+                _lc = _fe.calculate_landed_cost(_r["name"], _cheapest_dest).get("landed_cost", 0)
             except Exception:
-                pass
-        _top_sources.sort(key=lambda x: x.get("landed", 99999))
+                continue
+            if not _lc:
+                continue
+            if _r["name"] not in _best or _lc < _best[_r["name"]]:
+                _best[_r["name"]] = _lc       # cheapest landed per distinct source
+        _top_sources = sorted(
+            ({"source": _n, "landed": _v} for _n, _v in _best.items()),
+            key=lambda x: x["landed"])[:5]
     except Exception:
         pass
 
@@ -287,7 +296,7 @@ def render(mkt: dict, _CONFIDENCE_OK: bool = False, render_data_health_card=None
     _h3a, _h3b = st.columns(2)
 
     with _h3a:
-        st.markdown('<div class="zoho-row-header">Top 5 Cheapest Sources (VG30 Landed)</div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="zoho-row-header">Top 5 Cheapest Sources (VG30 Landed → {_cheapest_dest})</div>', unsafe_allow_html=True)
         if _top_sources:
             _src_html = ""
             for _idx, _ts in enumerate(_top_sources[:5], 1):

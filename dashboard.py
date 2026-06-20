@@ -510,7 +510,7 @@ def _page_reports():
     st.caption("Generate and download reports as PDF or Excel.")
 
     report_type = st.selectbox("Report Type", [
-        "Director Briefing (PDF)",
+        "Director Briefing (Report)",
         "Financial Summary (Excel)",
         "CRM Contacts (Excel)",
         "Price History (Excel)",
@@ -527,12 +527,36 @@ def _page_reports():
         try:
             if "Director Briefing" in report_type:
                 try:
-                    from director_briefing_engine import generate_briefing
-                    briefing = generate_briefing()
-                    st.success("Director Briefing generated!")
-                    st.markdown(briefing.get("summary", "No summary available."))
-                except Exception:
-                    st.warning("Director Briefing engine not available. Check system settings.")
+                    # generate_briefing is a METHOD on DirectorBriefingEngine, not a
+                    # module-level function — the old top-level import always failed
+                    # (ImportError) so the report never appeared.
+                    from director_briefing_engine import DirectorBriefingEngine
+                    _eng = DirectorBriefingEngine()
+                    briefing = _eng.generate_briefing()
+                    try:
+                        _summary = _eng.format_whatsapp_summary(briefing)
+                    except Exception:
+                        _summary = briefing.get("greeting", "")
+                    _lines = ["PPS ANANTAM — DIRECTOR BRIEFING",
+                              f"Date: {briefing.get('briefing_date','')}  |  Generated: {briefing.get('generated_at','')}",
+                              "=" * 50, "", _summary, ""]
+                    for _sec, _title in [("yesterday_summary", "Yesterday"),
+                                         ("today_actions", "Today's Actions"),
+                                         ("fifteen_day_outlook", "15-Day Outlook")]:
+                        _d = briefing.get(_sec)
+                        if isinstance(_d, dict) and _d:
+                            _lines.append(f"— {_title} —")
+                            _lines += [f"  {_k}: {_v}" for _k, _v in _d.items()]
+                            _lines.append("")
+                    _report_txt = "\n".join(str(x) for x in _lines)
+                    st.success("✅ Director Briefing generated!")
+                    st.markdown(_summary or "Briefing ready.")
+                    st.download_button(
+                        "⬇️ Download Director Briefing", data=_report_txt,
+                        file_name=f"pps_director_briefing_{briefing.get('briefing_date','today')}.txt",
+                        mime="text/plain")
+                except Exception as _e:
+                    st.error(f"Director Briefing failed: {_e}")
 
             elif "Financial Summary" in report_type:
                 try:

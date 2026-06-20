@@ -310,7 +310,7 @@ def _render_highway_data() -> None:
 
         df = pd.DataFrame(rows)
         df = df[df["state"].str.startswith("All India")].copy() if "state" in df.columns else df
-        df = df.sort_values("period_label")
+        df = df.sort_values("period_label") if "period_label" in df.columns else df
 
         if not df.empty:
             st.markdown("**KM Completed by Month (All India)**")
@@ -333,7 +333,8 @@ def _render_highway_data() -> None:
 
         # State breakdown
         state_df = pd.DataFrame(rows)
-        state_df = state_df[~state_df["state"].str.startswith("All India")]
+        state_df = (state_df[~state_df["state"].str.startswith("All India")]
+                    if "state" in state_df.columns else state_df.iloc[0:0])
         if not state_df.empty:
             with st.expander(f"📊 State-wise Breakdown ({len(state_df)} records)"):
                 st.dataframe(state_df[[

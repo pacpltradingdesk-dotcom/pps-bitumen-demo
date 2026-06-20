@@ -481,8 +481,22 @@ def render():
                         st.code(wa_text, language=None)
 
                 st.markdown("---")
+                # Staleness guard — team flagged Feb/Mar cached Telegram news showing
+                # as if current. Hide the feed if the last analysis is > 7 days old.
+                import datetime as _dt2
+                _analyzed_at = str(summary.get("analyzed_at", ""))
+                _feed_stale = False
+                try:
+                    _ad = _dt2.datetime.fromisoformat(_analyzed_at[:19].replace("/", "-"))
+                    _feed_stale = (_dt2.datetime.now() - _ad).days > 7
+                except Exception:
+                    _feed_stale = False
                 st.markdown("### 💰 Price Intelligence Feed")
-                st.caption("Auto-translated to English • Prices highlighted • 2-column grid, most recent first")
+                if _feed_stale:
+                    st.warning(f"⚠️ Ye Telegram intel purana hai (last analyzed: {_analyzed_at[:10] or 'unknown'}). "
+                               "Feed hide kar di — naya data ke liye **Connect Account → Fetch & Analyze** karo.")
+                else:
+                    st.caption("Auto-translated to English • Prices highlighted • 2-column grid, most recent first")
 
                 colors = [
                     ("#eff6ff", "#1e40af", "#2563eb"),
@@ -545,8 +559,8 @@ def render():
   {prices_html}
 </div>'''
 
-                # 2-column grid — render pairs of cards side-by-side
-                _shown = price_msgs[:20]
+                # 2-column grid — render pairs of cards side-by-side (hidden if stale)
+                _shown = [] if _feed_stale else price_msgs[:20]
                 for row_start in range(0, len(_shown), 2):
                     c1, c2 = st.columns(2, gap="medium")
                     for col, (rel_i, msg) in zip(
