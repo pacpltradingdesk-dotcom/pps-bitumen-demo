@@ -487,7 +487,9 @@ def render():
                 _analyzed_at = str(summary.get("analyzed_at", ""))
                 _feed_stale = False
                 try:
-                    _ad = _dt2.datetime.fromisoformat(_analyzed_at[:19].replace("/", "-"))
+                    # Date-only ([:10]) parse — analyzed_at is like "2026-03-25 14:31 IST"
+                    # and the " IST"/HH:MM suffix breaks a full-timestamp parse.
+                    _ad = _dt2.datetime.fromisoformat(_analyzed_at[:10].replace("/", "-"))
                     _feed_stale = (_dt2.datetime.now() - _ad).days > 7
                 except Exception:
                     _feed_stale = False
