@@ -53,18 +53,20 @@ REFINERIES: list[PriceRec] = [
     PriceRec("Nayara Vadinar",     "VG30", "NAYARA_VADINAR_VG30",  77934, "refinery", False),
 ]
 
-# Import-terminal landed prices (≈ nearest PSU depot − ~Rs 6k import discount).
+# Import-terminal prices = the published Multi-Energy "Bitumen Bulk Basic Prices"
+# location rate (import discount removed — team treats import == published price,
+# so every screen matches the circular and there's no "wrong price" mismatch).
 IMPORTS: list[PriceRec] = [
-    PriceRec("Mangalore Port Import", "VG30", "BULK_MANGALORE_IMPORT", 72850, "import", True),
-    PriceRec("Karwar Port Import",    "VG30", "BULK_KARWAR_IMPORT",    72230, "import", False),
-    PriceRec("Digi Port Import",      "VG30", "BULK_DIGI_IMPORT",      70870, "import", False),
-    PriceRec("Taloja Terminal",       "VG30", "BULK_TALOJA_IMPORT",    70870, "import", False),
-    PriceRec("VVF Mumbai Terminal",   "VG30", "BULK_VVF_IMPORT",       70870, "import", False),
-    PriceRec("Kandla Port Import",    "VG30", "BULK_KANDLA_IMPORT",    72260, "import", True),
-    PriceRec("Mundra Port Import",    "VG30", "BULK_MUNDRA_IMPORT",    71390, "import", True),
-    PriceRec("JNPT Import Terminal",  "VG30", "BULK_JNPT_IMPORT",      70870, "import", True),
-    PriceRec("Haldia Port Import",    "VG30", "BULK_HALDIA_IMPORT",    71382, "import", True),
-    PriceRec("Ennore Port Import",    "VG30", "BULK_ENNORE_IMPORT",    68582, "import", False),
+    PriceRec("Mangalore Port Import", "VG30", "BULK_MANGALORE_IMPORT", 78850, "import", True),
+    PriceRec("Karwar Port Import",    "VG30", "BULK_KARWAR_IMPORT",    78230, "import", False),
+    PriceRec("Digi Port Import",      "VG30", "BULK_DIGI_IMPORT",      76870, "import", False),  # Mumbai
+    PriceRec("Taloja Terminal",       "VG30", "BULK_TALOJA_IMPORT",    76870, "import", False),  # Mumbai
+    PriceRec("VVF Mumbai Terminal",   "VG30", "BULK_VVF_IMPORT",       76870, "import", False),  # Mumbai
+    PriceRec("Kandla Port Import",    "VG30", "BULK_KANDLA_IMPORT",    78260, "import", True),
+    PriceRec("Mundra Port Import",    "VG30", "BULK_MUNDRA_IMPORT",    77390, "import", True),
+    PriceRec("JNPT Import Terminal",  "VG30", "BULK_JNPT_IMPORT",      76870, "import", True),   # Mumbai/JNPT
+    PriceRec("Haldia Port Import",    "VG30", "BULK_HALDIA_IMPORT",    77382, "import", True),
+    PriceRec("Ennore Port Import",    "VG30", "BULK_ENNORE_IMPORT",    74582, "import", False),  # Chennai
 ]
 
 ALL_RECS: list[PriceRec] = REFINERIES + IMPORTS
