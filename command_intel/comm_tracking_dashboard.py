@@ -55,6 +55,8 @@ Email • WhatsApp • Share Links • PDF Exports • Chat Logs
 def _render_tracking_log():
     """Filterable log table with channel/date/recipient filters."""
     st.markdown("### 📋 Communication Log")
+    st.caption("Ye report nahi — ye ek LOG hai: jab bhi kisi customer ko WhatsApp/Email/share "
+               "bhejte ho, wo yahan record hota hai (kab, kisko, kaunsa channel, status).")
 
     # Filters
     col1, col2, col3 = st.columns(3)

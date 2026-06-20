@@ -257,7 +257,8 @@ def render():
     # ══════════════════════════════════════════════════════════════════════
     with tab_sched:
         st.subheader("Scheduled Shares")
-        st.caption("View and manage recurring/scheduled share tasks.")
+        st.caption("Optional: share/rate ko BAAD me auto-bhejne ke liye yahan schedule karo. "
+                   "Agar turant bhejte ho to is tab ki zaroorat nahi — Quick Share use karo.")
 
         schedules = _load_json(_SCHEDULES_FILE, [])
 

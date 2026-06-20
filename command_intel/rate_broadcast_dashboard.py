@@ -218,6 +218,8 @@ def render():
     # ── Tab 4: Settings ──
     with tabs[3]:
         st.subheader("Broadcast Settings")
+        st.caption("Broadcast ke default options yahan set hote hain — channels (WhatsApp/Email), "
+                   "rate-limit aur message template. Ek baar set karo, har broadcast pe yahi lagta hai.")
 
         try:
             from settings_engine import get as gs, save as ss
