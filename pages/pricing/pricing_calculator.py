@@ -400,10 +400,10 @@ def render():
                 # Build options list for selection
                 price_options = []
 
-                # --- 1. DRUM DIRECT (TOP PRIORITY) ---
-                st.markdown("#### \U0001f6e2\ufe0f Drum Import (Main)")
+                # --- 1. DRUM DIRECT (only for Drum enquiries) ---
                 drum = assessment.get('drum_direct')
-                if drum:
+                if drum and load_type == "Drum":
+                    st.markdown("#### \U0001f6e2\ufe0f Drum Import (Main)")
                     price_options.append({
                         'label': f"\U0001f6e2\ufe0f {drum['source']} - {format_inr(drum['landed_cost'])}",
                         'source': drum['source'],
@@ -421,10 +421,10 @@ def render():
 </div>
 ''', unsafe_allow_html=True)
 
-                # --- 2. LOCAL DECANTER BULK ---
-                st.markdown("#### \U0001f504 Decanter Bulk")
+                # --- 2. LOCAL DECANTER BULK (bulk enquiries only) ---
                 dec = assessment.get('local_decanter')
-                if dec:
+                if dec and load_type == "Bulk":
+                    st.markdown("#### \U0001f504 Decanter Bulk")
                     price_options.append({
                         'label': f"\U0001f504 {dec['source']} - {format_inr(dec['landed_cost'])}",
                         'source': dec['source'],
@@ -442,9 +442,10 @@ def render():
 </div>
 ''', unsafe_allow_html=True)
 
-                # --- 3. IMPORT BULK ---
-                st.markdown("#### \U0001f6a2 Import Bulk")
-                for i, opt in enumerate(assessment['imports'][:2]):
+                # --- 3. IMPORT BULK (bulk enquiries only) ---
+                if load_type == "Bulk":
+                    st.markdown("#### \U0001f6a2 Import Bulk")
+                for i, opt in enumerate(assessment['imports'][:2] if load_type == "Bulk" else []):
                     price_options.append({
                         'label': f"\U0001f6a2 {opt['source']} - {format_inr(opt['landed_cost'])}",
                         'source': opt['source'],
@@ -464,9 +465,10 @@ def render():
 </div>
 ''', unsafe_allow_html=True)
 
-                # --- 4. PSU REFINERIES (Last) ---
-                st.markdown("#### \U0001f3ed PSU Refinery Bulk")
-                for i, opt in enumerate(assessment['refineries'][:2]):
+                # --- 4. PSU REFINERIES (bulk enquiries only) ---
+                if load_type == "Bulk":
+                    st.markdown("#### \U0001f3ed PSU Refinery Bulk")
+                for i, opt in enumerate(assessment['refineries'][:2] if load_type == "Bulk" else []):
                     price_options.append({
                         'label': f"\U0001f3ed {opt['source']} - {format_inr(opt['landed_cost'])}",
                         'source': opt['source'],
