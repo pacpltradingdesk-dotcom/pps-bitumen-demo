@@ -143,6 +143,48 @@ def _render_manual_price_override():
             if n_pinned:
                 st.caption(f"\U0001f4cc Total active manual overrides: {n_pinned} "
                            "— Manual Price Entry page se bhi manage kar sakte ho.")
+
+            # ── Bulk upload price list (team request: "add option to upload price list")
+            st.markdown("---")
+            st.markdown("**\U0001f4cb Bulk Upload Price List** — poori list ek saath update karo")
+            _tmpl = ["source,price_vg30"]
+            for _k in sources.values():
+                _tmpl.append(f"{_k},{int(live.get(_k, 0) or 0)}")
+            st.download_button("⬇️ Template download (CSV)", data="\n".join(_tmpl),
+                               file_name="pps_price_list_template.csv", mime="text/csv", key="mpo_tmpl")
+            _up = st.file_uploader("⬆️ Filled CSV upload karo (columns: source, price_vg30)",
+                                   type=["csv"], key="mpo_bulk")
+            if _up is not None:
+                try:
+                    import pandas as _pd
+                    _bdf = _pd.read_csv(_up)
+                    _bdf.columns = [str(c).strip().lower() for c in _bdf.columns]
+                    _scol = next((c for c in _bdf.columns if "source" in c or "location" in c), _bdf.columns[0])
+                    _pcol = next((c for c in _bdf.columns if "price" in c or "vg30" in c or "rate" in c), _bdf.columns[-1])
+                    _valid = set(sources.values()) | set(name_to_ovkey.values())
+                    _applied = _skipped = 0
+                    for _, _r in _bdf.iterrows():
+                        _s = str(_r[_scol]).strip()
+                        try:
+                            _pv = int(float(_r[_pcol]))
+                        except Exception:
+                            _skipped += 1; continue
+                        if _s not in _valid or _pv < 10000:
+                            _skipped += 1; continue
+                        if _write_override_key(_s, _pv):
+                            _ovk = name_to_ovkey.get(_s)
+                            if _ovk:
+                                _write_override_key(_ovk, _pv)
+                            _applied += 1
+                        else:
+                            _skipped += 1
+                    _reload_and_clear()
+                    st.success(f"✅ {_applied} prices applied (calculator + ticker). "
+                               f"{_skipped} skipped (invalid name / < ₹10k).")
+                    if _applied:
+                        st.rerun()
+                except Exception as _be:
+                    st.error(f"Upload parse fail: {_be}")
         except Exception as e:
             st.warning(f"Override panel unavailable: {e}")
 
