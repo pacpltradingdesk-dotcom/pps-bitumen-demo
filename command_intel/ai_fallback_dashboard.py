@@ -114,18 +114,18 @@ def _provider_badge(p: dict):
         f'border-radius:10px;padding:12px 16px;margin-bottom:10px">'
         f'<div style="display:flex;justify-content:space-between;align-items:center">'
         f'<span style="color:{color};font-size:1.1rem;font-weight:800">'
-        f'{p["icon"]} {p["name"]}{act_badge}</span>'
-        f'<span style="color:#94a3b8;font-size:0.78rem">{p["type"]}'
+        f'{p.get("icon","🤖")} {p.get("name","?")}{act_badge}</span>'
+        f'<span style="color:#94a3b8;font-size:0.78rem">{p.get("type","")}'
         f'{" <span style=&quot;background:#22c55e;color:#fff;padding:1px 6px;border-radius:4px;font-size:0.65rem&quot;>FREE</span>" if p.get("cost") == "FREE" else " <span style=&quot;background:#f59e0b;color:#000;padding:1px 6px;border-radius:4px;font-size:0.65rem&quot;>PAID</span>"}'
         f'</span></div>'
         f'<div style="display:flex;gap:18px;margin-top:6px;font-size:0.8rem">'
-        f'<span style="color:#94a3b8">Package: <b style="color:#f8fafc">{pkg_icon} {p["pkg"]}</b></span>'
+        f'<span style="color:#94a3b8">Package: <b style="color:#f8fafc">{pkg_icon} {p.get("pkg","—")}</b></span>'
         f'<span style="color:#94a3b8">API Key: <b style="color:#f8fafc">{key_icon}</b></span>'
         f'<span style="color:#94a3b8">Ready: <b style="color:#f8fafc">{rdy_icon}</b></span></div>'
         f'{err_html}'
         f'<div style="color:#475569;font-size:0.74rem;margin-top:4px">'
-        f'Install: <code style="color:#94a3b8">{p["install_cmd"]}</code></div>'
-        f'<div style="color:#64748b;font-size:0.73rem">{p["setup_note"]}</div>'
+        f'Install: <code style="color:#94a3b8">{p.get("install_cmd","—")}</code></div>'
+        f'<div style="color:#64748b;font-size:0.73rem">{p.get("setup_note","")}</div>'
         f'</div>',
         unsafe_allow_html=True,
     )
@@ -266,9 +266,9 @@ def _tab_providers():
 
     # KPI row
     total   = len(statuses)
-    ready   = sum(1 for p in statuses if p["ready"])
-    active  = next((p["name"] for p in statuses if p.get("is_active")), "None")
-    free_rdy= sum(1 for p in statuses if p["ready"] and "Free" in p["type"])
+    ready   = sum(1 for p in statuses if p.get("ready"))
+    active  = next((p.get("name","?") for p in statuses if p.get("is_active")), "None")
+    free_rdy= sum(1 for p in statuses if p.get("ready") and "Free" in p.get("type",""))
 
     k1, k2, k3, k4 = st.columns(4)
     _card(k1, "Total Providers",    str(total),    "In chain",          "#3b82f6")
@@ -282,7 +282,7 @@ def _tab_providers():
 
     for i, p in enumerate(statuses):
         col_num, col_card = st.columns([0.06, 0.94])
-        color = PROVIDER_COLORS.get(p["id"], "#475569")
+        color = PROVIDER_COLORS.get(p.get("id"), "#475569")
         col_num.markdown(
             f'<div style="background:{color};color:#fff;border-radius:50%;'
             f'width:28px;height:28px;display:flex;align-items:center;'
@@ -386,8 +386,8 @@ def _tab_switch():
 
     with col_sw:
         _hdr("🎛️", "Force Active Provider", "#f59e0b")
-        options  = [p["id"] for p in statuses]
-        labels   = {p["id"]: f'{p["icon"]} {p["name"]}' for p in statuses}
+        options  = [p.get("id") for p in statuses]
+        labels   = {p.get("id"): f'{p.get("icon","🤖")} {p.get("name","?")}' for p in statuses}
         active   = afe.get_active_provider()["id"]
         sel      = st.selectbox("Override to:", options, index=options.index(active),
                                 format_func=lambda x: labels[x], key="force_sel")

@@ -312,7 +312,7 @@ def _render_highway_data() -> None:
         df = df[df["state"].str.startswith("All India")].copy() if "state" in df.columns else df
         df = df.sort_values("period_label") if "period_label" in df.columns else df
 
-        if not df.empty:
+        if not df.empty and {"period_label", "km_completed"}.issubset(df.columns):
             st.markdown("**KM Completed by Month (All India)**")
             try:
                 import altair as alt
@@ -337,10 +337,11 @@ def _render_highway_data() -> None:
                     if "state" in state_df.columns else state_df.iloc[0:0])
         if not state_df.empty:
             with st.expander(f"📊 State-wise Breakdown ({len(state_df)} records)"):
-                st.dataframe(state_df[[
-                    "period_label", "state", "agency", "km_completed",
-                    "km_target", "pct_achievement", "source", "confidence"
-                ]], use_container_width=True, hide_index=True)
+                _scols = [c for c in ["period_label", "state", "agency", "km_completed",
+                                      "km_target", "pct_achievement", "source", "confidence"]
+                          if c in state_df.columns]
+                st.dataframe(state_df[_scols] if _scols else state_df,
+                             use_container_width=True, hide_index=True)
 
         # Full table
         with st.expander(f"📋 Full Highway Table ({len(rows)} rows)"):
@@ -405,10 +406,10 @@ def _render_countrywise() -> None:
 
         # Full table
         with st.expander(f"📋 Full Countrywise Table ({len(df)} rows)"):
-            st.dataframe(df[[
-                "period_label", "origin_country", "hs_code",
-                "qty_kg", "value_usd", "source"
-            ]], use_container_width=True, hide_index=True)
+            _ccols = [c for c in ["period_label", "origin_country", "hs_code",
+                                  "qty_kg", "value_usd", "source"] if c in df.columns]
+            st.dataframe(df[_ccols] if _ccols else df,
+                         use_container_width=True, hide_index=True)
 
     except ImportError:
         for r in rows[-20:]:
