@@ -1003,6 +1003,43 @@ All data extracted from WhatsApp bulletins (Feb 2026) and cross-verified against
 </div>
 """, unsafe_allow_html=True)
 
+    # Honest staleness banner — MEE forecasts/updates are hardcoded historical
+    # WhatsApp bulletins (no live feed), so make their age unmissable: 4-month-old
+    # directional forecasts must not read as today's competitor intel.
+    try:
+        import datetime as _dt
+        _mee_dates = []
+        # MEE_FORECASTS / MEE_MARKET_UPDATES are pandas DataFrames (date columns
+        # "date" / "datetime_ist"); also tolerate list-of-dicts defensively.
+        for _src, _col in ((MEE_FORECASTS, "date"), (MEE_MARKET, "datetime_ist")):
+            if hasattr(_src, "columns"):
+                _vals = list(_src[_col]) if _col in _src.columns else []
+            elif isinstance(_src, list):
+                _vals = [r.get(_col) for r in _src if isinstance(r, dict)]
+            else:
+                _vals = []
+            for _v in _vals:
+                _s = str(_v or "")[:10]
+                for _f in ("%d-%m-%Y", "%Y-%m-%d"):
+                    try:
+                        _mee_dates.append(_dt.datetime.strptime(_s, _f))
+                        break
+                    except ValueError:
+                        continue
+        if _mee_dates:
+            _latest = max(_mee_dates)
+            _age = (_dt.datetime.now() - _latest).days
+            if _age > 21:
+                st.warning(
+                    f"📅 **MEE bulletin data is a historical archive** — latest entry "
+                    f"**{_latest.strftime('%d-%b-%Y')}** ({_age} days ago). MEE publishes only on a "
+                    "private WhatsApp bulletin (no live feed), so the **Forecast Timeline** & "
+                    "**Market Data** tabs are reference history, not today's competitor prices. "
+                    "Live PSU rates, Brent / USD-INR and news on the **Overview** tab ARE current."
+                )
+    except Exception:
+        pass
+
     t1, t2, t3, t4, t5, t6, t7, t8 = st.tabs([
         "🏢 Overview",
         "📈 Forecast Timeline",
