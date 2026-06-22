@@ -88,6 +88,26 @@ def _render_kpi_bar(results: Dict) -> None:
     n_obs      = results.get("n_obs", 0)
 
     import math as _math
+
+    # A correlation needs enough overlapping monthly points to mean anything. The
+    # source series here (annual NHAI highway-KM report + annual HS-271320 imports)
+    # rarely overlap at monthly frequency, so n_obs can be ~0. Show an honest
+    # notice instead of presenting a misleading "r = 0.000 / Weak".
+    _MIN_OBS = 6
+    if n_obs < _MIN_OBS:
+        st.warning(
+            f"⚠️ Not enough overlapping monthly data to compute a meaningful correlation "
+            f"(only {n_obs} paired observation(s); need ≥ {_MIN_OBS}). Highway KM (annual "
+            "NHAI report) and import-demand (annual HS-271320) series don't yet overlap at "
+            "monthly frequency, so the figures below are not statistically valid."
+        )
+        c1, c2, c3, c4 = st.columns(4)
+        c1.metric("Best Lag",     "N/A")
+        c2.metric("Strongest r",  "N/A", help="Insufficient overlapping data")
+        c3.metric("Current Signal", "—")
+        c4.metric("Observations", str(n_obs), help=f"Need ≥ {_MIN_OBS} paired months for a valid correlation")
+        return
+
     best_lag_label = f"{best_lag}m" if best_lag is not None else "N/A"
     signal         = _corr_signal(best_r) if best_r else "—"
     r_sq_label     = f"{r_squared:.2f}" if (r_squared and not _math.isnan(r_squared)) else "N/A"

@@ -352,6 +352,16 @@ class ForwardStrategyEngine:
         first_rate = recent[0].get("rate", 0)
         last_rate = recent[-1].get("rate", 0)
 
+        # Anchor the latest point to the canonical current rate (single source of
+        # truth) so the displayed level + % move never disagree with other screens.
+        try:
+            from market_data import get_unified_prices
+            _canon = get_unified_prices().get("usdinr")
+            if _canon:
+                last_rate = float(_canon)
+        except Exception:
+            pass
+
         if first_rate <= 0:
             return {"direction": "STABLE", "change_pct": 0, "detail": "Invalid FX data"}
 
