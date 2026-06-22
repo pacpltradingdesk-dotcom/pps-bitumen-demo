@@ -262,7 +262,7 @@ def _render_disruption_map(st) -> None:
     # Compute congestion for all ports
     with st.spinner("Computing port congestion..."):
         try:
-            congestion_data = PortCongestionMonitor.get_all_ports()
+            congestion_data = PortCongestionMonitor.compute_all_ports()
         except Exception as exc:
             LOG.error("Port congestion computation failed: %s", exc)
             st.error(f"Port congestion computation failed: {exc}")
@@ -284,7 +284,9 @@ def _render_disruption_map(st) -> None:
     # Build scatter_geo
     lats, lons, names, colors_list, sizes, hover_texts = [], [], [], [], [], []
     for port in congestion_data:
-        port_name = port.get("port_name", port.get("name", ""))
+        # compute_all_ports() returns dicts keyed "port"/"label"/"type"; keep the
+        # older "port_name"/"name" fallbacks for any other producer of this list.
+        port_name = port.get("port", port.get("port_name", port.get("name", "")))
         port_info = INDIAN_PORTS.get(port_name, {})
         lat = port_info.get("lat") or port.get("lat")
         lon = port_info.get("lon") or port.get("lon")
@@ -302,7 +304,7 @@ def _render_disruption_map(st) -> None:
             level = "Low"
 
         color = _CONGESTION_COLORS.get(level, _GOLD)
-        label = port_info.get("label", port_name)
+        label = port.get("label") or port_info.get("label", port_name)
 
         lats.append(lat)
         lons.append(lon)
@@ -313,7 +315,7 @@ def _render_disruption_map(st) -> None:
             f"<b>{label}</b><br>"
             f"Congestion: {score}%<br>"
             f"Level: {level}<br>"
-            f"Type: {port_info.get('type', 'N/A')}"
+            f"Type: {port.get('type', port_info.get('type', 'N/A'))}"
         )
 
     if not lats:

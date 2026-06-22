@@ -126,9 +126,17 @@ def render():
             import plotly.express as px
             hw_df = pd.DataFrame(highway_data)
             if "nhai_km_target" in hw_df.columns and "bitumen_demand_mt" in hw_df.columns:
+                # The OLS trendline is rendered by plotly via statsmodels. That
+                # dependency is optional (and absent on some deploys), so degrade
+                # gracefully to a plain scatter instead of crashing the page.
+                try:
+                    import statsmodels.api as _sm  # noqa: F401
+                    _trendline = "ols"
+                except Exception:
+                    _trendline = None
                 fig = px.scatter(hw_df, x="nhai_km_target", y="bitumen_demand_mt",
                                  text="state", title="Highway KM Target vs Bitumen Demand",
-                                 trendline="ols", size="bitumen_demand_mt",
+                                 trendline=_trendline, size="bitumen_demand_mt",
                                  color="bitumen_demand_mt", color_continuous_scale="Viridis")
                 fig.update_traces(textposition="top center", textfont_size=9)
                 fig.update_layout(height=500, xaxis_title="NHAI KM Target", yaxis_title="Bitumen Demand (MT)")

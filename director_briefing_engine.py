@@ -172,7 +172,15 @@ class DirectorBriefingEngine:
             if len(usd_inr) >= 2:
                 latest_fx = usd_inr[-1]["rate"]
                 prev_fx = usd_inr[-2]["rate"]
-                summary["market_movement"]["fx_rate"] = latest_fx
+                # Show the canonical current rate (single source of truth) so the
+                # briefing never disagrees with Command Center / ticker. The
+                # series is used only for the movement %, not the displayed level.
+                try:
+                    from market_data import get_unified_prices
+                    _canon_fx = get_unified_prices().get("usdinr")
+                except Exception:
+                    _canon_fx = None
+                summary["market_movement"]["fx_rate"] = _canon_fx or latest_fx
                 if prev_fx > 0:
                     summary["market_movement"]["fx_pct"] = round(
                         (latest_fx - prev_fx) / prev_fx * 100, 2)

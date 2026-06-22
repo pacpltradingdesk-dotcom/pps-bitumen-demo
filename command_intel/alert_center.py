@@ -221,9 +221,17 @@ def run_alert_scan() -> int:
                 fx_change = (latest_fx - prev_fx) / prev_fx * 100
                 if abs(fx_change) > 1:
                     direction = "weakened" if fx_change > 0 else "strengthened"
+                    # Display the canonical current rate (single source of truth)
+                    # so the alert level matches every other screen; the % move
+                    # still comes from the adjacent series records above.
+                    try:
+                        from market_data import get_unified_prices
+                        _disp_fx = get_unified_prices().get("usdinr") or latest_fx
+                    except Exception:
+                        _disp_fx = latest_fx
                     _add_alert("fx_move", "P1",
                                f"INR {direction} {abs(fx_change):.1f}% against USD",
-                               f"USD/INR now at {latest_fx:.2f}. Import costs affected.",
+                               f"USD/INR now at {_disp_fx:.2f}. Import costs affected.",
                                "Review international procurement pricing")
     except Exception as _e:
         pass

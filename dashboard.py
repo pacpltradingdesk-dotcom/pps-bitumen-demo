@@ -307,6 +307,12 @@ if st.session_state.get("_nav_goto"):
         st.session_state["_active_module"] = _owner
     st.rerun()
 
+# Reset the once-per-run top-bar guard. render_top_bar() can be reached from two
+# places in a single run (dashboard.py below AND command_center.render()), e.g.
+# when resolve_page() RBAC-redirects a restricted page to Command Center. The
+# guard makes the second call a no-op so we never crash on duplicate _tnav keys.
+st.session_state["_topbar_rendered_this_run"] = False
+
 if st.session_state.get("selected_page") == "🎯 Command Center":
     # Render sidebar even on CC (render_sidebar_features already imported at top)
     render_sidebar_features("📊 Price & Info")

@@ -35,6 +35,14 @@ def _get_logo_b64():
 def render_top_bar() -> None:
     """Render sleek light pill header with logo + clickable module navigation."""
 
+    # Render at most once per script run. dashboard.py and command_center.render()
+    # can both call this in a single run (e.g. when a restricted page is RBAC-
+    # redirected to Command Center), which would otherwise crash on duplicate
+    # "_tnav_*" widget keys. dashboard.py resets this flag at the start of each run.
+    if st.session_state.get("_topbar_rendered_this_run"):
+        return
+    st.session_state["_topbar_rendered_this_run"] = True
+
     current_module = st.session_state.get("_active_module", "\U0001f3e0 Home")
     current_label = MODULE_NAV.get(current_module, {}).get("label", "Home")
     logo_b64 = _get_logo_b64()
