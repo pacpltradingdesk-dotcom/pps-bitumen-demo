@@ -1,33 +1,47 @@
-"""WhatsApp bridge for Client Chat — inbound ingest + outbound send.
+"""WhatsApp bridge for Client Chat — per-user WhatsApp linking + send + inbound ingest.
 
-The dashboard never talks to WhatsApp directly. It talks to this thin adapter,
-which keeps the shared VPS WhatsApp infra decoupled and the dashboard
-channel-agnostic.
+The dashboard never runs WhatsApp itself (that needs Node + headless Chrome). It
+talks to a small **isolated** service `pps-chat-wa` (own pm2 process / own port /
+own sessions) over localhost. That service is completely separate from the bulk
+`whatsapp-server` — this bridge is the only thing the dashboard imports.
 
-Phase 1 (this file, local & safe):
-  - send_text()      → enqueues the reply to a local outbox file (whatsapp_outbox.json).
-                       No real message is sent; lets the whole approve-flow be tested.
-  - ingest_incoming()→ writes an incoming customer message into chat_messages so it
-                       shows up in the Client Chat inbox (used by the "simulate
-                       incoming" tester, and later by the real WhatsApp listener).
+Flow:
+  - Each dashboard user links THEIR OWN WhatsApp via QR (start_link / link_status).
+  - send_text(phone, text, from_user) → POST /send → the user's linked client sends.
+  - The service writes every inbound customer message to wa_inbound.jsonl; the
+    dashboard drains it into chat_messages via drain_inbound() on each render.
 
-Phase 2 (VPS wiring): swap send_text()'s body to push the job onto the existing
-VPS WhatsApp send-queue, and run a listener on the WhatsApp server that calls
-ingest_incoming() for every real inbound customer message. The dashboard code does
-NOT change — only this adapter does.
+Locally (no service, no /opt/pps-bitumen) everything degrades to a safe stub so the
+approve-flow UI can still be exercised offline.
 """
 import json
+import os
 import re
 import datetime
+import urllib.request
+import urllib.error
+import urllib.parse
 from pathlib import Path
 
-_OUTBOX_PATH = Path(__file__).resolve().parent / "whatsapp_outbox.json"  # local stub — do NOT commit
+# ── Isolated pps-chat-wa service (localhost only) ──
+_SVC_URL = os.environ.get("PPS_CHATWA_URL", "http://127.0.0.1:8530").rstrip("/")
+_TOKEN_FILE = Path("/opt/pps-chat-wa/.token")
 
-# On the VPS the app dir is /opt/pps-bitumen; the WhatsApp bridge (pps_chat_bridge.js
-# on the whatsapp-server) drains this JSONL queue and sends from janki's number.
-# Locally this dir does not exist, so send_text() falls back to the local stub.
+
+def _svc_token() -> str:
+    try:
+        if _TOKEN_FILE.exists():
+            return _TOKEN_FILE.read_text(encoding="utf-8").strip()
+    except Exception:
+        pass
+    return os.environ.get("PPS_CHATWA_TOKEN", "")
+
+
+# ── Dashboard-owned runtime files (on the VPS app dir) ──
 _VPS_DIR = Path("/opt/pps-bitumen")
-_VPS_OUTBOUND = _VPS_DIR / "wa_outbound.jsonl"
+_INBOUND = _VPS_DIR / "wa_inbound.jsonl"           # written by the service
+_INBOUND_POS = _VPS_DIR / "wa_inbound.pos"         # drain offset
+_OUTBOX_PATH = Path(__file__).resolve().parent / "whatsapp_outbox.json"  # local stub only
 
 
 def normalize_phone(raw: str) -> str:
@@ -43,12 +57,73 @@ def conversation_id_for_phone(phone: str) -> str:
     return f"wa_{normalize_phone(phone)}"
 
 
-def ingest_incoming(phone: str, name: str, text: str) -> str:
-    """Record an incoming customer WhatsApp message into chat_messages (sender_type='customer').
+# ── Talking to the isolated service ──
+def _svc_call(method: str, path: str, payload: dict | None = None, timeout: float = 30.0) -> dict:
+    """Call the pps-chat-wa service. Returns parsed JSON, or {'ok': False, 'error': ...}."""
+    url = f"{_SVC_URL}{path}"
+    data = json.dumps(payload).encode("utf-8") if payload is not None else None
+    req = urllib.request.Request(url, data=data, method=method)
+    req.add_header("Content-Type", "application/json")
+    req.add_header("x-token", _svc_token())
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            body = resp.read().decode("utf-8")
+            return json.loads(body) if body else {"ok": True}
+    except urllib.error.HTTPError as e:
+        return {"ok": False, "error": f"HTTP {e.code}", "offline": False}
+    except Exception as e:
+        # service not running / not reachable (e.g. local dev)
+        return {"ok": False, "error": str(e), "offline": True}
 
-    Returns the conversation_id. Phase 2's WhatsApp listener calls this for every
-    real inbound message; Phase 1's "simulate incoming" tester also calls it.
-    """
+
+def link_status(user: str) -> dict:
+    """Current WhatsApp link status for a dashboard user → {status, number, qr?}."""
+    return _svc_call("GET", f"/status?user={urllib.parse.quote(user)}")
+
+
+def start_link(user: str) -> dict:
+    """Begin linking this user's WhatsApp → {status:'qr', qr} or {status:'connected', number}."""
+    return _svc_call("POST", "/link/start", {"user": user})
+
+
+def unlink(user: str) -> dict:
+    """Log out / remove this user's linked WhatsApp."""
+    return _svc_call("POST", "/unlink", {"user": user})
+
+
+def send_text(phone: str, text: str, from_user: str | None = None) -> dict:
+    """Outbound: deliver an approved reply from `from_user`'s linked WhatsApp."""
+    if not (text or "").strip():
+        return {"ok": False, "error": "empty message"}
+
+    if from_user:
+        res = _svc_call("POST", "/send", {"user": from_user, "phone": normalize_phone(phone), "text": text})
+        if res.get("ok"):
+            return {"ok": True, "channel": f"WhatsApp ({res.get('number', from_user)})"}
+        if not res.get("offline"):
+            return {"ok": False, "error": res.get("error", "send failed")}
+        # service offline → fall through to local stub
+
+    # ── Local stub (service unreachable / no user) ──
+    job = {"phone": normalize_phone(phone), "text": text,
+           "ts": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "status": "queued"}
+    try:
+        existing = json.loads(_OUTBOX_PATH.read_text(encoding="utf-8")) if _OUTBOX_PATH.exists() else []
+        if not isinstance(existing, list):
+            existing = []
+    except Exception:
+        existing = []
+    existing.append(job)
+    try:
+        _OUTBOX_PATH.write_text(json.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8")
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+    return {"ok": True, "queued": True, "channel": "whatsapp (local stub — service offline)"}
+
+
+# ── Inbound ──
+def ingest_incoming(phone: str, name: str, text: str) -> str:
+    """Record one incoming customer message into chat_messages (sender_type='customer')."""
     from database import insert_chat_message
     cid = conversation_id_for_phone(phone)
     insert_chat_message({
@@ -61,42 +136,38 @@ def ingest_incoming(phone: str, name: str, text: str) -> str:
     return cid
 
 
-def send_text(phone: str, text: str) -> dict:
-    """Outbound: deliver an approved sales reply to the customer over WhatsApp.
+def drain_inbound() -> int:
+    """Drain wa_inbound.jsonl (written by the service) into chat_messages. Returns count.
 
-    Phase 1: append to a local outbox queue (no real send) and return a result dict.
-    Phase 2: replace the body below with a push onto the VPS WhatsApp send-queue.
+    Uses a byte offset so each line ingests exactly once. No-op locally (file absent).
+    Called on each Client Chat render; a 1-min cron also runs it for background ingest.
     """
-    if not (text or "").strip():
-        return {"ok": False, "error": "empty message"}
-
-    # ── VPS live mode: append to the JSONL queue the WhatsApp bridge drains ──
-    if _VPS_DIR.is_dir():
-        job = {"phone": normalize_phone(phone), "text": text,
-               "ts": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
-        try:
-            with _VPS_OUTBOUND.open("a", encoding="utf-8") as f:
-                f.write(json.dumps(job, ensure_ascii=False) + "\n")
-        except Exception as e:
-            return {"ok": False, "error": str(e)}
-        return {"ok": True, "queued": True, "channel": "WhatsApp (janki · 919152007245)"}
-
-    # ── Local stub: append to a JSON outbox, no real send ──
-    job = {
-        "phone": normalize_phone(phone),
-        "text": text,
-        "ts": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "status": "queued",
-    }
+    if not _INBOUND.exists():
+        return 0
     try:
-        existing = json.loads(_OUTBOX_PATH.read_text(encoding="utf-8")) if _OUTBOX_PATH.exists() else []
-        if not isinstance(existing, list):
-            existing = []
+        start = int(_INBOUND_POS.read_text(encoding="utf-8").strip()) if _INBOUND_POS.exists() else 0
     except Exception:
-        existing = []
-    existing.append(job)
+        start = 0
     try:
-        _OUTBOX_PATH.write_text(json.dumps(existing, ensure_ascii=False, indent=2), encoding="utf-8")
-    except Exception as e:
-        return {"ok": False, "error": str(e)}
-    return {"ok": True, "queued": True, "channel": "whatsapp (local outbox — not live)"}
+        with _INBOUND.open("r", encoding="utf-8") as f:
+            f.seek(start)
+            lines = f.readlines()
+            end = f.tell()
+    except Exception:
+        return 0
+    n = 0
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            j = json.loads(line)
+            ingest_incoming(j.get("phone", ""), j.get("name", ""), j.get("text", ""))
+            n += 1
+        except Exception:
+            continue
+    try:
+        _INBOUND_POS.write_text(str(end), encoding="utf-8")
+    except Exception:
+        pass
+    return n

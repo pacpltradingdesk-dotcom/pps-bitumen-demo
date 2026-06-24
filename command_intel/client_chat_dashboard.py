@@ -96,16 +96,30 @@ def _log_to_crm(customer, message, channel="Chat"):
         pass
 
 
+def _current_user() -> str:
+    """Stable id for the logged-in dashboard user (used to key their WhatsApp link)."""
+    return (st.session_state.get("_auth_username")
+            or (st.session_state.get("_auth_user") or {}).get("username")
+            or "user")
+
+
 def render():
+    import whatsapp_bridge as wa
+
     st.header("💬 Client Chat")
     st.caption("Customer WhatsApp inbox — AI drafts a reply, you approve & send. Every message logged to CRM.")
 
-    tabs = st.tabs(["💬 Chat", "📋 Conversations", "⚙️ Settings"])
+    # Pull any new inbound customer messages from the linked WhatsApp into the inbox.
+    try:
+        wa.drain_inbound()
+    except Exception:
+        pass
+
+    user = _current_user()
+    tabs = st.tabs(["💬 Chat", "📋 Conversations", "📱 Connect", "⚙️ Settings"])
 
     # ── Tab 1: Active Chat — approve-then-send WhatsApp flow ──
     with tabs[0]:
-        import whatsapp_bridge as wa
-
         st.session_state.setdefault("_chat_cust_name", None)
         st.session_state.setdefault("_chat_draft", "")
 
@@ -166,7 +180,7 @@ def render():
                     with b1:
                         if st.button("✅ Approve & Send to WhatsApp", type="primary",
                                      use_container_width=True, disabled=not draft.strip()):
-                            res = wa.send_text(phone, draft)
+                            res = wa.send_text(phone, draft, from_user=user)
                             if res.get("ok"):
                                 _send_message(conv_id, "PPS Anantams", draft, "agent")
                                 try:
@@ -229,8 +243,49 @@ def render():
         else:
             st.info("No conversations yet. Start a new chat from the Chat tab.")
 
-    # ── Tab 3: Settings ──
+    # ── Tab 3: Connect WhatsApp (per-user linking, isolated service) ──
     with tabs[2]:
+        st.subheader("📱 Connect your WhatsApp")
+        st.caption("Link YOUR WhatsApp so customer chats land in this inbox and replies go from your number. "
+                   "Fully separate from the bulk sender.")
+        status = wa.link_status(user)
+        if status.get("offline"):
+            st.warning("WhatsApp link service not reachable from here. On the live server it runs as the "
+                       "isolated `pps-chat-wa` process.")
+        elif status.get("status") == "connected":
+            st.success(f"✅ Connected as **{user}** — number **{status.get('number', '?')}**")
+            if st.button("🔌 Unlink WhatsApp"):
+                wa.unlink(user)
+                st.session_state.pop("_wa_link_res", None)
+                st.rerun()
+        else:
+            st.info("Not linked yet. Click **Generate QR**, then scan it in WhatsApp → **Linked Devices → Link a device**.")
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("🔗 Generate QR", type="primary"):
+                    st.session_state["_wa_link_res"] = wa.start_link(user)
+                    st.rerun()
+            with c2:
+                if st.button("🔄 Refresh status"):
+                    st.session_state.pop("_wa_link_res", None)
+                    st.rerun()
+            res = st.session_state.get("_wa_link_res") or status
+            qr = res.get("qr")
+            if res.get("status") == "connected":
+                st.success(f"✅ Connected — {res.get('number', '?')}")
+            elif qr:
+                import base64
+                try:
+                    b64 = qr.split(",", 1)[1] if str(qr).startswith("data:") else qr
+                    st.image(base64.b64decode(b64), caption="Scan with WhatsApp → Linked Devices", width=280)
+                    st.caption("After scanning, click '🔄 Refresh status'.")
+                except Exception:
+                    st.warning("Could not render QR image.")
+            elif res.get("status") == "qr":
+                st.info("Preparing QR… click '🔄 Refresh status' in a moment.")
+
+    # ── Tab 4: Settings ──
+    with tabs[3]:
         st.subheader("Chat Settings")
         try:
             from settings_engine import get as gs, save as ss

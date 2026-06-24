@@ -1,0 +1,4 @@
+node_modules/
+.sessions/
+.token
+package-lock.json
