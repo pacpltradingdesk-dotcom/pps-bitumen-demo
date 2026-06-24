@@ -86,8 +86,22 @@ from components.message_preview import render_msg_preview as _render_msg_preview
 
 def _log_crm(cust, ch, content):
     try:
-        from database import log_communication
-        log_communication({"customer_id":cust,"channel":ch,"direction":"outbound","subject":f"Quote via {ch}","content":content[:500],"template_used":"cockpit","sent_at":datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),"status":"sent"})
+        from database import log_communication, _get_conn
+        # communications.customer_id is an INTEGER FK to customers(id); `cust` is a
+        # NAME. Resolve to id (None if unknown — column is nullable) so the row logs
+        # instead of failing the FK constraint (which silently dropped every log).
+        cid = None
+        try:
+            conn = _get_conn()
+            try:
+                for cand in [c for c in (cust, (cust or "").split(" (")[0].strip()) if c]:
+                    row = conn.execute("SELECT id FROM customers WHERE name = ? LIMIT 1", (cand,)).fetchone()
+                    if row:
+                        cid = row[0]; break
+            finally:
+                conn.close()
+        except Exception: pass
+        log_communication({"customer_id":cid,"channel":ch,"direction":"outbound","subject":f"Quote via {ch} ({cust})","content":content[:500],"template_used":"cockpit","sent_at":datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),"status":"sent"})
     except Exception: pass
 
 def _make_followup(cust, days=3):

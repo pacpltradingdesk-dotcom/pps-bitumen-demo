@@ -1731,7 +1731,7 @@ def connect_eia_steo() -> dict:
         url = "https://api.eia.gov/v2/steo/data/"
         api_key = ""
         try:
-            from settings_engine import get_settings
+            from settings_engine import load_settings as get_settings
             api_key = get_settings().get("eia_api_key", "")
         except Exception:
             pass
@@ -1955,7 +1955,7 @@ def connect_fred_data() -> dict:
     try:
         api_key = ""
         try:
-            from settings_engine import get_settings
+            from settings_engine import load_settings as get_settings
             api_key = get_settings().get("fred_api_key", "")
         except Exception:
             pass

@@ -125,7 +125,7 @@ def render():
         st.subheader("Automated Broadcasts")
 
         try:
-            from settings_engine import get as gs, save as ss
+            from settings_engine import get as gs, update as ss
 
             st.markdown("### ⏰ Daily Morning Broadcast")
             auto_morning = st.toggle("Enable 9 AM Daily Broadcast",
@@ -222,7 +222,7 @@ def render():
                    "rate-limit aur message template. Ek baar set karo, har broadcast pe yahi lagta hai.")
 
         try:
-            from settings_engine import get as gs, save as ss
+            from settings_engine import get as gs, update as ss
 
             st.markdown("### Rate Limits")
             sc1, sc2 = st.columns(2)
