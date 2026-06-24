@@ -2522,13 +2522,28 @@ def get_chat_messages(conversation_id: str, limit: int = 100) -> list:
 def get_chat_conversations() -> list:
     conn = _get_conn()
     try:
+        # NOTE: client_chat saves the customer's side as sender_type='customer'
+        # and the auto-reply as 'agent'; chat_engine uses 'internal'. The
+        # customer name = first non-agent message's sender_name, last_message =
+        # most recent message text, and unread counts only inbound (non-agent)
+        # messages. (Earlier this returned last_sender + counted 'client', which
+        # never matched any saved row — hence "Unknown / 0 messages / 0 unread".)
         rows = conn.execute(
-            """SELECT conversation_id,
-                      MAX(sender_name) as last_sender,
-                      MAX(created_at) as last_message_at,
-                      SUM(CASE WHEN is_read = 0 AND sender_type = 'client' THEN 1 ELSE 0 END) as unread
-               FROM chat_messages
-               GROUP BY conversation_id
+            """SELECT m.conversation_id,
+                      COUNT(*)                                as message_count,
+                      MAX(m.created_at)                       as last_message_at,
+                      SUM(CASE WHEN m.is_read = 0
+                                AND m.sender_type NOT IN ('agent', 'internal')
+                               THEN 1 ELSE 0 END)             as unread,
+                      (SELECT c.sender_name FROM chat_messages c
+                         WHERE c.conversation_id = m.conversation_id
+                           AND c.sender_type NOT IN ('agent', 'internal')
+                         ORDER BY c.created_at ASC, c.id ASC LIMIT 1) as sender_name,
+                      (SELECT c.message_text FROM chat_messages c
+                         WHERE c.conversation_id = m.conversation_id
+                         ORDER BY c.created_at DESC, c.id DESC LIMIT 1) as last_message
+               FROM chat_messages m
+               GROUP BY m.conversation_id
                ORDER BY last_message_at DESC"""
         ).fetchall()
         return _rows_to_list(rows)

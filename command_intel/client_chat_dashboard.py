@@ -53,21 +53,29 @@ def _get_ai_reply(message):
     try:
         from trading_chatbot_engine import TradingChatbot
         bot = TradingChatbot()
-        response = bot.get_response(message)
+        # TradingChatbot's entry point is process_query() → {"answer": ...}.
+        # (Earlier this called the non-existent get_response(), so EVERY reply
+        # silently fell through to the canned text below — the "AI" never ran.)
+        response = bot.process_query(message)
         if isinstance(response, dict):
-            return response.get("response", response.get("text", str(response)))
-        return str(response)
+            answer = response.get("answer") or response.get("response") or response.get("text")
+            if answer:
+                return str(answer)
+        elif response:
+            return str(response)
     except Exception:
-        # Fallback responses
-        msg_lower = message.lower()
-        if any(w in msg_lower for w in ["price", "rate", "cost", "kitna"]):
-            return "Thank you for your inquiry! Our current VG30 rates vary by location. For the best landed cost to your city, please share your delivery location and quantity. Our team will send you a detailed quote within 30 minutes.\n\n📞 Call: +91 7795242424"
-        elif any(w in msg_lower for w in ["delivery", "transport", "ship", "dispatch"]):
-            return "We deliver across India via bulk tankers and drum trucks. Standard delivery: 3-5 days depending on location. For urgent requirements, express dispatch is available.\n\n📞 Call: +91 7795242424"
-        elif any(w in msg_lower for w in ["payment", "advance", "credit"]):
-            return "Our standard terms: 100% advance payment. For regular customers with good track record, we offer flexible payment options. GST 18% applicable on all transactions.\n\n📞 Call: +91 7795242424"
-        else:
-            return "Thank you for reaching out to PPS Anantams! We're India's leading bitumen trading platform with 24+ years experience. How can we help you today?\n\n📞 For immediate assistance: +91 7795242424"
+        pass
+
+    # ── Keyword fallback (used only if the AI engine is unavailable) ──
+    msg_lower = message.lower()
+    if any(w in msg_lower for w in ["price", "rate", "cost", "kitna"]):
+        return "Thank you for your inquiry! Our current VG30 rates vary by location. For the best landed cost to your city, please share your delivery location and quantity. Our team will send you a detailed quote within 30 minutes.\n\n📞 Call: +91 7795242424"
+    elif any(w in msg_lower for w in ["delivery", "transport", "ship", "dispatch"]):
+        return "We deliver across India via bulk tankers and drum trucks. Standard delivery: 3-5 days depending on location. For urgent requirements, express dispatch is available.\n\n📞 Call: +91 7795242424"
+    elif any(w in msg_lower for w in ["payment", "advance", "credit"]):
+        return "Our standard terms: 100% advance payment. For regular customers with good track record, we offer flexible payment options. GST 18% applicable on all transactions.\n\n📞 Call: +91 7795242424"
+    else:
+        return "Thank you for reaching out to PPS Anantams! We're India's leading bitumen trading platform with 24+ years experience. How can we help you today?\n\n📞 For immediate assistance: +91 7795242424"
 
 
 def _log_to_crm(customer, message, channel="Chat"):
@@ -90,19 +98,18 @@ def _log_to_crm(customer, message, channel="Chat"):
 
 def render():
     st.header("💬 Client Chat")
-    st.caption("Chat with customers — AI-powered auto-replies + CRM logging.")
+    st.caption("Customer WhatsApp inbox — AI drafts a reply, you approve & send. Every message logged to CRM.")
 
     tabs = st.tabs(["💬 Chat", "📋 Conversations", "⚙️ Settings"])
 
-    # ── Tab 1: Active Chat ──
+    # ── Tab 1: Active Chat — approve-then-send WhatsApp flow ──
     with tabs[0]:
-        # Initialize session state
-        if "_chat_conv" not in st.session_state:
-            st.session_state["_chat_conv"] = None
-        if "_chat_msgs" not in st.session_state:
-            st.session_state["_chat_msgs"] = []
+        import whatsapp_bridge as wa
 
-        # Start new or select existing conversation
+        st.session_state.setdefault("_chat_cust_name", None)
+        st.session_state.setdefault("_chat_draft", "")
+
+        # Pick the customer to start an outbound thread (inbound threads appear in Conversations).
         c1, c2 = st.columns([2, 1])
         with c1:
             try:
@@ -114,57 +121,82 @@ def render():
         with c2:
             if st.button("New Chat", type="primary", use_container_width=True):
                 if customer_name:
-                    conv_id = f"chat_{customer_name.replace(' ', '_')}_{datetime.datetime.now().strftime('%Y%m%d%H%M')}"
-                    st.session_state["_chat_conv"] = conv_id
-                    st.session_state["_chat_msgs"] = []
                     st.session_state["_chat_cust_name"] = customer_name
+                    st.session_state["_chat_draft"] = ""
+                    st.session_state.pop("_chat_draft_edit", None)
                     st.rerun()
 
-        conv_id = st.session_state.get("_chat_conv")
-        cust_name = st.session_state.get("_chat_cust_name", "Customer")
-
-        if conv_id:
-            st.markdown(f"**Active conversation:** {cust_name}")
-            st.markdown("---")
-
-            # Load existing messages
-            if not st.session_state["_chat_msgs"]:
-                st.session_state["_chat_msgs"] = _get_messages(conv_id)
-
-            # Display messages
-            for msg in st.session_state["_chat_msgs"]:
-                role = "user" if msg.get("sender_type") == "customer" else "assistant"
-                with st.chat_message(role):
-                    st.write(msg.get("message_text", ""))
-                    ts = msg.get("created_at", "")
-                    if ts:
-                        st.caption(ts)
-
-            # Chat input
-            if prompt := st.chat_input("Type customer's message..."):
-                # Save customer message
-                _send_message(conv_id, cust_name, prompt, "customer")
-                _log_to_crm(cust_name, prompt)
-                st.session_state["_chat_msgs"].append({
-                    "sender_type": "customer",
-                    "sender_name": cust_name,
-                    "message_text": prompt,
-                    "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-                })
-
-                # Auto-reply
-                with st.spinner("AI generating reply..."):
-                    reply = _get_ai_reply(prompt)
-                _send_message(conv_id, "PPS Anantams", reply, "agent")
-                st.session_state["_chat_msgs"].append({
-                    "sender_type": "agent",
-                    "sender_name": "PPS Anantams",
-                    "message_text": reply,
-                    "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-                })
-                st.rerun()
+        cust_name = st.session_state.get("_chat_cust_name")
+        if not cust_name:
+            st.info("Pick a customer and click 'New Chat' to start a WhatsApp conversation.")
         else:
-            st.info("Enter a customer name and click 'New Chat' to start a conversation.")
+            # A WhatsApp thread is keyed by the customer's phone number.
+            phone = st.text_input("Customer WhatsApp number", key="_chat_phone",
+                                  placeholder="e.g. 9876543210",
+                                  help="Replies are sent to this WhatsApp number. Indian 10-digit numbers get +91 automatically.")
+            conv_id = wa.conversation_id_for_phone(phone) if phone.strip() else None
+
+            if not conv_id:
+                st.info("Enter the customer's WhatsApp number to open the conversation.")
+            else:
+                st.markdown(f"**Active conversation:** {cust_name}  ·  📱 {wa.normalize_phone(phone)}")
+                st.markdown("---")
+
+                msgs = _get_messages(conv_id)
+                for msg in msgs:
+                    role = "user" if msg.get("sender_type") == "customer" else "assistant"
+                    with st.chat_message(role):
+                        st.write(msg.get("message_text", ""))
+                        if msg.get("created_at"):
+                            st.caption(msg["created_at"])
+
+                # A reply is pending when the last message is from the customer.
+                pending = bool(msgs) and msgs[-1].get("sender_type") == "customer"
+                if pending:
+                    last_customer_msg = msgs[-1].get("message_text", "")
+                    if not st.session_state.get("_chat_draft"):
+                        with st.spinner("AI drafting a reply…"):
+                            st.session_state["_chat_draft"] = _get_ai_reply(last_customer_msg)
+
+                    st.markdown("**🤖 AI-suggested reply** — edit, then approve to send:")
+                    draft = st.text_area("Draft reply", value=st.session_state["_chat_draft"],
+                                         key="_chat_draft_edit", height=160,
+                                         label_visibility="collapsed")
+                    b1, b2 = st.columns(2)
+                    with b1:
+                        if st.button("✅ Approve & Send to WhatsApp", type="primary",
+                                     use_container_width=True, disabled=not draft.strip()):
+                            res = wa.send_text(phone, draft)
+                            if res.get("ok"):
+                                _send_message(conv_id, "PPS Anantams", draft, "agent")
+                                try:
+                                    from database import mark_chat_read
+                                    mark_chat_read(conv_id)
+                                except Exception:
+                                    pass
+                                st.session_state["_chat_draft"] = ""
+                                st.session_state.pop("_chat_draft_edit", None)
+                                st.success(f"Sent ✓ — {res.get('channel', 'whatsapp')}")
+                                st.rerun()
+                            else:
+                                st.error(f"Send failed: {res.get('error', 'unknown error')}")
+                    with b2:
+                        if st.button("🔄 Regenerate draft", use_container_width=True):
+                            st.session_state["_chat_draft"] = ""
+                            st.session_state.pop("_chat_draft_edit", None)
+                            st.rerun()
+                else:
+                    st.caption("Waiting for the customer's next message. Use the tester below to simulate one.")
+
+                st.markdown("---")
+                with st.expander("🧪 Simulate an incoming customer message (until WhatsApp is connected)"):
+                    sim = st.text_input("Customer says…", key="_chat_sim")
+                    if st.button("Receive message", key="_chat_sim_btn") and sim.strip():
+                        wa.ingest_incoming(phone, cust_name, sim.strip())
+                        _log_to_crm(cust_name, sim.strip())
+                        st.session_state["_chat_draft"] = ""        # draft a reply to the new message
+                        st.session_state.pop("_chat_draft_edit", None)
+                        st.rerun()
 
     # ── Tab 2: Conversations List ──
     with tabs[1]:
@@ -173,10 +205,10 @@ def render():
         if conversations:
             for conv in conversations[:20]:
                 cid = conv.get("conversation_id", "?")
-                name = conv.get("sender_name", "Unknown")
-                last_msg = conv.get("last_message", "")
-                count = conv.get("message_count", 0)
-                unread = conv.get("unread", 0)
+                name = conv.get("sender_name") or "Unknown"
+                last_msg = conv.get("last_message") or ""
+                count = conv.get("message_count") or 0
+                unread = conv.get("unread") or 0
 
                 unread_badge = f' 🔴 {unread} new' if unread else ''
                 col1, col2 = st.columns([4, 1])
@@ -185,9 +217,13 @@ def render():
                     st.caption(f"{last_msg[:80]}... ({count} messages)")
                 with col2:
                     if st.button("Open", key=f"open_{cid}"):
-                        st.session_state["_chat_conv"] = cid
                         st.session_state["_chat_cust_name"] = name
-                        st.session_state["_chat_msgs"] = _get_messages(cid)
+                        # conversation ids are wa_<phone>; recover the phone so the
+                        # Chat tab opens this exact thread.
+                        if cid.startswith("wa_"):
+                            st.session_state["_chat_phone"] = cid[3:]
+                        st.session_state["_chat_draft"] = ""
+                        st.session_state.pop("_chat_draft_edit", None)
                         st.rerun()
                 st.markdown("---")
         else:

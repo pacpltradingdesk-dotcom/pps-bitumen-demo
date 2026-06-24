@@ -112,3 +112,6 @@ demo_pdfs/
 .bak.archive/
 *.pre-phase1.bak
 
+
+# Client Chat WhatsApp bridge runtime queue (never commit)
+whatsapp_outbox.json
