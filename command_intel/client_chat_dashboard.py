@@ -79,14 +79,37 @@ def _get_ai_reply(message):
 
 
 def _log_to_crm(customer, message, channel="Chat"):
-    """Log chat interaction to CRM."""
+    """Log a chat interaction to CRM (communications table)."""
     try:
-        from database import log_communication
+        from database import log_communication, _get_conn
+        # communications.customer_id is an INTEGER FK to customers(id); the chat UI
+        # only knows the NAME. Resolve it to an id (None if unknown — the column is
+        # nullable, so the row still logs instead of failing the FK constraint).
+        # Earlier this passed the name as customer_id → FK violation → swallowed →
+        # NOTHING was logged despite "Every message logged to CRM".
+        cust_id = None
+        # Try the full picker name first (DB names often already include the city,
+        # e.g. "L&T Construction (Hyderabad)"), then a city-stripped fallback.
+        candidates = [c for c in (customer, (customer or "").split(" (")[0].strip()) if c]
+        try:
+            conn = _get_conn()
+            try:
+                for cand in candidates:
+                    row = conn.execute(
+                        "SELECT id FROM customers WHERE name = ? LIMIT 1", (cand,)
+                    ).fetchone()
+                    if row:
+                        cust_id = row[0]
+                        break
+            finally:
+                conn.close()
+        except Exception:
+            pass
         log_communication({
-            "customer_id": customer,
+            "customer_id": cust_id,
             "channel": channel,
             "direction": "inbound",
-            "subject": f"Chat: {message[:50]}...",
+            "subject": f"Chat ({customer}): {message[:50]}",
             "content": message[:500],
             "template_used": "client_chat",
             "sent_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
