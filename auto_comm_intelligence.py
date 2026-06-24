@@ -73,16 +73,16 @@ def analyze_communication_style(customer_id: str) -> dict:
         from database import _get_conn
         conn = _get_conn()
 
-        # Email history
+        # Email history (real columns: to_email / subject — not 'recipient')
         row = conn.execute(
-            "SELECT COUNT(*) FROM email_queue WHERE recipient LIKE ? OR subject LIKE ?",
+            "SELECT COUNT(*) FROM email_queue WHERE to_email LIKE ? OR subject LIKE ?",
             (f"%{customer_id}%", f"%{customer_id}%")
         ).fetchone()
         email_count = row[0] if row else 0
 
-        # WhatsApp history
+        # WhatsApp history (real table: whatsapp_queue; cols to_number / session_text — not wa_queue/phone/message)
         row = conn.execute(
-            "SELECT COUNT(*) FROM wa_queue WHERE phone LIKE ? OR message LIKE ?",
+            "SELECT COUNT(*) FROM whatsapp_queue WHERE to_number LIKE ? OR session_text LIKE ?",
             (f"%{customer_id}%", f"%{customer_id}%")
         ).fetchone()
         wa_count = row[0] if row else 0
@@ -200,7 +200,7 @@ def get_communication_analytics() -> dict:
         from database import _get_conn
         conn = _get_conn()
         email_total = conn.execute("SELECT COUNT(*) FROM email_queue").fetchone()
-        wa_total = conn.execute("SELECT COUNT(*) FROM wa_queue").fetchone()
+        wa_total = conn.execute("SELECT COUNT(*) FROM whatsapp_queue").fetchone()
         conn.close()
         total_comms = max(total_comms, (email_total[0] if email_total else 0) + (wa_total[0] if wa_total else 0))
     except Exception:
