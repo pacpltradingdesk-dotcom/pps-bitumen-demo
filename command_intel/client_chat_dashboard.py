@@ -288,7 +288,7 @@ def render():
     with tabs[3]:
         st.subheader("Chat Settings")
         try:
-            from settings_engine import get as gs, save as ss
+            from settings_engine import get as gs, update as ss
 
             auto_reply = st.toggle("Auto-Reply Enabled", value=gs("chat_auto_reply", True), key="chat_ar")
             greeting = st.text_area("Welcome Message",
