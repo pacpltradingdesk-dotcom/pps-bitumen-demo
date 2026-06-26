@@ -20,17 +20,20 @@ def _load_contractors():
     try:
         from database import _get_conn
         conn = _get_conn()
+        # Real customers schema: grade->preferred_grades, payment_terms->credit_terms;
+        # there is no total_orders/total_volume_mt. The old query referenced those
+        # non-existent columns -> "no such column" -> except below swallowed it ->
+        # the whole contractor panel silently rendered EMPTY. Use real columns.
         rows = conn.execute(
-            "SELECT name, city, state, grade, payment_terms, "
-            "total_orders, total_volume_mt FROM customers"
+            "SELECT name, city, state, preferred_grades, credit_terms, "
+            "avg_monthly_demand_mt, expected_monthly_demand, outstanding_inr, "
+            "is_active FROM customers"
         ).fetchall()
         conn.close()
         if rows and len(rows) >= 3:
             contractors = []
             for r in rows:
-                orders = int(r[5] or 0)
-                vol = float(r[6] or 0)
-                monthly = round(vol / max(orders, 1)) if orders else 200
+                monthly = round(float(r[5] or r[6] or 0)) or 200
                 contractors.append({
                     "name": r[0] or "Unknown",
                     "project": "Active Projects",
@@ -39,11 +42,11 @@ def _load_contractors():
                     "consumption_mt_month": monthly,
                     "credit_days": 0 if "advance" in (r[4] or "").lower() else 15,
                     "payment_reliability": 90,
-                    "total_orders": orders,
-                    "pending_payment_cr": 0,
-                    "grade": r[3] or "VG30",
+                    "total_orders": 0,
+                    "pending_payment_cr": round(float(r[7] or 0) / 1e7, 2),
+                    "grade": (r[3] or "VG30").split(",")[0].strip() or "VG30",
                     "type": "Bulk",
-                    "status": "Active"
+                    "status": "Active" if (r[8] is None or r[8]) else "Inactive"
                 })
             return contractors
     except Exception as _e:

@@ -13,15 +13,51 @@ ROOT = Path(__file__).parent.parent
 
 
 def _get_deals():
-    """Get all deals from database."""
+    """Get all deals from DB, normalised to this dashboard's expected schema.
+
+    The real `deals` table uses quantity_mt / sell_price_per_mt / landed_cost_per_mt /
+    total_value_inr / customer_id, but render() and _get_mock_deals are written around
+    qty_mt / selling_price / landed_cost / total_revenue / customer. Without this
+    mapping every real deal renders with ₹0 revenue/margin/qty (the expected column
+    names are silently absent from the DataFrame). Map real -> expected here.
+    """
     try:
         from database import _get_conn
         conn = _get_conn()
         try:
             rows = conn.execute("""
-                SELECT * FROM deals ORDER BY created_at DESC LIMIT 500
+                SELECT d.*, c.name AS _customer_name
+                FROM deals d
+                LEFT JOIN customers c ON d.customer_id = c.id
+                ORDER BY d.created_at DESC LIMIT 500
             """).fetchall()
-            return [dict(r) for r in rows]
+            out = []
+            for r in rows:
+                d = dict(r)
+                qty = float(d.get("quantity_mt") or 0)
+                landed = float(d.get("landed_cost_per_mt") or 0)
+                margin = float(d.get("margin_per_mt") or 0)
+                created = str(d.get("created_at") or "")
+                out.append({
+                    "id": d.get("id"),
+                    "customer": d.get("_customer_name")
+                        or (f"Customer #{d.get('customer_id')}" if d.get("customer_id") else "Unknown"),
+                    "city": d.get("destination") or "",
+                    "grade": d.get("grade") or "VG30",
+                    "source": d.get("source_location") or "",
+                    "qty_mt": qty,
+                    "base_price": float(d.get("buy_price_per_mt") or 0),
+                    "landed_cost": landed,
+                    "selling_price": float(d.get("sell_price_per_mt") or 0),
+                    "margin_per_mt": margin,
+                    "total_revenue": float(d.get("total_value_inr") or 0),
+                    "total_cost": landed * qty,
+                    "total_margin": margin * qty,
+                    "status": d.get("status") or "",
+                    "created_at": created[:10],
+                    "month": created[:7],
+                })
+            return out
         finally:
             conn.close()
     except Exception:
