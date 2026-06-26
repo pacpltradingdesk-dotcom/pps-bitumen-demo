@@ -527,6 +527,41 @@ _TABLES = {
         );
     """,
 
+    "calling_sheets": """
+        CREATE TABLE IF NOT EXISTS calling_sheets (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            owner_username  TEXT NOT NULL,
+            owner_name      TEXT,
+            sheet_date      TEXT NOT NULL,
+            title           TEXT,
+            source_filename TEXT,
+            total_rows      INTEGER DEFAULT 0,
+            created_at      TEXT,
+            updated_at      TEXT
+        );
+    """,
+
+    "calling_sheet_rows": """
+        CREATE TABLE IF NOT EXISTS calling_sheet_rows (
+            id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+            sheet_id            INTEGER NOT NULL,
+            owner_username      TEXT NOT NULL,
+            lead_name           TEXT,
+            phone               TEXT,
+            company             TEXT,
+            city                TEXT,
+            extra               TEXT,
+            call_status         TEXT DEFAULT 'Pending',
+            outcome             TEXT DEFAULT '',
+            remark              TEXT DEFAULT '',
+            followup_date       TEXT,
+            called_at           TEXT,
+            carried_from_row_id INTEGER,
+            created_at          TEXT,
+            updated_at          TEXT
+        );
+    """,
+
     "alerts": """
         CREATE TABLE IF NOT EXISTS alerts (
             id                  INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -933,6 +968,9 @@ _TABLES = {
 
 # Indexes for common query patterns
 _INDEXES = [
+    "CREATE INDEX IF NOT EXISTS idx_calling_sheets_owner ON calling_sheets(owner_username, sheet_date);",
+    "CREATE INDEX IF NOT EXISTS idx_calling_rows_sheet   ON calling_sheet_rows(sheet_id);",
+    "CREATE INDEX IF NOT EXISTS idx_calling_rows_owner   ON calling_sheet_rows(owner_username, call_status);",
     "CREATE INDEX IF NOT EXISTS idx_deals_stage       ON deals(stage);",
     "CREATE INDEX IF NOT EXISTS idx_deals_status      ON deals(status);",
     "CREATE INDEX IF NOT EXISTS idx_deals_customer    ON deals(customer_id);",
@@ -1405,6 +1443,8 @@ _VALID_TABLES = {
     "contacts", "contact_rotation_log", "festival_broadcasts", "price_update_log",
     # SMS queue (Phase 7)
     "sms_queue",
+    # Daily Calling Sheet
+    "calling_sheets", "calling_sheet_rows",
 }
 
 import re
