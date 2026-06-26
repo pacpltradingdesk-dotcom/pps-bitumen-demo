@@ -729,6 +729,9 @@ PAGE_DISPATCH = {
     "🤖 CRM Automation": _page_crm_automation,
     "📓 Daily Log": lambda: _safe_render(
         lambda: __import__("command_intel.daily_log_panel", fromlist=["render"]).render(), "Daily Log"),
+    "📞 Daily Calling Sheet": lambda: _safe_render(
+        lambda: __import__("command_intel.calling_sheet_dashboard", fromlist=["render"]).render(),
+        "Daily Calling Sheet"),
     "📱 Contacts Directory": _page_contacts_directory,
     "📊 Comm Tracking": lambda: _safe_render(
         lambda: __import__("command_intel.comm_tracking_dashboard", fromlist=["render"]).render(),

@@ -45,6 +45,7 @@ MODULE_NAV: dict[str, dict] = {
             {"label": "Opportunities", "page": "🔍 Opportunities", "star": True},
             {"label": "Negotiation", "page": "🤝 Negotiation Assistant", "star": True, "pill": ("AI", "gold")},
             {"label": "Daily Log", "page": "📓 Daily Log", "star": True},
+            {"label": "Calling Sheet", "page": "📞 Daily Calling Sheet", "star": True, "pill": ("NEW", "emerald")},
             {"label": "One-Click Quote", "page": "💎 One-Click Quote"},
             {"label": "Sales Workspace", "page": "💼 Sales Workspace"},
             {"label": "Communication Hub", "page": "💬 Communication Hub"},
