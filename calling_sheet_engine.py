@@ -120,7 +120,7 @@ _SYNONYMS = {
               "number", "phone no", "cell", "whatsapp", "ph"],
     "company": ["company", "firm", "organisation", "organization", "business",
                 "company name", "firm name"],
-    "city": ["city", "town", "location", "place", "district", "region", "area"],
+    "city": ["city", "town", "location", "place", "district"],
 }
 
 
