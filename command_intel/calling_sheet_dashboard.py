@@ -6,6 +6,7 @@ sees all reps + a Team tab.
 """
 import datetime
 import streamlit as st
+import pandas as pd
 import calling_sheet_engine as eng
 
 
@@ -73,6 +74,72 @@ def _render_upload(user, name):
         st.session_state["cs_active_sheet"] = sid
 
 
+def _render_today(user, name):
+    st.subheader("📋 Today's calls")
+    today = _today()
+    sheets = [s for s in eng.list_sheets(user) if s["sheet_date"] == today]
+    if not sheets:
+        st.info("Aaj ki koi sheet nahi. Upload tab se sheet daalo, ya History se "
+                "carry-over karo.")
+        if st.button("➕ Create empty sheet for today", key="cs_mk_today"):
+            eng.get_or_create_today_sheet(user, name, today)
+            st.rerun()
+        return
+    # pick sheet (usually one; allow choosing if multiple)
+    labels = {f'{s["title"]} (#{s["id"]})': s["id"] for s in sheets}
+    chosen = st.selectbox("Sheet", list(labels.keys()), key="cs_today_pick")
+    sid = labels[chosen]
+
+    summ = eng.sheet_summary(sid)
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("Total", summ["total"])
+    m2.metric("Called", f'{summ["called"]} ({summ["pct_called"]}%)')
+    m3.metric("Connected", summ["connected"])
+    m4.metric("Conversions", summ["conversions"])
+
+    rows = eng.get_rows(sid)
+    if not rows:
+        st.info("Is sheet me koi lead nahi.")
+        return
+    df = pd.DataFrame([{
+        "id": r["id"], "Name": r["lead_name"], "Phone": r["phone"],
+        "Company": r["company"], "Status": r["call_status"] or "Pending",
+        "Outcome": r["outcome"] or "", "Remark": r["remark"] or "",
+        "Follow-up": r["followup_date"] or "",
+    } for r in rows])
+
+    edited = st.data_editor(
+        df, key="cs_editor", use_container_width=True, hide_index=True,
+        disabled=["id", "Name", "Phone", "Company"],
+        column_config={
+            "id": None,  # hidden
+            "Status": st.column_config.SelectboxColumn(options=eng.CALL_STATUSES),
+            "Outcome": st.column_config.SelectboxColumn(options=eng.OUTCOMES),
+            "Remark": st.column_config.TextColumn(),
+            "Follow-up": st.column_config.TextColumn(help="YYYY-MM-DD"),
+        })
+
+    if st.button("💾 Save changes", type="primary", key="cs_save_today"):
+        before = {r["id"]: r for r in rows}
+        n = 0
+        for _, er in edited.iterrows():
+            rid = int(er["id"])
+            b = before.get(rid, {})
+            new = {
+                "call_status": er["Status"], "outcome": er["Outcome"],
+                "remark": er["Remark"],
+                "followup_date": er["Follow-up"] or None,
+            }
+            if (new["call_status"] != (b.get("call_status") or "Pending")
+                    or new["outcome"] != (b.get("outcome") or "")
+                    or new["remark"] != (b.get("remark") or "")
+                    or (new["followup_date"] or "") != (b.get("followup_date") or "")):
+                eng.update_row(rid, new)
+                n += 1
+        st.success(f"{n} rows updated.")
+        st.rerun()
+
+
 def render():
     st.header("📞 Daily Calling Sheet")
     st.caption("Apni daily calling list upload karo, har call pe remark/status/outcome "
@@ -85,7 +152,7 @@ def render():
     with selected[0]:
         _render_upload(user, name)
     with selected[1]:
-        st.info("Today's Calls — Task 8 me aayega.")
+        _render_today(user, name)
     with selected[2]:
         st.info("History — Task 9 me aayega.")
     if _is_director():
