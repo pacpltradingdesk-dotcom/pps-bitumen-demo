@@ -106,8 +106,17 @@ def _render_today(user, name):
             eng.get_or_create_today_sheet(user, name, today)
             st.rerun()
         return
-    # pick sheet (usually one; allow choosing if multiple)
+    # pick sheet (usually one; allow choosing if multiple).
     labels = {f'{s["title"]} (#{s["id"]})': s["id"] for s in sheets}
+    # If the user just uploaded a sheet, jump straight to it — otherwise the
+    # selectbox stays on a previously-selected (maybe empty) sheet and the new
+    # leads look "missing".
+    active = st.session_state.pop("cs_active_sheet", None)
+    if active:
+        for _lbl, _sid in labels.items():
+            if _sid == active:
+                st.session_state["cs_today_pick"] = _lbl
+                break
     chosen = st.selectbox("Sheet", list(labels.keys()), key="cs_today_pick")
     sid = labels[chosen]
 
@@ -121,6 +130,7 @@ def _render_today(user, name):
     rows = eng.get_rows(sid)
     if not rows:
         st.info("Is sheet me koi lead nahi.")
+        _delete_control(sid, user, f"today_{sid}")
         return
     df = pd.DataFrame([{
         "id": r["id"], "Name": r["lead_name"], "Phone": r["phone"],
