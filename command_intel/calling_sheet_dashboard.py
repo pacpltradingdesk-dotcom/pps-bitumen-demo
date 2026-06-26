@@ -85,8 +85,19 @@ def _render_upload(user, name):
         if not rows:
             st.error("Koi valid row nahi (name/phone dono khaali).")
             return
-        sid = eng.create_sheet(user, name, sheet_date, up.name, up.name, rows)
-        st.success(f"Sheet saved — {len(rows)} leads. Ab 'Today's Calls' tab me kaam karo.")
+        # If a sheet for this date already exists, merge the new leads into it
+        # instead of creating a second sheet for the same day.
+        existing = [s for s in eng.list_sheets(user) if s["sheet_date"] == sheet_date]
+        if existing:
+            sid = existing[0]["id"]
+            eng.add_rows(sid, user, rows)
+            total = eng.sheet_summary(sid)["total"]
+            st.success(f"{len(rows)} leads is din ki sheet me add ho gaye "
+                       f"(total {total}). 'Today's Calls' tab me kaam karo.")
+        else:
+            sid = eng.create_sheet(user, name, sheet_date, up.name, up.name, rows)
+            st.success(f"Sheet saved — {len(rows)} leads. "
+                       f"Ab 'Today's Calls' tab me kaam karo.")
         st.session_state["cs_active_sheet"] = sid
 
 
@@ -220,15 +231,28 @@ def _render_team():
 
 
 def _delete_control(sid, user, key):
-    with st.expander("🗑️ Remove this sheet"):
-        st.caption("Ye poori sheet aur uske saare leads permanently delete ho "
-                   "jaayenge. Wapas nahi aayega.")
-        confirm = st.checkbox("Haan, pakka delete karo", key=f"cs_delconf_{key}")
-        if st.button("🗑️ Delete sheet", key=f"cs_del_{key}", disabled=not confirm):
-            if eng.delete_sheet(sid, owner_username=user):
+    # Two-step inline confirm (no expander — an expander collapses on the
+    # confirm-rerun and hides the button, which made delete awkward).
+    flag = f"cs_delask_{key}"
+    if not st.session_state.get(flag):
+        if st.button("🗑️ Remove this sheet", key=f"cs_delask_{key}"):
+            st.session_state[flag] = True
+            st.rerun()
+    else:
+        st.warning("Ye poori sheet + saare leads permanently delete ho jaayenge. "
+                   "Wapas nahi aayega.")
+        col1, col2 = st.columns(2)
+        if col1.button("✅ Haan, delete karo", key=f"cs_delyes_{key}",
+                       type="primary"):
+            ok = eng.delete_sheet(sid, owner_username=user)
+            st.session_state.pop(flag, None)
+            if ok:
                 st.success("Sheet deleted.")
             else:
                 st.error("Delete nahi hua — ye sheet aapki nahi hai.")
+            st.rerun()
+        if col2.button("Cancel", key=f"cs_delno_{key}"):
+            st.session_state.pop(flag, None)
             st.rerun()
 
 

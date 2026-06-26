@@ -76,6 +76,23 @@ def test_create_sheet_coerces_non_string_owner_name(monkeypatch):
     assert eng.get_sheet(sid)["owner_name"] == "rahul"  # fell back to username
 
 
+def test_add_rows_appends_to_existing_sheet(monkeypatch):
+    database, path = _fresh_db(monkeypatch)
+    import calling_sheet_engine as eng
+    importlib.reload(eng)
+    sid = eng.create_sheet("rahul", "Rahul", "2026-06-26", "S", "f.csv",
+                           [{"lead_name": "A", "phone": "1"}])
+    assert eng.sheet_summary(sid)["total"] == 1
+    added = eng.add_rows(sid, "rahul",
+                         [{"lead_name": "B", "phone": "2"},
+                          {"lead_name": "C", "phone": "3"}])
+    assert added == 2
+    assert eng.sheet_summary(sid)["total"] == 3       # merged, not a new sheet
+    assert eng.get_sheet(sid)["total_rows"] == 3
+    names = [r["lead_name"] for r in eng.get_rows(sid)]
+    assert names == ["A", "B", "C"]
+
+
 def test_delete_sheet_owner_guard(monkeypatch):
     database, path = _fresh_db(monkeypatch)
     import calling_sheet_engine as eng

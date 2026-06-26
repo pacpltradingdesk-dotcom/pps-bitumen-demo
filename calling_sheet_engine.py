@@ -94,6 +94,19 @@ def _bulk_insert_rows(sheet_id, owner_username, rows):
         conn.close()
 
 
+def add_rows(sheet_id, owner_username, rows):
+    """Append leads to an existing sheet (used when re-uploading on a day that
+    already has a sheet — they merge into it instead of making a new sheet).
+    Keeps total_rows in sync. Returns number of rows added."""
+    if not rows:
+        return 0
+    _bulk_insert_rows(sheet_id, owner_username, rows)
+    total = len(get_rows(sheet_id))
+    _update_row("calling_sheets", sheet_id,
+                {"total_rows": total, "updated_at": _now_ist()})
+    return len(rows)
+
+
 def get_sheet(sheet_id):
     rows = _select_all("calling_sheets", where="id = ?", params=(sheet_id,))
     return rows[0] if rows else None
