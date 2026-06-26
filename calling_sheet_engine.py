@@ -283,6 +283,23 @@ def carry_over_pending(owner_username, owner_name, target_date):
               "(SELECT id FROM calling_sheets WHERE owner_username = ? AND sheet_date < ?)",
         params=(owner_username, owner_username, target_date), order="id ASC")
     fresh = [r for r in pend if r["id"] not in already]
+    # Dedup by lead identity (phone, else name). A carried lead stays Pending on
+    # every intermediate day's sheet, so without this it gets re-carried once per
+    # intermediate copy and duplicates compound day over day. Also skip leads
+    # already present in the target sheet.
+    def _ident(r):
+        return ((r.get("phone") or "").strip().lower()
+                or (r.get("lead_name") or "").strip().lower())
+    seen = {_ident(r) for r in target_rows if _ident(r)}
+    deduped = []
+    for r in fresh:
+        ident = _ident(r)
+        if ident and ident in seen:
+            continue
+        if ident:
+            seen.add(ident)
+        deduped.append(r)
+    fresh = deduped
     if not fresh:
         return 0
     target_sid = get_or_create_today_sheet(owner_username, owner_name, target_date)

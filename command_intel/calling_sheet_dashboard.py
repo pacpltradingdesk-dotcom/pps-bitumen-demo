@@ -247,10 +247,10 @@ def _whatsapp_panel(user, rows):
     st.markdown("##### 📲 WhatsApp a lead — aapke connected number se")
     try:
         import whatsapp_bridge as wab
+        status = wab.link_status(user) or {}
     except Exception as e:
-        st.caption(f"WhatsApp bridge load nahi hua: {e}")
+        st.caption(f"WhatsApp bridge unavailable: {e}")
         return
-    status = wab.link_status(user) or {}
     if status.get("status") != "connected":
         st.info("Aapka WhatsApp abhi connect nahi hai. **Sales → Client Chat** page "
                 "pe jaakar QR scan karke apna WhatsApp link karo — phir yahin se "

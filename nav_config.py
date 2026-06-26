@@ -21,7 +21,7 @@ MODULE_NAV: dict[str, dict] = {
             {"label": "News", "page": "📰 News Intelligence", "star": True},
             {"label": "Telegram Analyzer", "page": "📡 Telegram Analyzer", "star": True, "pill": ("24K", "emerald")},
             {"label": "Price Prediction", "page": "🔮 Price Prediction", "star": True, "pill": ("AI", "gold")},
-            {"label": "Calling Sheet", "page": "📞 Daily Calling Sheet", "star": True, "pill": ("NEW", "emerald")},
+            {"label": "Calling Sheet", "page": "📞 Daily Calling Sheet", "role": "sales", "star": True, "pill": ("NEW", "emerald")},
             {"label": "Director Briefing", "page": "📋 Director Briefing", "pill": ("08:30", "gold")},
             {"label": "Competitor Intel", "page": "🕵️ Competitor Intelligence"},
             {"label": "Real-time Insights", "page": "🔴 Real-time Insights"},
@@ -242,7 +242,10 @@ def _build_page_role_map() -> dict[str, str]:
     for mod_key, mod in MODULE_NAV.items():
         required = MODULE_ROLE_MAP.get(mod_key, "viewer")
         for tab in mod["tabs"]:
-            mapping[tab["page"]] = required
+            # A tab may override its module's role (e.g. a sales-only page that
+            # lives in a viewer-level module), so access doesn't change just
+            # because the page was relocated for prominence.
+            mapping[tab["page"]] = tab.get("role", required)
     return mapping
 
 

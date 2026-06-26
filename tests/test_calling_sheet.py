@@ -35,6 +35,16 @@ def test_calling_tables_in_valid_tables():
     assert "calling_sheet_rows" in database._VALID_TABLES
 
 
+def test_calling_sheet_is_sales_gated():
+    # Lives in the Price & Info (viewer) module for prominence, but a per-tab
+    # role override keeps it sales-only so operations/viewer can't open it.
+    import importlib, nav_config
+    importlib.reload(nav_config)
+    assert nav_config.PAGE_ROLE_MAP["\U0001f4de Daily Calling Sheet"] == "sales"
+    # other Price & Info pages stay viewer-level
+    assert nav_config.PAGE_ROLE_MAP["\U0001f4cb Director Briefing"] == "viewer"
+
+
 def test_create_and_read_sheet(monkeypatch):
     database, path = _fresh_db(monkeypatch)
     import calling_sheet_engine as eng
@@ -198,6 +208,21 @@ def test_carry_over(monkeypatch):
 
     # idempotent: running again carries nothing new
     assert eng.carry_over_pending("rahul", "Rahul", "2026-06-26") == 0
+
+
+def test_carry_over_no_duplicate_leads_across_multiple_days(monkeypatch):
+    # Regression: a never-called lead stays Pending on every intermediate day,
+    # so carrying day1->day2->day3 must NOT produce 2 copies on day3.
+    database, path = _fresh_db(monkeypatch)
+    import calling_sheet_engine as eng
+    importlib.reload(eng)
+    eng.create_sheet("r", "R", "2026-06-24", "D1", "f.csv",
+                     [{"lead_name": "A", "phone": "111"}])
+    eng.carry_over_pending("r", "R", "2026-06-25")
+    eng.carry_over_pending("r", "R", "2026-06-26")
+    d26 = [s for s in eng.list_sheets("r") if s["sheet_date"] == "2026-06-26"][0]
+    assert len(eng.get_rows(d26["id"])) == 1   # one copy, not two
+    assert eng.carry_over_pending("r", "R", "2026-06-26") == 0  # still idempotent
 
 
 def test_team_summary(monkeypatch):
