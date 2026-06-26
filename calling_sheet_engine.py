@@ -116,6 +116,26 @@ def get_rows(sheet_id):
     return [_row_out(r) for r in rows]
 
 
+def delete_sheet(sheet_id, owner_username=None):
+    """Delete a sheet and all its rows. If owner_username is given, only delete
+    when it matches the sheet's owner (so a rep can't remove someone else's).
+    Returns True if deleted, False if not found / owner mismatch."""
+    conn = _get_conn()
+    try:
+        if owner_username is not None:
+            row = conn.execute(
+                "SELECT owner_username FROM calling_sheets WHERE id = ?",
+                (sheet_id,)).fetchone()
+            if not row or row[0] != owner_username:
+                return False
+        conn.execute("DELETE FROM calling_sheet_rows WHERE sheet_id = ?", (sheet_id,))
+        cur = conn.execute("DELETE FROM calling_sheets WHERE id = ?", (sheet_id,))
+        conn.commit()
+        return cur.rowcount > 0
+    finally:
+        conn.close()
+
+
 # ── Upload parsing + column auto-detect ──────────────────────────────────────
 
 _SYNONYMS = {
@@ -152,13 +172,25 @@ def detect_columns(columns):
     return mapping
 
 
-def parse_file(file_bytes, filename):
+def excel_sheet_names(file_bytes, filename):
+    """Worksheet names for an Excel file; [] for CSV/other. Used to let the user
+    pick the right tab when a workbook has a cover/README + data sheets."""
+    if (filename or "").lower().endswith(".csv"):
+        return []
+    try:
+        return list(pd.ExcelFile(io.BytesIO(file_bytes)).sheet_names)
+    except Exception:
+        return []
+
+
+def parse_file(file_bytes, filename, sheet_name=None):
     name = (filename or "").lower()
     bio = io.BytesIO(file_bytes)
     if name.endswith(".csv"):
         df = pd.read_csv(bio, dtype=str, keep_default_na=False)
     else:
-        df = pd.read_excel(bio, dtype=str)
+        df = pd.read_excel(bio, dtype=str,
+                           sheet_name=(sheet_name if sheet_name else 0))
     df = df.fillna("")
     df.columns = [str(c).strip() for c in df.columns]
     return df

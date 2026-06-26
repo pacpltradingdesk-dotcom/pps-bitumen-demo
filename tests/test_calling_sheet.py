@@ -76,6 +76,41 @@ def test_create_sheet_coerces_non_string_owner_name(monkeypatch):
     assert eng.get_sheet(sid)["owner_name"] == "rahul"  # fell back to username
 
 
+def test_delete_sheet_owner_guard(monkeypatch):
+    database, path = _fresh_db(monkeypatch)
+    import calling_sheet_engine as eng
+    importlib.reload(eng)
+    sid = eng.create_sheet("rahul", "Rahul", "2026-06-26", "S", "f.csv",
+                           [{"lead_name": "A", "phone": "1"}])
+    assert eng.get_sheet(sid) is not None
+    # wrong owner cannot delete
+    assert eng.delete_sheet(sid, owner_username="someone_else") is False
+    assert eng.get_sheet(sid) is not None
+    # correct owner deletes sheet + its rows
+    assert eng.delete_sheet(sid, owner_username="rahul") is True
+    assert eng.get_sheet(sid) is None
+    assert eng.get_rows(sid) == []
+
+
+def test_excel_multi_sheet_pick(monkeypatch):
+    import io as _io
+    import pandas as pd
+    import calling_sheet_engine as eng
+    bio = _io.BytesIO()
+    with pd.ExcelWriter(bio) as w:
+        pd.DataFrame({"x": [1]}).to_excel(w, sheet_name="README", index=False)
+        pd.DataFrame({"Person Name": ["A"], "Phone Number": ["9812345678"],
+                      "Company Name": ["Co"], "City": ["Pune"]}
+                     ).to_excel(w, sheet_name="Hot Leads", index=False)
+    data = bio.getvalue()
+    assert eng.excel_sheet_names(data, "f.xlsx") == ["README", "Hot Leads"]
+    assert eng.excel_sheet_names(b"a,b\n1,2", "f.csv") == []  # csv -> no sheets
+    df = eng.parse_file(data, "f.xlsx", sheet_name="Hot Leads")
+    assert "Person Name" in df.columns and len(df) == 1
+    m = eng.detect_columns(list(df.columns))
+    assert m["lead_name"] == "Person Name" and m["phone"] == "Phone Number"
+
+
 def test_detect_columns():
     import calling_sheet_engine as eng
     m = eng.detect_columns(["Customer Name", "Mobile No", "Firm", "Town", "Notes"])

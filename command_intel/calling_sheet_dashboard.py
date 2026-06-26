@@ -38,8 +38,22 @@ def _render_upload(user, name):
         st.info("Apni daily calling sheet (Excel/CSV) upload karo. "
                 "Columns auto-detect ho jaayenge.")
         return
+    file_bytes = up.getvalue()
+    # Multi-sheet Excel (e.g. a workbook with README + Hot/Warm Leads tabs):
+    # let the user pick which sheet has the leads. Default to the first sheet
+    # that isn't an obvious cover/summary page.
+    chosen_sheet = None
+    sheet_names = eng.excel_sheet_names(file_bytes, up.name)
+    if len(sheet_names) > 1:
+        _COVER = {"readme", "read me", "cover", "summary", "info",
+                  "instructions", "about", "index", "notes"}
+        default_idx = next((i for i, s in enumerate(sheet_names)
+                            if s.strip().lower() not in _COVER), 0)
+        chosen_sheet = st.selectbox(
+            "Is Excel me kai sheets hain — kaunsi sheet use karni hai?",
+            sheet_names, index=default_idx, key="cs_sheet_pick")
     try:
-        df = eng.parse_file(up.getvalue(), up.name)
+        df = eng.parse_file(file_bytes, up.name, sheet_name=chosen_sheet)
     except Exception as e:
         st.error(f"File padhne me dikkat: {e}")
         return
@@ -146,6 +160,8 @@ def _render_today(user, name):
         st.success(f"{n} rows updated.")
         st.rerun()
 
+    _delete_control(sid, user, f"today_{sid}")
+
 
 def _render_history(user):
     st.subheader("🗂️ Past sheets")
@@ -172,6 +188,7 @@ def _render_history(user):
         "Status": r["call_status"], "Outcome": r["outcome"],
         "Remark": r["remark"], "Follow-up": r["followup_date"] or "",
     } for r in rows]), use_container_width=True, hide_index=True)
+    _delete_control(ids[pick], user, f"hist_{ids[pick]}")
 
 
 def _render_team():
@@ -190,6 +207,19 @@ def _render_team():
         "% Called": r["pct_called"], "Connected": r["connected"],
         "Conversions": r["conversions"],
     } for r in data]), use_container_width=True, hide_index=True)
+
+
+def _delete_control(sid, user, key):
+    with st.expander("🗑️ Remove this sheet"):
+        st.caption("Ye poori sheet aur uske saare leads permanently delete ho "
+                   "jaayenge. Wapas nahi aayega.")
+        confirm = st.checkbox("Haan, pakka delete karo", key=f"cs_delconf_{key}")
+        if st.button("🗑️ Delete sheet", key=f"cs_del_{key}", disabled=not confirm):
+            if eng.delete_sheet(sid, owner_username=user):
+                st.success("Sheet deleted.")
+            else:
+                st.error("Delete nahi hua — ye sheet aapki nahi hai.")
+            st.rerun()
 
 
 def render():
