@@ -250,3 +250,18 @@ def carry_over_pending(owner_username, owner_name, target_date):
     _update_row("calling_sheets", target_sid,
                 {"total_rows": len(cur), "updated_at": _now_ist()})
     return len(new_rows)
+
+
+# ── Team summary (director oversight) ────────────────────────────────────────
+
+def team_summary(owner_username=None):
+    sheets = list_sheets(owner_username=owner_username)
+    out = []
+    for s in sheets:
+        summ = sheet_summary(s["id"])
+        out.append({
+            "sheet_id": s["id"], "owner_username": s["owner_username"],
+            "owner_name": s.get("owner_name"), "sheet_date": s["sheet_date"],
+            "title": s.get("title"), **summ,
+        })
+    return out

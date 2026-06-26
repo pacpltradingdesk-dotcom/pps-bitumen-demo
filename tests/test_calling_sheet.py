@@ -133,3 +133,20 @@ def test_carry_over(monkeypatch):
 
     # idempotent: running again carries nothing new
     assert eng.carry_over_pending("rahul", "Rahul", "2026-06-26") == 0
+
+
+def test_team_summary(monkeypatch):
+    database, path = _fresh_db(monkeypatch)
+    import calling_sheet_engine as eng
+    importlib.reload(eng)
+    eng.create_sheet("rep1", "Rep One", "2026-06-26", "S1", "a.csv",
+                     [{"lead_name": "A", "phone": "1"}])
+    eng.create_sheet("rep2", "Rep Two", "2026-06-26", "S2", "b.csv",
+                     [{"lead_name": "B", "phone": "2"}])
+    allrows = eng.team_summary()
+    assert len(allrows) == 2
+    owners = {r["owner_username"] for r in allrows}
+    assert owners == {"rep1", "rep2"}
+    assert "total" in allrows[0] and "pct_called" in allrows[0]
+    only1 = eng.team_summary("rep1")
+    assert len(only1) == 1 and only1[0]["owner_username"] == "rep1"
