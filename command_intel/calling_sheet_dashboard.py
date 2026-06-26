@@ -140,6 +140,33 @@ def _render_today(user, name):
         st.rerun()
 
 
+def _render_history(user):
+    st.subheader("🗂️ Past sheets")
+    sheets = eng.list_sheets(user)
+    if not sheets:
+        st.info("Abhi koi sheet nahi.")
+        return
+    table = []
+    for s in sheets:
+        summ = eng.sheet_summary(s["id"])
+        table.append({
+            "Date": s["sheet_date"], "Title": s["title"],
+            "Total": summ["total"], "Called": summ["called"],
+            "% Called": summ["pct_called"], "Conversions": summ["conversions"],
+            "id": s["id"],
+        })
+    st.dataframe(pd.DataFrame(table).drop(columns=["id"]),
+                 use_container_width=True, hide_index=True)
+    ids = {f'{t["Date"]} — {t["Title"]} (#{t["id"]})': t["id"] for t in table}
+    pick = st.selectbox("Open a sheet", list(ids.keys()), key="cs_hist_pick")
+    rows = eng.get_rows(ids[pick])
+    st.dataframe(pd.DataFrame([{
+        "Name": r["lead_name"], "Phone": r["phone"], "Company": r["company"],
+        "Status": r["call_status"], "Outcome": r["outcome"],
+        "Remark": r["remark"], "Follow-up": r["followup_date"] or "",
+    } for r in rows]), use_container_width=True, hide_index=True)
+
+
 def render():
     st.header("📞 Daily Calling Sheet")
     st.caption("Apni daily calling list upload karo, har call pe remark/status/outcome "
@@ -154,7 +181,7 @@ def render():
     with selected[1]:
         _render_today(user, name)
     with selected[2]:
-        st.info("History — Task 9 me aayega.")
+        _render_history(user)
     if _is_director():
         with selected[3]:
             st.info("Team — Task 10 me aayega.")
