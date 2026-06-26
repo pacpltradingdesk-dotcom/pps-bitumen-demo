@@ -242,13 +242,16 @@ def process_due_campaigns():
             )
 
             try:
+                # Real email_queue schema: to_email / body_text (NOT recipient_email/
+                # recipient_name/body). Wrong column names made every INSERT raise
+                # "no such column", which the except below swallowed -> drips silently
+                # never queued and retried forever. recipient_name has no column; dropped.
                 conn.execute("""
-                    INSERT INTO email_queue (recipient_email, recipient_name, subject, body,
+                    INSERT INTO email_queue (to_email, subject, body_text,
                                             email_type, status, created_at)
-                    VALUES (?, ?, ?, ?, ?, 'queued', ?)
+                    VALUES (?, ?, ?, ?, 'queued', ?)
                 """, (
                     camp["customer_email"],
-                    camp["customer_name"],
                     step_config["subject"],
                     body,
                     f"drip_{step_config['type']}",
