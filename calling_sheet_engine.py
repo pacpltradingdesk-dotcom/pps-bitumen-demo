@@ -109,3 +109,66 @@ def get_rows(sheet_id):
     rows = _select_all("calling_sheet_rows", where="sheet_id = ?",
                        params=(sheet_id,), order="id ASC")
     return [_row_out(r) for r in rows]
+
+
+# ── Upload parsing + column auto-detect ──────────────────────────────────────
+
+_SYNONYMS = {
+    "lead_name": ["name", "customer name", "customer", "client", "lead",
+                  "party", "firm name", "contact name", "contact"],
+    "phone": ["phone", "mobile", "mobile no", "mobile number", "contact no",
+              "number", "phone no", "cell", "whatsapp", "ph"],
+    "company": ["company", "firm", "organisation", "organization", "business",
+                "company name", "firm name"],
+    "city": ["city", "town", "location", "place", "district", "region", "area"],
+}
+
+
+def _norm(s):
+    return "".join(str(s).lower().split())
+
+
+def detect_columns(columns):
+    avail = {c: _norm(c) for c in columns}
+    mapping = {f: None for f in CORE_FIELDS}
+    used = set()
+    for field in CORE_FIELDS:
+        for syn in _SYNONYMS[field]:
+            target = _norm(syn)
+            for col, ncol in avail.items():
+                if col in used:
+                    continue
+                if ncol == target or target in ncol or ncol in target:
+                    mapping[field] = col
+                    used.add(col)
+                    break
+            if mapping[field]:
+                break
+    return mapping
+
+
+def parse_file(file_bytes, filename):
+    name = (filename or "").lower()
+    bio = io.BytesIO(file_bytes)
+    if name.endswith(".csv"):
+        df = pd.read_csv(bio, dtype=str, keep_default_na=False)
+    else:
+        df = pd.read_excel(bio, dtype=str)
+    df = df.fillna("")
+    df.columns = [str(c).strip() for c in df.columns]
+    return df
+
+
+def normalize_rows(df, mapping):
+    out = []
+    core_cols = {v for v in mapping.values() if v}
+    for _, row in df.iterrows():
+        rec = {f: (str(row[mapping[f]]).strip() if mapping[f] else "")
+               for f in CORE_FIELDS}
+        if not rec["lead_name"] and not rec["phone"]:
+            continue
+        extra = {c: str(row[c]).strip() for c in df.columns
+                 if c not in core_cols and str(row[c]).strip()}
+        rec["extra"] = extra
+        out.append(rec)
+    return out

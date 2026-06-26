@@ -61,3 +61,27 @@ def test_create_and_read_sheet(monkeypatch):
     sheets = eng.list_sheets("rahul")
     assert len(sheets) == 1 and sheets[0]["id"] == sid
     assert eng.list_sheets("someone_else") == []
+
+
+def test_detect_columns():
+    import calling_sheet_engine as eng
+    m = eng.detect_columns(["Customer Name", "Mobile No", "Firm", "Town", "Notes"])
+    assert m["lead_name"] == "Customer Name"
+    assert m["phone"] == "Mobile No"
+    assert m["company"] == "Firm"
+    assert m["city"] == "Town"
+
+
+def test_normalize_rows_puts_unmapped_in_extra():
+    import pandas as pd
+    import calling_sheet_engine as eng
+    df = pd.DataFrame([
+        {"Customer Name": "ABC", "Mobile No": "9811111111", "Region": "West"},
+        {"Customer Name": "", "Mobile No": "", "Region": "East"},  # empty -> skip
+    ])
+    m = eng.detect_columns(list(df.columns))
+    rows = eng.normalize_rows(df, m)
+    assert len(rows) == 1
+    assert rows[0]["lead_name"] == "ABC"
+    assert rows[0]["phone"] == "9811111111"
+    assert rows[0]["extra"]["Region"] == "West"
