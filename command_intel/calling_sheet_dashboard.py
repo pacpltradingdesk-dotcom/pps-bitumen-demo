@@ -77,6 +77,11 @@ def _render_upload(user, name):
 def _render_today(user, name):
     st.subheader("📋 Today's calls")
     today = _today()
+    if st.button("⬇️ Pull pending leads from previous days", key="cs_carry"):
+        n = eng.carry_over_pending(user, name, today)
+        st.success(f"{n} pending leads carried into today." if n
+                   else "Koi pending lead nahi mila.")
+        st.rerun()
     sheets = [s for s in eng.list_sheets(user) if s["sheet_date"] == today]
     if not sheets:
         st.info("Aaj ki koi sheet nahi. Upload tab se sheet daalo, ya History se "
@@ -167,6 +172,24 @@ def _render_history(user):
     } for r in rows]), use_container_width=True, hide_index=True)
 
 
+def _render_team():
+    st.subheader("👥 Team calling activity")
+    rollup = eng.team_summary()
+    if not rollup:
+        st.info("Abhi kisi rep ki koi sheet nahi.")
+        return
+    reps = sorted({r["owner_username"] for r in rollup})
+    pick = st.selectbox("Rep", ["(All)"] + reps, key="cs_team_rep")
+    data = rollup if pick == "(All)" else [r for r in rollup
+                                           if r["owner_username"] == pick]
+    st.dataframe(pd.DataFrame([{
+        "Rep": r["owner_name"] or r["owner_username"], "Date": r["sheet_date"],
+        "Title": r["title"], "Total": r["total"], "Called": r["called"],
+        "% Called": r["pct_called"], "Connected": r["connected"],
+        "Conversions": r["conversions"],
+    } for r in data]), use_container_width=True, hide_index=True)
+
+
 def render():
     st.header("📞 Daily Calling Sheet")
     st.caption("Apni daily calling list upload karo, har call pe remark/status/outcome "
@@ -184,4 +207,4 @@ def render():
         _render_history(user)
     if _is_director():
         with selected[3]:
-            st.info("Team — Task 10 me aayega.")
+            _render_team()
