@@ -272,14 +272,16 @@ class ContactRotationEngine:
                       status: str, error: str = "") -> None:
         try:
             from database import insert_rotation_log
-            insert_rotation_log(
-                contact_id=contact.get("id", 0),
-                rotation_date=date,
-                channel=channel,
-                status=status,
-                message_type="daily_outreach",
-                error_message=error,
-            )
+            # Takes a single data dict, not kwargs. Passing kwargs raised TypeError
+            # which the except below swallowed -> rotation outreach was never logged.
+            insert_rotation_log({
+                "contact_id": contact.get("id", 0),
+                "rotation_date": date,
+                "channel": channel,
+                "status": status,
+                "message_type": "daily_outreach",
+                "error_message": error,
+            })
         except Exception:
             pass
 
@@ -287,9 +289,10 @@ class ContactRotationEngine:
                                 channel: str) -> None:
         try:
             from database import update_contact_last_contacted
+            # No `date` param exists (it stamps now() internally); passing date=
+            # raised TypeError -> swallowed -> last_contact_date never updated.
             update_contact_last_contacted(
                 contact_id=contact.get("id", 0),
-                date=date,
                 channel=channel,
             )
         except Exception:
@@ -441,11 +444,13 @@ class FestivalBroadcastEngine:
         # Log broadcast
         try:
             from database import insert_festival_broadcast
-            insert_festival_broadcast(
-                festival_name=festival_name,
-                festival_date=festival_date,
-                total_contacts=len(messages),
-            )
+            # Takes a single data dict, not kwargs -> TypeError was swallowed and the
+            # broadcast was never recorded. Capture the real row id for the return.
+            broadcast_id = insert_festival_broadcast({
+                "festival_name": festival_name,
+                "festival_date": festival_date,
+                "total_contacts": len(messages),
+            })
         except Exception:
             pass
 
@@ -508,13 +513,15 @@ class FestivalBroadcastEngine:
             broadcasts = get_festival_broadcasts()
             if broadcasts:
                 latest = broadcasts[-1]
-                update_festival_broadcast(
-                    broadcast_id=latest.get("id", 0),
-                    status="completed",
-                    sent_whatsapp=stats["sent_whatsapp"],
-                    sent_email=stats["sent_email"],
-                    failed=stats["failed"],
-                )
+                # Signature is (broadcast_id, data: dict). Real columns are
+                # broadcast_status / failed_count (not status / failed). The old kwargs
+                # call raised TypeError -> swallowed -> broadcast progress never saved.
+                update_festival_broadcast(latest.get("id", 0), {
+                    "broadcast_status": "completed",
+                    "sent_whatsapp": stats["sent_whatsapp"],
+                    "sent_email": stats["sent_email"],
+                    "failed_count": stats["failed"],
+                })
         except Exception:
             pass
 
