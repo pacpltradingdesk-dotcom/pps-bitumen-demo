@@ -109,3 +109,27 @@ def test_update_row_and_summary(monkeypatch):
     assert s["pending"] == 1
     assert s["connected"] == 1
     assert s["conversions"] == 1
+
+
+def test_carry_over(monkeypatch):
+    database, path = _fresh_db(monkeypatch)
+    import calling_sheet_engine as eng
+    importlib.reload(eng)
+    # yesterday: 2 rows, mark one Connected
+    sid_y = eng.create_sheet("rahul", "Rahul", "2026-06-25", "Y", "y.csv", [
+        {"lead_name": "A", "phone": "1"}, {"lead_name": "B", "phone": "2"},
+    ])
+    a = eng.get_rows(sid_y)[0]
+    eng.update_row(a["id"], {"call_status": "Connected"})
+
+    n = eng.carry_over_pending("rahul", "Rahul", "2026-06-26")
+    assert n == 1  # only the pending one (B) carried
+
+    today = [s for s in eng.list_sheets("rahul") if s["sheet_date"] == "2026-06-26"][0]
+    trows = eng.get_rows(today["id"])
+    assert len(trows) == 1
+    assert trows[0]["lead_name"] == "B"
+    assert trows[0]["carried_from_row_id"] is not None
+
+    # idempotent: running again carries nothing new
+    assert eng.carry_over_pending("rahul", "Rahul", "2026-06-26") == 0

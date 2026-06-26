@@ -203,3 +203,50 @@ def sheet_summary(sheet_id):
         "connected": connected, "conversions": conversions,
         "pct_called": round(called / total * 100, 1) if total else 0.0,
     }
+
+
+# ── Carry-over of un-called (pending) rows ───────────────────────────────────
+
+def get_or_create_today_sheet(owner_username, owner_name, sheet_date):
+    existing = _select_all(
+        "calling_sheets", where="owner_username = ? AND sheet_date = ?",
+        params=(owner_username, sheet_date), order="id DESC")
+    if existing:
+        return existing[0]["id"]
+    return create_sheet(owner_username, owner_name, sheet_date,
+                        f"Calling Sheet {sheet_date}", "", [])
+
+
+def carry_over_pending(owner_username, owner_name, target_date):
+    # already-carried source ids in the target date (dedupe)
+    target_rows = _select_all(
+        "calling_sheet_rows",
+        where="owner_username = ? AND sheet_id IN "
+              "(SELECT id FROM calling_sheets WHERE owner_username = ? AND sheet_date = ?)",
+        params=(owner_username, owner_username, target_date))
+    already = {r.get("carried_from_row_id") for r in target_rows
+              if r.get("carried_from_row_id")}
+    # pending rows from earlier dates
+    pend = _select_all(
+        "calling_sheet_rows",
+        where="owner_username = ? AND call_status = 'Pending' AND sheet_id IN "
+              "(SELECT id FROM calling_sheets WHERE owner_username = ? AND sheet_date < ?)",
+        params=(owner_username, owner_username, target_date), order="id ASC")
+    fresh = [r for r in pend if r["id"] not in already]
+    if not fresh:
+        return 0
+    target_sid = get_or_create_today_sheet(owner_username, owner_name, target_date)
+    new_rows = []
+    for r in fresh:
+        new_rows.append({
+            "lead_name": r.get("lead_name"), "phone": r.get("phone"),
+            "company": r.get("company"), "city": r.get("city"),
+            "extra": _loads(r.get("extra")),
+            "carried_from_row_id": r["id"],
+        })
+    _bulk_insert_rows(target_sid, owner_username, new_rows)
+    # keep total_rows accurate
+    cur = get_rows(target_sid)
+    _update_row("calling_sheets", target_sid,
+                {"total_rows": len(cur), "updated_at": _now_ist()})
+    return len(new_rows)
