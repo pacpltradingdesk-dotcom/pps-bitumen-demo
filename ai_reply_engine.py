@@ -616,16 +616,16 @@ class AIReplyEngine:
             from database import _get_conn
             conn = _get_conn()
             messages = conn.execute(
-                """SELECT * FROM wa_incoming
+                """SELECT * FROM whatsapp_incoming
                    WHERE processed = 0
-                   ORDER BY created_at ASC LIMIT 50"""
+                   ORDER BY received_at ASC LIMIT 50"""
             ).fetchall()
             if not messages:
                 return {**stats, "status": "no_messages"}
             cols = [d[0] for d in conn.execute(
-                "SELECT * FROM wa_incoming LIMIT 0").description]
+                "SELECT * FROM whatsapp_incoming LIMIT 0").description]
         except Exception:
-            # wa_incoming table may not exist yet
+            # whatsapp_incoming table may not exist yet
             return {**stats, "status": "no_incoming_table"}
 
         for row_tuple in messages:
@@ -639,7 +639,7 @@ class AIReplyEngine:
                 # the 50-row LIMIT and starving real inbound messages.
                 try:
                     conn.execute(
-                        "UPDATE wa_incoming SET processed = 1 WHERE id = ?",
+                        "UPDATE whatsapp_incoming SET processed = 1 WHERE id = ?",
                         (msg.get("id"),))
                 except Exception:
                     pass
@@ -671,7 +671,7 @@ class AIReplyEngine:
                 # Mark as processed
                 try:
                     conn.execute(
-                        "UPDATE wa_incoming SET processed = 1 WHERE id = ?",
+                        "UPDATE whatsapp_incoming SET processed = 1 WHERE id = ?",
                         (msg.get("id"),))
                     conn.commit()
                 except Exception:

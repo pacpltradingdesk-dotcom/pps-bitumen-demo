@@ -1011,13 +1011,16 @@ def render_active_context_strip():
 def _load_contact_options(limit: int = 1000) -> list[dict]:
     """Load top contacts for the picker dropdown (cached)."""
     try:
-        from database import get_connection
-        conn = get_connection()
-        cur = conn.cursor()
+        # real table is `contacts` (not tbl_contacts); phone lives in mobile1/mobile2;
+        # get_connection() is a context manager so use _get_conn(). Previously all
+        # three mistakes -> errors swallowed -> the customer picker dropdown was empty.
+        from database import _get_conn
+        conn = _get_conn()
         try:
+            cur = conn.cursor()
             cur.execute("""
-                SELECT rowid, name, phone, email, city, state, category
-                FROM tbl_contacts
+                SELECT rowid, name, COALESCE(mobile1, mobile2, ''), email, city, state, category
+                FROM contacts
                 WHERE name IS NOT NULL AND name != ''
                 ORDER BY rowid DESC
                 LIMIT ?
@@ -1033,8 +1036,7 @@ def _load_contact_options(limit: int = 1000) -> list[dict]:
                 "category": r[6] or "",
             } for r in rows if r[1]]
         finally:
-            try: cur.close()
-            except Exception: pass
+            conn.close()
     except Exception:
         return []
 

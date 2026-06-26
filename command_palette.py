@@ -44,13 +44,16 @@ def _build_page_index() -> list[dict]:
 def _build_contact_index(limit: int = 500) -> list[dict]:
     """Top contacts by recency/score from the DB (cached)."""
     try:
-        from database import get_connection
-        conn = get_connection()
-        cur = conn.cursor()
+        # real table is `contacts` (not tbl_contacts); phone lives in mobile1/mobile2
+        # (no `phone` col); get_connection() is a context manager so use _get_conn().
+        # Previously all three mistakes -> errors swallowed -> contact index always empty.
+        from database import _get_conn
+        conn = _get_conn()
         try:
+            cur = conn.cursor()
             cur.execute("""
-                SELECT name, phone, city, state, category
-                FROM tbl_contacts
+                SELECT name, COALESCE(mobile1, mobile2, ''), city, state, category
+                FROM contacts
                 WHERE name IS NOT NULL AND name != ''
                 ORDER BY rowid DESC
                 LIMIT ?
@@ -65,8 +68,7 @@ def _build_contact_index(limit: int = 500) -> list[dict]:
                 "category": r[4] or "",
             } for r in rows if r[0]]
         finally:
-            try: cur.close()
-            except Exception: pass
+            conn.close()
     except Exception:
         return []
 

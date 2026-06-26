@@ -337,7 +337,7 @@ def get_output_monitoring() -> dict:
         result["emails_today"] = row[0] if row else 0
         # WhatsApp
         row = conn.execute(
-            "SELECT COUNT(*) FROM wa_queue WHERE status='sent' AND created_at LIKE ?",
+            "SELECT COUNT(*) FROM whatsapp_queue WHERE status='sent' AND created_at LIKE ?",
             (f"{today}%",)
         ).fetchone()
         result["whatsapp_today"] = row[0] if row else 0
