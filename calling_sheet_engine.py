@@ -172,3 +172,34 @@ def normalize_rows(df, mapping):
         rec["extra"] = extra
         out.append(rec)
     return out
+
+
+# ── Row update + per-sheet summary ───────────────────────────────────────────
+
+_EDITABLE = {"call_status", "outcome", "remark", "followup_date"}
+_CONVERSION_OUTCOMES = {"Interested", "Quote requested", "Deal", "Follow-up"}
+
+
+def update_row(row_id, data):
+    clean = {k: v for k, v in data.items() if k in _EDITABLE}
+    if not clean:
+        return
+    now = _now_ist()
+    if clean.get("call_status") and clean["call_status"] != "Pending":
+        clean["called_at"] = now
+    clean["updated_at"] = now
+    _update_row("calling_sheet_rows", row_id, clean)
+
+
+def sheet_summary(sheet_id):
+    rows = get_rows(sheet_id)
+    total = len(rows)
+    pending = sum(1 for r in rows if (r.get("call_status") or "Pending") == "Pending")
+    called = total - pending
+    connected = sum(1 for r in rows if r.get("call_status") == "Connected")
+    conversions = sum(1 for r in rows if r.get("outcome") in _CONVERSION_OUTCOMES)
+    return {
+        "total": total, "called": called, "pending": pending,
+        "connected": connected, "conversions": conversions,
+        "pct_called": round(called / total * 100, 1) if total else 0.0,
+    }

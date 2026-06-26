@@ -85,3 +85,27 @@ def test_normalize_rows_puts_unmapped_in_extra():
     assert rows[0]["lead_name"] == "ABC"
     assert rows[0]["phone"] == "9811111111"
     assert rows[0]["extra"]["Region"] == "West"
+
+
+def test_update_row_and_summary(monkeypatch):
+    database, path = _fresh_db(monkeypatch)
+    import calling_sheet_engine as eng
+    importlib.reload(eng)
+    sid = eng.create_sheet("rahul", "Rahul", "2026-06-26", "S", "f.csv", [
+        {"lead_name": "A", "phone": "1"}, {"lead_name": "B", "phone": "2"},
+    ])
+    r0 = eng.get_rows(sid)[0]
+    eng.update_row(r0["id"], {"call_status": "Connected",
+                              "outcome": "Interested", "remark": "keen"})
+    updated = [r for r in eng.get_rows(sid) if r["id"] == r0["id"]][0]
+    assert updated["call_status"] == "Connected"
+    assert updated["outcome"] == "Interested"
+    assert updated["remark"] == "keen"
+    assert updated["called_at"]  # stamped
+
+    s = eng.sheet_summary(sid)
+    assert s["total"] == 2
+    assert s["called"] == 1
+    assert s["pending"] == 1
+    assert s["connected"] == 1
+    assert s["conversions"] == 1
