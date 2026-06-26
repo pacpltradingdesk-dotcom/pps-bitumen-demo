@@ -50,6 +50,14 @@ INDIAN_MOBILE_REGEX = re.compile(r"^[6-9]\d{9}$")
 
 # ─── Phone Number Validation ────────────────────────────────────────────────
 
+def default_wa_user() -> str:
+    """The dashboard user whose QR-linked WhatsApp acts as the single 'company'
+    number for automated/unattended sends (cron, alerts, AI replies). Override
+    with the PPS_WA_USER env var if a different user linked the number."""
+    import os
+    return os.environ.get("PPS_WA_USER", "admin")
+
+
 def validate_indian_mobile(number: str) -> Tuple[bool, str]:
     """
     Validate and normalize Indian mobile number.
@@ -385,6 +393,26 @@ class WhatsAppEngine:
 
         from database import insert_wa_queue
         status = "pending" if auto_send else "draft"
+        sent_at = None
+        # ── UNIFIED WhatsApp ──────────────────────────────────────────────
+        # Route every free-text auto-send through the ONE QR-linked number
+        # (pps-chat-wa, same as Client Chat / the AI reply) so the whole
+        # dashboard sends from a single connected WhatsApp. Marks the row
+        # 'sent' so the bulk drainer won't re-send it. Degrades gracefully:
+        # if that number isn't linked / the service is offline, it falls back
+        # to the normal queue (old behaviour) untouched.
+        # WhatsApp Business *templates* can't go through a personal number, so
+        # those still use the bulk path (and bulk volume on a personal number
+        # risks a ban — keep template broadcasts there on purpose).
+        if auto_send and not scheduled_at and session_text:
+            try:
+                import whatsapp_bridge as _wab
+                _res = _wab.send_text(normalized, session_text,
+                                      from_user=default_wa_user())
+                if _res.get("ok") and not _res.get("queued"):
+                    status, sent_at = "sent", self._now()
+            except Exception:
+                pass
         return insert_wa_queue({
             "to_number": normalized,
             "message_type": message_type,
@@ -396,6 +424,7 @@ class WhatsAppEngine:
             "broadcast_id": broadcast_id,
             "status": status,
             "scheduled_at": scheduled_at,
+            "sent_at": sent_at,
         })
 
     def process_queue(self) -> dict:
