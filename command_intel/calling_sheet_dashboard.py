@@ -181,6 +181,7 @@ def _render_today(user, name):
         st.success(f"{n} rows updated.")
         st.rerun()
 
+    _whatsapp_panel(user, rows)
     _delete_control(sid, user, f"today_{sid}")
 
 
@@ -228,6 +229,56 @@ def _render_team():
         "% Called": r["pct_called"], "Connected": r["connected"],
         "Conversions": r["conversions"],
     } for r in data]), use_container_width=True, hide_index=True)
+
+
+def _lead_wa_number(r):
+    """Best WhatsApp number for a lead: explicit WhatsApp col (from extra) else phone."""
+    extra = r.get("extra") or {}
+    for k in ("WhatsApp Number", "Whatsapp Number", "WhatsApp", "whatsapp"):
+        if extra.get(k):
+            return str(extra[k])
+    return str(r.get("phone") or "")
+
+
+def _whatsapp_panel(user, rows):
+    """Send a WhatsApp to a lead from the SAME QR-linked number the AI chat uses
+    (whatsapp_bridge -> pps-chat-wa /send). No separate WhatsApp."""
+    st.markdown("---")
+    st.markdown("##### 📲 WhatsApp a lead — aapke connected number se")
+    try:
+        import whatsapp_bridge as wab
+    except Exception as e:
+        st.caption(f"WhatsApp bridge load nahi hua: {e}")
+        return
+    status = wab.link_status(user) or {}
+    if status.get("status") != "connected":
+        st.info("Aapka WhatsApp abhi connect nahi hai. **Sales → Client Chat** page "
+                "pe jaakar QR scan karke apna WhatsApp link karo — phir yahin se "
+                f"leads ko message bhej paoge. (status: {status.get('status', 'offline')})")
+        return
+    st.caption(f"🟢 Connected: {status.get('number', '')}")
+    leads = [r for r in rows if _lead_wa_number(r)]
+    if not leads:
+        st.caption("Is sheet ke kisi lead ka number nahi.")
+        return
+    pick = st.selectbox(
+        "Lead", leads, key="cs_wa_lead",
+        format_func=lambda r: f'{r.get("lead_name") or r.get("company") or "?"}'
+                              f' — {_lead_wa_number(r)}')
+    num = _lead_wa_number(pick)
+    who = pick.get("lead_name") or pick.get("company") or ""
+    default_msg = (f"Namaste {who}, PPS Anantam (bitumen) se baat kar rahe hain. "
+                   "Aapke liye aaj ke rate bhej sakte hain?")
+    msg = st.text_area("Message", value=default_msg, key="cs_wa_msg", height=90)
+    if st.button("📲 Send WhatsApp", key="cs_wa_send", type="primary"):
+        res = wab.send_text(num, msg, from_user=user)
+        if res.get("ok") and not res.get("queued"):
+            st.success(f"Bheja gaya — {res.get('channel', 'WhatsApp')}.")
+        elif res.get("queued"):
+            st.warning("WhatsApp service abhi offline — message queue me daal diya "
+                       "(connect hote hi chala jaayega).")
+        else:
+            st.error(f"Send fail: {res.get('error', 'unknown')}")
 
 
 def _delete_control(sid, user, key):
