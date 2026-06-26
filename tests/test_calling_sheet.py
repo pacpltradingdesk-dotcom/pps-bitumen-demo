@@ -63,6 +63,19 @@ def test_create_and_read_sheet(monkeypatch):
     assert eng.list_sheets("someone_else") == []
 
 
+def test_create_sheet_coerces_non_string_owner_name(monkeypatch):
+    # Regression: dashboard passed the _auth_user dict as owner_name -> SQLite
+    # "binding parameter ... type 'dict' is not supported". Engine must coerce.
+    database, path = _fresh_db(monkeypatch)
+    import calling_sheet_engine as eng
+    importlib.reload(eng)
+    sid = eng.create_sheet("rahul", {"username": "rahul", "role": "director"},
+                           "2026-06-26", "S", "f.csv",
+                           [{"lead_name": "A", "phone": "1"}])
+    assert isinstance(sid, int) and sid > 0
+    assert eng.get_sheet(sid)["owner_name"] == "rahul"  # fell back to username
+
+
 def test_detect_columns():
     import calling_sheet_engine as eng
     m = eng.detect_columns(["Customer Name", "Mobile No", "Firm", "Town", "Notes"])

@@ -11,8 +11,10 @@ import calling_sheet_engine as eng
 
 
 def _current_user():
+    # _auth_user is the full user dict; the human-readable name is _auth_display.
+    # Using _auth_user here passed a dict into SQL -> "binding parameter ... dict".
     u = st.session_state.get("_auth_username") or "unknown"
-    name = st.session_state.get("_auth_user") or u
+    name = st.session_state.get("_auth_display") or u
     return u, name
 
 

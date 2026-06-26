@@ -38,6 +38,11 @@ def create_sheet(owner_username, owner_name, sheet_date, title,
                  source_filename, rows):
     """Create a calling_sheets record + bulk-insert its rows. Returns sheet_id."""
     now = _now_ist()
+    # Coerce to str: callers sometimes pass a richer object (e.g. a user dict) as
+    # owner_name; SQLite cannot bind a dict, so guard the whole class here.
+    owner_username = str(owner_username) if owner_username is not None else ""
+    if not isinstance(owner_name, str):
+        owner_name = owner_username
     sheet_id = _insert_row("calling_sheets", {
         "owner_username": owner_username,
         "owner_name": owner_name or owner_username,
