@@ -994,6 +994,11 @@ def revert_import(import_history_id: int,
         if already:
             conn.rollback()
             return 0
+        # Re-validate the table read back from import_history before interpolating
+        # it into the DELETE (don't trust a stored value, even via a bad write).
+        if target_table not in _INSERT_MAP:
+            conn.rollback()
+            raise ValueError(f"Untrusted target_table {target_table!r} in import_history {import_history_id}")
         # customer_profiles uses source_file instead of imported_from
         col = "source_file" if target_table == "customer_profiles" else "imported_from"
         cur = conn.execute(

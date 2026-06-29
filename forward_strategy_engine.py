@@ -321,7 +321,11 @@ class ForwardStrategyEngine:
 
         recent = brent[-7:] if len(brent) >= 7 else brent
         first_price = recent[0].get("price", 0)
-        last_price = recent[-1].get("price", 0)
+        try:
+            from market_data import get_unified_prices
+            last_price = get_unified_prices().get("brent") or recent[-1].get("price", 0)
+        except Exception:
+            last_price = recent[-1].get("price", 0)
 
         if first_price <= 0:
             return {"direction": "STABLE", "change_pct": 0, "detail": "Invalid price data"}

@@ -162,7 +162,11 @@ class DirectorBriefingEngine:
             if len(brent) >= 2:
                 latest = brent[-1]["price"]
                 prev = brent[-2]["price"]
-                summary["market_movement"]["brent_price"] = latest
+                try:
+                    from market_data import get_unified_prices
+                    summary["market_movement"]["brent_price"] = get_unified_prices().get("brent") or latest
+                except Exception:
+                    summary["market_movement"]["brent_price"] = latest
                 if prev > 0:
                     summary["market_movement"]["brent_pct"] = round(
                         (latest - prev) / prev * 100, 2)

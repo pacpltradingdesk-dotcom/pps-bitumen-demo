@@ -193,7 +193,11 @@ def run_alert_scan() -> int:
         crude_data = json.loads((base / "tbl_crude_prices.json").read_text(encoding="utf-8"))
         brent = [r for r in crude_data if r.get("benchmark") == "Brent" and r.get("price")]
         if len(brent) >= 2:
-            latest = brent[-1]["price"]
+            try:
+                from market_data import get_unified_prices
+                latest = get_unified_prices().get("brent") or brent[-1]["price"]
+            except Exception:
+                latest = brent[-1]["price"]
             prev = brent[-2]["price"]
             if prev > 0:
                 change = (latest - prev) / prev * 100

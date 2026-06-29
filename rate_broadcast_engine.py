@@ -290,7 +290,7 @@ def execute_broadcast(city_filter=None, grade_filter=None, vip_filter=None, trig
     try:
         conn.execute("""
             INSERT INTO broadcast_log (broadcast_id, trigger_type, segment_filter, total_recipients, created_at, status)
-            VALUES (?, ?, ?, ?, ?, 'sending')
+            VALUES (?, ?, ?, ?, ?, 'pending')
         """, (broadcast_id, trigger_type,
               json.dumps({"city": city_filter, "grade": grade_filter, "vip": vip_filter}),
               len(contacts), _now()))
