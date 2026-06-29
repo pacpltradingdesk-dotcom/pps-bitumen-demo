@@ -296,7 +296,7 @@ def _get_email_status() -> dict:
         from database import _get_conn
         conn = _get_conn()
         try:
-            result["queue"] = conn.execute("SELECT COUNT(*) as c FROM email_queue WHERE status = 'queued'").fetchone()["c"]
+            result["queue"] = conn.execute("SELECT COUNT(*) as c FROM email_queue WHERE status IN ('pending','draft')").fetchone()["c"]
             result["sent"] = conn.execute("SELECT COUNT(*) as c FROM email_queue WHERE status = 'sent'").fetchone()["c"]
         finally:
             conn.close()
@@ -314,7 +314,7 @@ def _get_whatsapp_status() -> dict:
         from database import _get_conn
         conn = _get_conn()
         try:
-            result["queue"] = conn.execute("SELECT COUNT(*) as c FROM whatsapp_queue WHERE status = 'queued'").fetchone()["c"]
+            result["queue"] = conn.execute("SELECT COUNT(*) as c FROM whatsapp_queue WHERE status IN ('pending','draft')").fetchone()["c"]
             result["sent"] = conn.execute("SELECT COUNT(*) as c FROM whatsapp_queue WHERE status = 'sent'").fetchone()["c"]
         finally:
             conn.close()

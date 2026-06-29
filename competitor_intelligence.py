@@ -734,7 +734,10 @@ def _tab_intl_bitumen():
     _hdr("🏗️", "India Landed Cost Estimate (from FOB)", "#06b6d4")
     st.caption("Approximate formula: FOB $/MT × USD/INR × 1.025 (freight+ins) × 1.075 (custom duty) × 1.18 (GST)")
 
-    live_usd = get_usdinr() or 86.90
+    try:
+        live_usd = get_unified_prices().get("usdinr") or 86.8
+    except Exception:
+        live_usd = get_usdinr() or 86.8
     latest_row = INTL_BITUMEN.iloc[-1]
     rows = []
     for k, label in col_map.items():

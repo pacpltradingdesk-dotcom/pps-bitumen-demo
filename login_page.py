@@ -85,14 +85,13 @@ div[data-testid="stForm"] .stTextInput div[data-testid="InputInstructions"] {
             elif login(uname, pin):
                 st.rerun()
             else:
-                st.error("Invalid username or PIN. Default: admin / 0000")
+                st.error("Invalid username or PIN.")
 
         # Footer
         st.markdown("""
 <div style="text-align:center;margin-top:24px;">
 <div style="font-size:0.6rem;color:#CBD5E1;line-height:1.8;">
-PPS Anantams Corporation Pvt Ltd &bull; Vadodara, Gujarat &bull; v6.0<br>
-Default login: <b>admin</b> / <b>0000</b>
+PPS Anantams Corporation Pvt Ltd &bull; Vadodara, Gujarat &bull; v6.0
 </div>
 </div>
 """, unsafe_allow_html=True)

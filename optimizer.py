@@ -183,22 +183,12 @@ class CostOptimizer:
                     df_cust.loc[mask, 'base_price_calc'] = float(new_price)
         
         # MATH: (Base * 1.18) - Discount + Transport
-        # Note: Previous feedback implied (Base - Disc) * Tax? 
-        # But standard invoice usually is Base -> Disc -> Tax.
-        # User image suggested: Base + Tax - Discount?
-        # Let's stick to: Final = (Base * 1.18) - Discount + Transport (matching previous successful logic)
-        
-        # Refined Math based on "Discount For Bulk" usually being Pre-Tax or Post-Tax?
-        # If Discount is "1500 PMT", it's usually deducted from Base.
-        # Let's do: (Base - Disc) * 1.18 + Transport
-        # This is safer for "Discount".
-        # However, checking Step 9 logic: 
-        # "net_start = best_row['base_price'] + tax_val - best_row['discount']"
-        # where tax_val = base * 0.18.
-        # So it was: (Base * 1.18) - Discount. 
-        # We will keep this consistent.
-        
-        df_cust['final_price'] = (df_cust['base_price_calc'] * (1 + tax_rate)) - df_cust['discount_calc'] + df_cust['transport_calc']
+        # PSU bitumen discounts are PRE-TAX: GST is invoiced on the post-discount
+        # net. So Final = (Base - Discount) * (1 + GST) + Transport. The old formula
+        # deducted the discount AFTER GST, overstating landed cost by discount*GST
+        # (~₹270/MT on a ₹1,500 discount) and skewing cheapest-source ranking.
+        df_cust['final_price'] = ((df_cust['base_price_calc'] - df_cust['discount_calc'])
+                                  * (1 + tax_rate)) + df_cust['transport_calc']
 
         # 4. Sort and Pick Best
         df_sorted = df_cust.sort_values(by='final_price', ascending=True)

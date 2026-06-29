@@ -882,7 +882,13 @@ def render():
         low_price = nr["Low Range"]
         high_price = nr["High Range"]
         conf = nr["Confidence %"]
-        last_price = 76_870  # last official IOCL price
+        # Anchor to the live VG30, not a literal — else this banner contradicts the
+        # waterfall below (which already uses unified) after a circular updates VG30.
+        try:
+            from market_data import get_unified_prices
+            last_price = float(get_unified_prices().get("vg30") or 76_870)
+        except Exception:
+            last_price = 76_870
 
         # Direction based on prediction vs last official
         change = pred_price - last_price

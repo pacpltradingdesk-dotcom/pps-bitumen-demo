@@ -789,7 +789,8 @@ def _email_scheduler_loop():
                 if now.strftime("%A") == target_day and time_str == target_time:
                     engine.send_weekly_summary()
         except Exception:
-            pass
+            import logging
+            logging.getLogger(__name__).error("Email scheduler tick failed — queue may be stalled", exc_info=True)
 
         # Sleep 5 minutes in small chunks
         for _ in range(300):

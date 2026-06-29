@@ -1776,7 +1776,7 @@ def insert_price_history(records: list):
         for rec in records:
             rec = dict(rec)
             rec.setdefault("validated", 1)
-            cols = ", ".join(rec.keys())
+            cols = ", ".join(_validate_columns(rec.keys()))  # guard f-string SQL
             placeholders = ", ".join(["?"] * len(rec))
             cur.execute(
                 f"INSERT INTO price_history ({cols}) VALUES ({placeholders})",
@@ -1880,7 +1880,7 @@ def upsert_inventory(data: dict) -> int:
         ).fetchone()
         if existing:
             row_id = existing["id"]
-            set_clause = ", ".join([f"{k} = ?" for k in data.keys()])
+            set_clause = ", ".join([f"{k} = ?" for k in _validate_columns(data.keys())])
             conn.execute(
                 f"UPDATE inventory SET {set_clause} WHERE id = ?",
                 list(data.values()) + [row_id],
@@ -1888,7 +1888,7 @@ def upsert_inventory(data: dict) -> int:
             conn.commit()
             return row_id
         else:
-            cols = ", ".join(data.keys())
+            cols = ", ".join(_validate_columns(data.keys()))
             placeholders = ", ".join(["?"] * len(data))
             cur = conn.cursor()
             cur.execute(

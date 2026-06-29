@@ -509,6 +509,16 @@ class BitumenCalculationEngine:
         rate_per_km = self.bulk_rate_per_km if load_type == "Bulk" else self.drum_rate_per_km
 
         freight = distance_km * rate_per_km
+        # Apply the grade differential to the VG30 base before GST. Without this,
+        # find_best_sources / calculate_deal_economics quoted VG40/CRMB/PMB/VG10
+        # at the VG30 price (VG40 understated ~₹3,162/MT incl GST). VG30 diff = 0.
+        try:
+            from price_master import get_grade_differentials
+            _gkey = {"VG10": "VG-10", "VG30": "VG-30", "VG40": "VG-40",
+                     "CRMB": "CRMB-60", "PMB": "PMB"}.get(grade, "VG-30")
+            base_price = base_price + get_grade_differentials().get(_gkey, 0)
+        except Exception:
+            pass
         gst = base_price * self.gst_rate
         landed_cost = base_price + gst + freight
 

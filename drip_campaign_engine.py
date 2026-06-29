@@ -260,7 +260,12 @@ def process_due_campaigns():
             except Exception:
                 # Queue insert failed → do NOT advance the drip step or count it
                 # as processed, else the customer silently skips this email
-                # forever. Leave as-is so it retries next cycle.
+                # forever. Leave as-is so it retries next cycle. Log so a stuck
+                # campaign is visible instead of silently looping.
+                import logging
+                logging.getLogger(__name__).error(
+                    "drip queue insert failed (camp=%s step=%s) — not advancing",
+                    camp.get("id"), step, exc_info=True)
                 continue
 
             # Move to next step (only after the email actually queued)

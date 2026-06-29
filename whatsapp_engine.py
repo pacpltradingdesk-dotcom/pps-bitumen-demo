@@ -863,7 +863,8 @@ def _wa_scheduler_loop():
             engine = WhatsAppEngine()
             engine.process_queue()
         except Exception:
-            pass
+            import logging
+            logging.getLogger(__name__).error("WA scheduler tick failed — queue may be stalled", exc_info=True)
         for _ in range(120):
             if not _wa_scheduler_running:
                 break

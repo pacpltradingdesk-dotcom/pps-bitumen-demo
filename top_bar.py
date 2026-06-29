@@ -199,8 +199,11 @@ def render_top_bar() -> None:
 
     # ── Compact user strip (top-right) with logout ─────────────────────────
     if st.session_state.get("_auth_user"):
-        _name = st.session_state.get("_auth_display", "User")
-        _role = st.session_state.get("_auth_role", "viewer").title()
+        import html as _html
+        # Escape: display_name comes from the DB (set in User Management) and is
+        # rendered via unsafe_allow_html → stored-XSS vector without escaping.
+        _name = _html.escape(str(st.session_state.get("_auth_display", "User")))
+        _role = _html.escape(str(st.session_state.get("_auth_role", "viewer")).title())
         _spacer, _user_col, _logout_col = st.columns([6, 2, 1])
         with _user_col:
             st.markdown(

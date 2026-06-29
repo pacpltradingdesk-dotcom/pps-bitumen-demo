@@ -146,8 +146,9 @@ def _render_crude_markets(st) -> None:
     # ticker), not the tail of tbl_crude_prices.json which can be stale.
     # Fall back to the historical series tail only if the live call is down.
     try:
-        from api_manager import get_brent_price as _live_brent, get_wti_price as _live_wti
-        _lb, _lw = _live_brent(), _live_wti()
+        from market_data import get_unified_prices as _gup
+        _u = _gup()
+        _lb, _lw = _u.get("brent"), _u.get("wti")
     except Exception:
         _lb = _lw = None
 
@@ -347,8 +348,13 @@ def _render_fx_monitor(st) -> None:
         st.info("No FX data in the selected date range.")
         return
 
-    # KPI row
-    latest_rate = df[rate_col].iloc[-1]
+    # KPI level from the single source (skips monthly-avg / stale rows); the raw
+    # series tail is kept only for the chart + % change below.
+    try:
+        from market_data import get_unified_prices as _gup
+        latest_rate = _gup().get("usdinr") or df[rate_col].iloc[-1]
+    except Exception:
+        latest_rate = df[rate_col].iloc[-1]
     if latest_rate is None or (isinstance(latest_rate, float) and math.isnan(latest_rate)):
         latest_rate = 0.0
     c1, c2, c3 = st.columns(3)

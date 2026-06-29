@@ -235,9 +235,12 @@ PPS Anantams Corporation Pvt Ltd"""
 
 def generate_email_html(customer, rates, trigger_type="manual"):
     """Generate personalized HTML email."""
-    name = customer.get("name", "Sir/Madam")
-    city = customer.get("city", "your city")
-    grade = customer.get("grade", "VG30")
+    import html as _h
+    # Escape customer-controlled fields (Excel upload / manual entry) before they
+    # enter the email HTML — prevents HTML/attribute injection (fake links/phishing).
+    name = _h.escape(str(customer.get("name") or "Sir/Madam"))
+    city = _h.escape(str(customer.get("city") or "your city"))
+    grade = _h.escape(str(customer.get("grade") or "VG30"))
     today = datetime.date.today().strftime("%d %b %Y")
 
     bulk = rates.get("bulk", {}).get("landed_cost", 0)
@@ -331,7 +334,7 @@ def execute_broadcast(city_filter=None, grade_filter=None, vip_filter=None, trig
                 html = generate_email_html(customer, rates, trigger_type)
                 # queue_email is an EmailEngine method (to_email, subject, body_html,…).
                 from email_engine import EmailEngine
-                _eid = EmailEngine().queue_email(email, subject, html, email_type="rate_broadcast")
+                _eid = EmailEngine().queue_email(email, subject, html, email_type="rate_broadcast", auto_send=True)
                 if _eid and _eid > 0:
                     email_sent += 1
                 else:
@@ -429,8 +432,9 @@ def _morning_broadcast_loop():
                     execute_broadcast(trigger_type="scheduled")
                     last_sent_date = today
             except Exception:
-                execute_broadcast(trigger_type="scheduled")
-                last_sent_date = today
+                # Settings unreadable → do NOT broadcast against the user's toggle.
+                # Skip this tick; the next minute retries once settings are back.
+                pass
 
         time.sleep(60)
 

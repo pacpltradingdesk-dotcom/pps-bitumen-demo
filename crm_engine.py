@@ -179,7 +179,10 @@ def add_task(client_name, task_type, due_date_str, priority="Medium", note="", a
     try:
         from database import insert_crm_task
         insert_crm_task({
-            "task_id": task_id,
+            # insert_crm_task reads data["id"]; passing "task_id" made it generate
+            # a different UUID, so complete_task() never matched → tasks stayed
+            # Pending forever. Use the same id the caller gets back.
+            "id": task_id,
             "client": client_name,
             "type": task_type,
             "due_date": due_date_str,

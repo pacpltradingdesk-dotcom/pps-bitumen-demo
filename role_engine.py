@@ -65,10 +65,21 @@ def _get_auth_secret() -> bytes:
     except Exception:
         pass
 
-    # 4. Stable hardcoded fallback — derived from company CIN (public info)
-    # Not cryptographically strong but stable across deploys. Override with
-    # st.secrets["auth_secret"] or AUTH_SECRET env for proper security.
-    return hashlib.sha256(b"pps-anantam-U46632GJ2019PTC110676-stable-v1").digest()
+    # 4. No configured secret → random per-process key. NEVER the old CIN-derived
+    # value (publicly computable → forgeable admin tokens). Fail-safe: sessions
+    # won't persist across a restart in this mode — set AUTH_SECRET env (or
+    # st.secrets["auth_secret"]) for stable, secure prod auth.
+    if getattr(_get_auth_secret, "_runtime", None) is None:
+        import os as _os
+        _get_auth_secret._runtime = _os.urandom(32)
+        try:
+            import logging
+            logging.getLogger(__name__).warning(
+                "AUTH_SECRET not configured — using a random per-process key. "
+                "Set AUTH_SECRET env / st.secrets['auth_secret'] for stable sessions.")
+        except Exception:
+            pass
+    return _get_auth_secret._runtime
 
 
 def _make_auth_token(username: str, expiry_ts: int) -> str:
