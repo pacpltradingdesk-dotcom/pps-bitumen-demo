@@ -92,7 +92,8 @@ def get_unified_prices() -> dict:
         for rec in reversed(rows if isinstance(rows, list) else []):
             if not isinstance(rec, dict):
                 continue
-            if _rec_too_old(rec):
+            # Skip monthly-average rows (e.g. OPEC monthly) — use only live dailies.
+            if rec.get("period_label") or _rec_too_old(rec):
                 continue
             b = str(rec.get("benchmark", "")).lower()
             p = rec.get("price")
@@ -108,10 +109,12 @@ def get_unified_prices() -> dict:
         # 7-day change from the same series so the pulse bar isn't frozen green.
         if out["brent"] is not None:
             out["brent_chg_pct"] = _series_change_pct(
-                rows, lambda r: "brent" in str(r.get("benchmark", "")).lower())
+                rows, lambda r: ("brent" in str(r.get("benchmark", "")).lower()
+                                 and not r.get("period_label")))
         if out["wti"] is not None:
             out["wti_chg_pct"] = _series_change_pct(
-                rows, lambda r: "wti" in str(r.get("benchmark", "")).lower())
+                rows, lambda r: ("wti" in str(r.get("benchmark", "")).lower()
+                                 and not r.get("period_label")))
     except Exception:
         pass
     try:
@@ -119,7 +122,10 @@ def get_unified_prices() -> dict:
         rows = fx if isinstance(fx, list) else fx.get("data", [])
         for rec in reversed(rows if isinstance(rows, list) else []):
             if isinstance(rec, dict) and "INR" in str(rec.get("pair", "")).upper():
-                if _rec_too_old(rec):
+                # Skip monthly-average proxy rows (period_label): they carry a stale
+                # month value stamped with a fresh timestamp and would otherwise
+                # override the live spot USD/INR (yfinance INR=X / Frankfurter daily).
+                if rec.get("period_label") or _rec_too_old(rec):
                     continue
                 r = rec.get("rate")
                 if r:
@@ -127,7 +133,8 @@ def get_unified_prices() -> dict:
                     break
         if out["usdinr"] is not None:
             out["usdinr_chg_pct"] = _series_change_pct(
-                rows, lambda r: "INR" in str(r.get("pair", "")).upper(), "rate")
+                rows, lambda r: ("INR" in str(r.get("pair", "")).upper()
+                                 and not r.get("period_label")), "rate")
     except Exception:
         pass
     if out["brent"] or out["wti"] or out["usdinr"]:
@@ -157,8 +164,8 @@ def get_unified_prices() -> dict:
             for rec in fx_rows:
                 if not isinstance(rec, dict):
                     continue
-                if _rec_too_old(rec):
-                    continue
+                if rec.get("period_label") or _rec_too_old(rec):
+                    continue  # skip monthly-avg proxy; live spot only
                 if "INR" in rec.get("pair", "").upper() and out["usdinr"] is None:
                     out["usdinr"] = float(rec.get("rate", 0) or 0) or None
         if out["brent"] or out["wti"] or out["usdinr"]:
@@ -221,20 +228,13 @@ def get_unified_prices() -> dict:
     if out["source"] == "unknown":
         out["source"] = "fallback"
 
-    # ── 5. Intra-fortnight drift (bounded ±5%) on top of the published base ──
-    # If a circular anchor exists (base + crude/fx at circular time), nudge the
-    # VG30 base with crude/fx moves since then so it isn't frozen between
-    # fortnightly circulars. The circular stays authoritative (cap + re-anchor
-    # on next circular). No anchor -> no drift (published base shown as-is).
-    try:
-        lp_a = json.loads(_LIVE_PRICES_PATH.read_text(encoding="utf-8"))
-        anchor = lp_a.get("VG30_ANCHOR")
-        if isinstance(anchor, dict) and anchor.get("base"):
-            from price_drift import drift_vg30
-            out["vg30"] = drift_vg30(anchor.get("base"), anchor.get("brent"),
-                                     anchor.get("usdinr"), out.get("brent"), out.get("usdinr"))
-    except Exception:
-        pass
+    # ── 5. VG30 auto-drift: DISABLED ─────────────────────────────────────────
+    # The intra-fortnight drift nudged VG30 with crude/FX moves since the circular,
+    # so the board showed a price the user never set (e.g. set ₹77,000 → shown
+    # ₹75,155 after Brent fell). For a *quoting* board the displayed VG30 MUST equal
+    # the published/set base — drift = unauthorised quote risk. So VG30 = the set
+    # VG30_BASE as-is. (Crude/FX still move on their own cards.) To re-enable, restore
+    # the price_drift.drift_vg30(...) call here.
 
     return out
 

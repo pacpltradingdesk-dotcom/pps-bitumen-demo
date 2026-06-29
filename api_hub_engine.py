@@ -1086,13 +1086,34 @@ def connect_fx() -> dict:
     if cached:
         return {"ok": True, "records": 0, "source": "cache", "cached": True}
 
-    # ── Frankfurter ───────────────────────────────────────────────────────────
+    # ── USD/INR PRIMARY: yfinance INR=X live spot ─────────────────────────────
+    # Frankfurter/ECB only gives a once-daily reference (and the monthly RBI proxy
+    # polluted the table), so USD/INR sat ~10% off real spot. yfinance INR=X is the
+    # same real-time pipeline the crude (BZ=F) uses — accurate to market spot.
+    have_inr = False
+    try:
+        from api_manager import fetch_yfinance_with_history
+        inr_val, _inr_7d = fetch_yfinance_with_history("INR=X")
+        if inr_val and inr_val > 0:
+            records.append({
+                "date_time": _ts(),
+                "pair":      "USD/INR",
+                "rate":      round(float(inr_val), 4),
+                "source":    "yfinance INR=X (live spot)",
+            })
+            have_inr = True
+    except Exception:
+        pass
+
+    # ── Frankfurter — other pairs (+ USD/INR fallback if yfinance missed) ──────
     url = "https://api.frankfurter.app/latest"
     params = {"from": "USD", "to": "INR,EUR,GBP,JPY,AED,SAR"}
     data, err = _http_get(url, params=params, timeout=8)
     if data and isinstance(data, dict) and "rates" in data:
         ts = _ts()
         for pair, rate in data["rates"].items():
+            if pair == "INR" and have_inr:
+                continue  # live spot already captured above
             records.append({
                 "date_time": ts,
                 "pair":      f"USD/{pair}",
@@ -1115,6 +1136,8 @@ def connect_fx() -> dict:
         rates = data2["usd"]
         ts    = _ts()
         for pair_key in ["inr", "eur", "gbp", "jpy", "aed", "sar"]:
+            if pair_key == "inr" and have_inr:
+                continue  # live spot already captured above
             rate = rates.get(pair_key)
             if rate:
                 records.append({
@@ -1134,8 +1157,19 @@ def connect_fx() -> dict:
             _hub_log(connector_id, "Fallback", f"fawazahmed0: {len(records)} FX pairs", len(records))
             return {"ok": True, "records": len(records), "source": "fawazahmed0 fallback"}
 
+    # Frankfurter + CDN both failed — but if yfinance gave us USD/INR, still write it.
+    if records:
+        _append_tbl(TBL_FX, records, max_records=500,
+                    source_type="live_api", source_confidence=0.9,
+                    source_provider="yfinance INR=X (live spot)")
+        HubCatalog.set_status(connector_id, "Live", success=True,
+                              error_msg="Frankfurter+CDN down — USD/INR from yfinance spot")
+        HubCache.set(connector_id, records)
+        _hub_log(connector_id, "OK", f"yfinance spot: {len(records)} FX pair(s)", len(records))
+        return {"ok": True, "records": len(records), "source": "yfinance INR=X"}
+
     HubCatalog.set_status(connector_id, "Failing",
-                          error_msg=f"Both FX sources failed: {err} | {err2}")
+                          error_msg=f"All FX sources failed: {err} | {err2}")
     _hub_log(connector_id, "FAIL", "All FX sources failed")
     return {"ok": False, "records": 0, "error": "All FX sources failed"}
 
