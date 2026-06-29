@@ -194,28 +194,68 @@ def hash_pin(pin: str) -> str:
     return hashlib.sha256(pin.encode("utf-8")).hexdigest()
 
 
+def _attempts_table(conn):
+    conn.execute("CREATE TABLE IF NOT EXISTS login_attempts "
+                 "(username TEXT, attempted_at REAL)")
+
+
 def _is_rate_limited(username: str) -> bool:
-    """Check if username has exceeded failed login attempts."""
+    """Check if username has exceeded failed login attempts. DB-backed so the
+    lockout SURVIVES a Streamlit restart (the in-memory dict reset on every
+    deploy/restart, handing an attacker a fresh window). Falls back to memory
+    only if the DB is unreachable."""
     key = username.lower().strip()
-    now = time.time()
-    attempts = _failed_attempts.get(key, [])
-    # Prune old attempts outside window
-    attempts = [t for t in attempts if now - t < _RATE_LIMIT_WINDOW]
-    _failed_attempts[key] = attempts
-    return len(attempts) >= _RATE_LIMIT_MAX
+    cutoff = time.time() - _RATE_LIMIT_WINDOW
+    try:
+        from database import _get_conn
+        conn = _get_conn()
+        try:
+            _attempts_table(conn)
+            conn.execute("DELETE FROM login_attempts WHERE attempted_at < ?", (cutoff,))
+            conn.commit()
+            n = conn.execute(
+                "SELECT COUNT(*) FROM login_attempts WHERE username = ? AND attempted_at >= ?",
+                (key, cutoff)).fetchone()[0]
+            return n >= _RATE_LIMIT_MAX
+        finally:
+            conn.close()
+    except Exception:
+        now = time.time()
+        attempts = [t for t in _failed_attempts.get(key, []) if now - t < _RATE_LIMIT_WINDOW]
+        _failed_attempts[key] = attempts
+        return len(attempts) >= _RATE_LIMIT_MAX
 
 
 def _record_failed_attempt(username: str):
-    """Record a failed login attempt."""
+    """Record a failed login attempt (persisted to DB)."""
     key = username.lower().strip()
-    if key not in _failed_attempts:
-        _failed_attempts[key] = []
-    _failed_attempts[key].append(time.time())
+    try:
+        from database import _get_conn
+        conn = _get_conn()
+        try:
+            _attempts_table(conn)
+            conn.execute("INSERT INTO login_attempts (username, attempted_at) VALUES (?, ?)",
+                         (key, time.time()))
+            conn.commit()
+        finally:
+            conn.close()
+    except Exception:
+        _failed_attempts.setdefault(key, []).append(time.time())
 
 
 def _clear_failed_attempts(username: str):
     """Clear failed attempts on successful login."""
     key = username.lower().strip()
+    try:
+        from database import _get_conn
+        conn = _get_conn()
+        try:
+            conn.execute("DELETE FROM login_attempts WHERE username = ?", (key,))
+            conn.commit()
+        finally:
+            conn.close()
+    except Exception:
+        pass
     _failed_attempts.pop(key, None)
 
 
