@@ -174,21 +174,15 @@ def _get_market_context() -> dict:
         "trend": "stable",
         "narrative": "",
     }
+    # Use the single source of truth — it rejects records older than 3 days and
+    # agrees with every other screen. The old code took the raw [-1] of the JSON
+    # files with no age check (and matched "Brent"/"USD/INR" case-exact), so a
+    # stalled feed silently drove the customer talk-track off an old number.
     try:
-        crude_data = _load_json(BASE / "tbl_crude_prices.json")
-        if crude_data:
-            brent_records = [r for r in crude_data if r.get("benchmark") == "Brent"]
-            if brent_records:
-                context["brent_usd"] = brent_records[-1].get("price")
-    except Exception:
-        pass
-
-    try:
-        fx_data = _load_json(BASE / "tbl_fx_rates.json")
-        if fx_data:
-            usd_records = [r for r in fx_data if str(r.get("pair", "")) == "USD/INR"]
-            if usd_records:
-                context["usdinr"] = usd_records[-1].get("rate")
+        from market_data import get_unified_prices
+        u = get_unified_prices()
+        context["brent_usd"] = u.get("brent")
+        context["usdinr"] = u.get("usdinr")
     except Exception:
         pass
 
@@ -449,7 +443,7 @@ class DiscussionGuide:
                 intl_cost = calc.calculate_international_landed_cost({
                     "fob_usd": 380,
                     "freight_usd": 35,
-                    "usdinr": float(market.get("usdinr") or 83.25),
+                    "usdinr": float(market.get("usdinr") or 86.8),  # align w/ unified default
                 })
                 market_fob = intl_cost.get("fob_usd", 380)
             except Exception:

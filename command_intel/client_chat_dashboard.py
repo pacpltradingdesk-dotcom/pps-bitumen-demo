@@ -126,6 +126,39 @@ def _current_user() -> str:
             or "user")
 
 
+def _lookup_customer_phone(name):
+    """Find a picked customer's stored number. Returns (number, source) where
+    source is 'whatsapp' (explicit WhatsApp on record → has WhatsApp), 'contact'
+    (only a phone on record → WhatsApp unconfirmed), or 'none' (no number)."""
+    if not name:
+        return "", ""
+    # DB names often carry the city, e.g. "L&T Construction (Hyderabad)"; try the
+    # full picked label first, then a city-stripped fallback.
+    candidates = [c for c in (name, name.split(" (")[0].strip()) if c]
+    try:
+        from database import _get_conn
+        conn = _get_conn()
+        try:
+            for cand in candidates:
+                row = conn.execute(
+                    "SELECT * FROM customers WHERE name = ? LIMIT 1", (cand,)
+                ).fetchone()
+                if row:
+                    d = dict(row)
+                    wa = (d.get("whatsapp_number") or "").strip()
+                    ph = (d.get("contact") or "").strip()
+                    if wa:
+                        return wa, "whatsapp"
+                    if ph:
+                        return ph, "contact"
+                    return "", "none"
+        finally:
+            conn.close()
+    except Exception:
+        pass
+    return "", ""
+
+
 def render():
     import whatsapp_bridge as wa
 
@@ -159,6 +192,12 @@ def render():
             if st.button("New Chat", type="primary", use_container_width=True):
                 if customer_name:
                     st.session_state["_chat_cust_name"] = customer_name
+                    # Auto-fill the WhatsApp number from the customer's record so
+                    # the rep doesn't retype it. Set before the widget is created
+                    # (then rerun) so the text_input picks it up as its value.
+                    num, src = _lookup_customer_phone(customer_name)
+                    st.session_state["_chat_phone"] = num
+                    st.session_state["_chat_phone_src"] = src
                     st.session_state["_chat_draft"] = ""
                     st.session_state.pop("_chat_draft_edit", None)
                     st.rerun()
@@ -171,6 +210,15 @@ def render():
             phone = st.text_input("Customer WhatsApp number", key="_chat_phone",
                                   placeholder="e.g. 9876543210",
                                   help="Replies are sent to this WhatsApp number. Indian 10-digit numbers get +91 automatically.")
+            # Tell the rep whether this customer has a WhatsApp number on record.
+            src = st.session_state.get("_chat_phone_src")
+            if phone.strip() and src == "whatsapp":
+                st.caption("🟢 WhatsApp number record se auto-filled — is number pe WhatsApp hai.")
+            elif phone.strip() and src == "contact":
+                st.caption("📞 Contact number auto-filled — WhatsApp specifically record me nahi, "
+                           "isi number pe try hoga.")
+            elif src == "none":
+                st.caption("⚠️ Is customer ka koi number record me nahi mila — neeche manually daalo.")
             conv_id = wa.conversation_id_for_phone(phone) if phone.strip() else None
 
             if not conv_id:

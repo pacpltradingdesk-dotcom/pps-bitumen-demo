@@ -282,7 +282,7 @@ def _execute_send(channel: str, recipients: list, message: str,
                     "body_html": message.replace("\n", "<br>"),
                     "body_text": message,
                     "email_type": "share",
-                    "status": "queued",
+                    "status": "pending",  # 'queued' is never drained by process_queue
                     "created_at": now,
                 })
             else:
@@ -293,7 +293,7 @@ def _execute_send(channel: str, recipients: list, message: str,
                     "to_number": phone,
                     "message_type": "session",
                     "session_text": message[:4096],
-                    "status": "queued",
+                    "status": "pending",  # 'queued' is never drained by process_queue
                     "created_at": now,
                 })
 

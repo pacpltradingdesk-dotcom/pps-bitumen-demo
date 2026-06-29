@@ -179,7 +179,9 @@ class ShareAutomationEngine:
                     "body_html": msg.get("body", ""),
                     "body_text": msg.get("body", ""),
                     "email_type": "scheduled_share",
-                    "status": "queued",
+                    # Must be 'pending' — process_queue only drains 'pending', so
+                    # 'queued' rows sat forever while the UI reported "delivered".
+                    "status": "pending",
                     "created_at": _now_ist(),
                 })
         except Exception:
@@ -198,7 +200,8 @@ class ShareAutomationEngine:
                     "to_number": phone,
                     "message_type": "session",
                     "session_text": summary[:4096],
-                    "status": "queued",
+                    # 'pending' so the WhatsApp drainer actually picks it up.
+                    "status": "pending",
                     "created_at": _now_ist(),
                 })
         except Exception:

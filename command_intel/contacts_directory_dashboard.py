@@ -40,7 +40,11 @@ def render():
     cities = set(c.get("city", "") for c in contacts if c.get("city"))
     states = set(c.get("state", "") for c in contacts if c.get("state"))
     categories = sorted(set(c.get("category", "General") for c in contacts if c.get("category")))
-    with_phone = sum(1 for c in contacts if c.get("contact") or c.get("phone") or c.get("whatsapp"))
+    # DB contacts rows use mobile1/mobile2; include them so the KPI isn't 0 on
+    # the DB path (the JSON path carries a 'contact' key, which masked this).
+    with_phone = sum(1 for c in contacts
+                     if c.get("mobile1") or c.get("mobile2")
+                     or c.get("contact") or c.get("phone") or c.get("whatsapp"))
 
     k1, k2, k3, k4 = st.columns(4)
     k1.metric("Total Contacts", f"{len(contacts):,}")

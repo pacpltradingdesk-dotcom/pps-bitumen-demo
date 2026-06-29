@@ -226,7 +226,10 @@ def normalize_rows(df, mapping):
 
 # ── Row update + per-sheet summary ───────────────────────────────────────────
 
-_EDITABLE = {"call_status", "outcome", "remark", "followup_date"}
+# Excel-like editing lets reps also fix the lead identity columns inline, not
+# just the call outcome — so name/phone/company/city are editable too.
+_EDITABLE = {"lead_name", "phone", "company", "city",
+             "call_status", "outcome", "remark", "followup_date"}
 _CONVERSION_OUTCOMES = {"Interested", "Quote requested", "Deal", "Follow-up"}
 
 
@@ -239,6 +242,26 @@ def update_row(row_id, data):
         clean["called_at"] = now
     clean["updated_at"] = now
     _update_row("calling_sheet_rows", row_id, clean)
+
+
+def delete_row(row_id):
+    """Delete a single lead row (used by the Excel-like editor's row trash icon)
+    and keep the parent sheet's total_rows in sync. Returns True if a row went."""
+    conn = _get_conn()
+    try:
+        sheet = conn.execute(
+            "SELECT sheet_id FROM calling_sheet_rows WHERE id = ?",
+            (row_id,)).fetchone()
+        cur = conn.execute("DELETE FROM calling_sheet_rows WHERE id = ?", (row_id,))
+        conn.commit()
+        deleted = cur.rowcount > 0
+    finally:
+        conn.close()
+    if deleted and sheet:
+        sid = sheet[0]
+        _update_row("calling_sheets", sid,
+                    {"total_rows": len(get_rows(sid)), "updated_at": _now_ist()})
+    return deleted
 
 
 def sheet_summary(sheet_id):

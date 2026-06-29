@@ -502,15 +502,22 @@ def send_email_report(ctx: PageContext, recipients: list,
 
         for recip in recipients:
             try:
+                # auto_send=True is required: without it the row is inserted as
+                # 'draft' and process_queue (which only drains 'pending') never
+                # sends it — yet the UI shows a green "Queued — will be sent".
                 qid = ee.queue_email(
                     to_email=recip.strip(),
                     subject=subject,
                     body_html=report["body_html"],
                     email_type="report",
                     cc=cc or None,
+                    auto_send=True,
                 )
-                result["queued"] += 1
-                result["queue_ids"].append(qid)
+                if qid and qid > 0:
+                    result["queued"] += 1
+                    result["queue_ids"].append(qid)
+                else:
+                    result["failed"] += 1
             except Exception:
                 result["failed"] += 1
     except ImportError:
@@ -547,12 +554,18 @@ def send_whatsapp_report(ctx: PageContext, recipients: list) -> dict:
 
         for phone in recipients:
             try:
-                we.queue_message(
+                # auto_send=True routes through the unified QR number / queues as
+                # 'pending'; without it the row stays 'draft' and never sends.
+                qid = we.queue_message(
                     to_number=phone.strip(),
                     message_type="session",
                     session_text=summary,
+                    auto_send=True,
                 )
-                result["queued"] += 1
+                if qid and qid > 0:
+                    result["queued"] += 1
+                else:
+                    result["failed"] += 1
             except Exception:
                 result["failed"] += 1
     except ImportError:

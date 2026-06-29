@@ -29,6 +29,22 @@ def _now():
     return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
+def _first_grade(preferred_grades):
+    """customers.preferred_grades is a JSON array string like '["VG30","VG40"]'.
+    Return the first grade, or 'VG30' if empty/unparseable/plain string."""
+    if not preferred_grades:
+        return "VG30"
+    val = preferred_grades
+    if isinstance(val, str):
+        try:
+            val = json.loads(val)
+        except Exception:
+            return val.strip() or "VG30"
+    if isinstance(val, list) and val:
+        return str(val[0]) or "VG30"
+    return "VG30"
+
+
 def ensure_table():
     conn = _get_conn()
     try:
@@ -86,16 +102,20 @@ def get_broadcast_contacts(city_filter=None, grade_filter=None, vip_filter=None)
         conn.close()
         for r in rows:
             r = dict(r)
+            # The customers table uses contact/whatsapp_number/preferred_grades
+            # (plural, JSON) — NOT mobile1/preferred_grade/vip_tier. The old reads
+            # resolved phone to "" for every customer, and the empty-phone dedup
+            # below then dropped them all, so DB customers never got a broadcast.
             contacts.append({
-                "name": r.get("name", r.get("company_name", "")),
-                "phone": r.get("mobile1", r.get("mobile2", "")),
-                "email": r.get("email", ""),
+                "name": r.get("name") or r.get("company_name") or "",
+                "phone": (r.get("whatsapp_number") or r.get("contact") or "").strip(),
+                "email": r.get("email", "") or "",
                 "city": r.get("city", ""),
                 "state": r.get("state", ""),
                 "category": r.get("category", ""),
-                "grade": r.get("preferred_grade", "VG30") or "VG30",
-                "vip_tier": (r.get("vip_tier", "standard") or "standard").lower(),
-                "wa_opted_in": bool(r.get("whatsapp_opted_in", 1)),
+                "grade": _first_grade(r.get("preferred_grades")),
+                "vip_tier": "standard",
+                "wa_opted_in": True,
             })
     except Exception:
         pass
@@ -199,10 +219,13 @@ Your rates for {city}:
     if trigger_type == "price_revision":
         msg += "\n\n⚡ Prices revised — Act now!"
 
+    # The figures above are landed_cost = base + 18% GST (+ freight), so the
+    # footer must NOT say "GST 18% Extra" — a customer adding 18% again would be
+    # over-billed ~18%. Label it as the all-in landed price, GST already included.
     msg += f"""
 ━━━━━━━━━━━━━━━━━━━
 100% Advance | 24hr Validity
-Ex-Terminal | GST 18% Extra
+Landed price · incl. GST 18%
 
 📞 +91 7795242424
 PPS Anantams Corporation Pvt Ltd"""
@@ -237,7 +260,7 @@ def generate_email_html(customer, rates, trigger_type="manual"):
 <tr><td style="padding:10px;border-bottom:1px solid #F3F4F6;">{grade} Bulk</td><td style="padding:10px;text-align:right;font-weight:700;color:#059669;border-bottom:1px solid #F3F4F6;">₹{bulk:,.0f}</td></tr>
 <tr><td style="padding:10px;border-bottom:1px solid #F3F4F6;">{grade} Drum</td><td style="padding:10px;text-align:right;font-weight:700;color:#059669;border-bottom:1px solid #F3F4F6;">₹{drum:,.0f}</td></tr>
 </table>
-<p style="font-size:0.85rem;color:#6B7280;">Source: {source} | Ex-Terminal/Warehouse | GST 18% Extra</p>
+<p style="font-size:0.85rem;color:#6B7280;">Source: {source} | Landed price · incl. GST 18%</p>
 <div style="text-align:center;margin:20px 0;">
 <a href="https://wa.me/917795242424?text=Hi%20PPS%2C%20I%20need%20{grade}%20quote%20for%20{city}" style="background:#4F46E5;color:#fff;padding:12px 32px;border-radius:8px;text-decoration:none;font-weight:700;">Request Quote</a>
 </div>

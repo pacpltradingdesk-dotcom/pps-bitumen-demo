@@ -249,7 +249,7 @@ def process_due_campaigns():
                 conn.execute("""
                     INSERT INTO email_queue (to_email, subject, body_text,
                                             email_type, status, created_at)
-                    VALUES (?, ?, ?, ?, 'queued', ?)
+                    VALUES (?, ?, ?, ?, 'pending', ?)
                 """, (
                     camp["customer_email"],
                     step_config["subject"],

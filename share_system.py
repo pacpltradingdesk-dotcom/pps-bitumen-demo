@@ -334,7 +334,8 @@ def share_whatsapp(
     Send a message via the WhatsApp queue.
 
     Inserts into the *whatsapp_queue* table (database.py) with
-    status='queued'.  If the database layer is unavailable, falls back to
+    status='pending' (so process_queue actually drains it). If the database
+    layer is unavailable, falls back to
     returning the formatted message text so the caller can still use it
     (e.g. copy-paste into WhatsApp Web).
 
@@ -350,12 +351,12 @@ def share_whatsapp(
             "to_number": phone,
             "message_type": "share",
             "session_text": formatted,
-            "status": "queued",
+            "status": "pending",  # 'queued' is never drained by process_queue
             "scheduled_at": db_now(),
         })
         result["success"] = True
         result["message_id"] = f"wa-{queue_id}"
-        _log_share("whatsapp", page_name, phone, "queued")
+        _log_share("whatsapp", page_name, phone, "pending")
 
     except ImportError:
         # Database module not available — return message as fallback
@@ -449,12 +450,12 @@ def share_email(
             "subject": subject,
             "body_html": body_html,
             "email_type": "share",
-            "status": "queued",
+            "status": "pending",  # 'queued' is never drained by process_queue
             "scheduled_at": db_now(),
         })
         result["success"] = True
         result["message_id"] = f"email-{queue_id}"
-        _log_share("email", page_name, to_email, "queued")
+        _log_share("email", page_name, to_email, "pending")
 
     except ImportError:
         # Database not available — return the HTML body so caller can still use it

@@ -35,6 +35,29 @@ def _rec_too_old(rec: dict, max_days: float = _MAX_PRICE_AGE_DAYS) -> bool:
     return False
 
 
+def _series_change_pct(rows, match, price_field="price", lookback=7):
+    """% change of the latest matching record vs ~`lookback` records earlier.
+    `rows` are in chronological (file) order. Returns 0.0 if <2 usable points.
+    Used to populate *_chg_pct on the normal JSON path — previously these were
+    only set in the live-fetch fallback, so the pulse bar was frozen at +0.00%."""
+    seq = []
+    for rec in (rows if isinstance(rows, list) else []):
+        if not isinstance(rec, dict) or not match(rec):
+            continue
+        v = rec.get(price_field)
+        try:
+            if v is not None:
+                seq.append(float(v))
+        except (TypeError, ValueError):
+            continue
+    if len(seq) < 2:
+        return 0.0
+    prior = seq[max(0, len(seq) - 1 - lookback)]
+    if not prior:
+        return 0.0
+    return (seq[-1] - prior) / prior * 100
+
+
 def get_unified_prices() -> dict:
     """SINGLE SOURCE OF TRUTH for Brent/WTI/USD-INR/VG30 across every UI component.
 
@@ -82,6 +105,13 @@ def get_unified_prices() -> dict:
                 out["wti"] = float(p)
             if out["brent"] is not None and out["wti"] is not None:
                 break
+        # 7-day change from the same series so the pulse bar isn't frozen green.
+        if out["brent"] is not None:
+            out["brent_chg_pct"] = _series_change_pct(
+                rows, lambda r: "brent" in str(r.get("benchmark", "")).lower())
+        if out["wti"] is not None:
+            out["wti_chg_pct"] = _series_change_pct(
+                rows, lambda r: "wti" in str(r.get("benchmark", "")).lower())
     except Exception:
         pass
     try:
@@ -95,6 +125,9 @@ def get_unified_prices() -> dict:
                 if r:
                     out["usdinr"] = float(r)
                     break
+        if out["usdinr"] is not None:
+            out["usdinr_chg_pct"] = _series_change_pct(
+                rows, lambda r: "INR" in str(r.get("pair", "")).upper(), "rate")
     except Exception:
         pass
     if out["brent"] or out["wti"] or out["usdinr"]:

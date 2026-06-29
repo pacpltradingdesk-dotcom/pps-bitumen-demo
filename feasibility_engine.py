@@ -255,6 +255,23 @@ def get_feasibility_assessment(destination, top_n=2, grade="VG30"):
                     _opt["landed_cost"] = round(_opt["landed_cost"] + _prem, 2)
         except Exception:
             pass
+    elif grade == "VG10":
+        # VG10 is CHEAPER than the VG30 base. Refinery/import go through
+        # calculate_landed_cost() which uses the grade-less VG30 base, so they'd
+        # quote VG10 at the VG30 price (overstated ~₹1,300). Decanter/drum already
+        # read DRUM_*_VG10 keys, so apply the (negative, GST-incl) VG10
+        # differential to ONLY the refinery + import options.
+        try:
+            from price_master import get_grade_differentials
+            _diff = get_grade_differentials().get("VG-10", -1300) * 1.18
+            for _opt in refinery_options + import_options:
+                if isinstance(_opt, dict) and _opt.get("landed_cost") is not None:
+                    _opt["landed_cost"] = round(_opt["landed_cost"] + _diff, 2)
+                    if _opt.get("base_price") is not None:
+                        _opt["base_price"] = round(_opt["base_price"]
+                                                   + get_grade_differentials().get("VG-10", -1300), 2)
+        except Exception:
+            pass
 
     # Sort by landed cost
     refinery_options.sort(key=lambda x: x['landed_cost'])

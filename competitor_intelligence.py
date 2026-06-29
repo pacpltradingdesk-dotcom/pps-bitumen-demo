@@ -516,11 +516,16 @@ Use our live `api_manager` USD/INR for actual.
     _card(c2, "MEE Bitumen Δ (₹/Ton)",  f"{d_icon} {bit_low} to {bit_high}", f"{direction} · illustrative", d_color)
     _card(c3, f"PSU VG-30 ({_last_rev})", f"₹{_vg30:,}/MT",          "Live (price_master)", "#22c55e")
 
-    # Live price from api_manager
-    live_brent = get_brent_price()
-    live_usd   = get_usdinr()
+    # Live price from the single source of truth — api_manager has its own cache
+    # + divergent defaults, so it could disagree with the unified VG30 card above.
+    try:
+        _u = get_unified_prices()
+        live_brent = _u.get("brent")
+        live_usd   = _u.get("usdinr")
+    except Exception:
+        live_brent, live_usd = get_brent_price(), get_usdinr()
     live_str   = f"${live_brent:.2f}/bbl" if live_brent else "—"
-    _card(c4, "Live Brent (api_manager)", live_str,                  "Real-time", "#8b5cf6")
+    _card(c4, "Live Brent", live_str,                  "Real-time", "#8b5cf6")
     st.caption("Brent, PSU VG-30 and the news below are live. The MEE Bitumen Δ is illustrative methodology (MEE's private bulletin has no public feed).")
 
     st.markdown("---")
@@ -640,10 +645,15 @@ def _tab_market_data():
     _hdr("⚡", "MEE Live Market Updates — WTI / Brent / USD / Gasoil", "#22c55e")
     st.caption("Published by MEE twice daily (11 AM & 4 PM IST). Cross-checked against live api_manager feeds.")
 
-    # Live values from our system
-    live_brent = get_brent_price()
-    live_wti   = get_wti_price()
-    live_usd   = get_usdinr()
+    # Our live values — from the single source of truth so the "OUR Live" cards
+    # agree with Command Center; api_manager only as a fallback.
+    try:
+        _u = get_unified_prices()
+        live_brent = _u.get("brent")
+        live_wti   = _u.get("wti")
+        live_usd   = _u.get("usdinr")
+    except Exception:
+        live_brent, live_wti, live_usd = get_brent_price(), get_wti_price(), get_usdinr()
 
     # Latest MEE reading
     latest = MEE_MARKET.iloc[-1]
@@ -651,8 +661,8 @@ def _tab_market_data():
     _card(c1, "MEE Brent (Latest)",  f"${latest['Brent']:.2f}",  f"Δ {latest['Brent_chg']:+.2f} | {latest['datetime_ist'][:10]}", "#22c55e")
     _card(c2, "MEE WTI (Latest)",    f"${latest['WTI']:.2f}",    f"Δ {latest['WTI_chg']:+.2f}", "#3b82f6")
     _card(c3, "MEE USD/INR",         f"{latest['USDINR']:.2f}", f"⚠️ Procurement rate (incl. margin)", "#f59e0b")
-    _card(c4, "OUR Live Brent",      f"${live_brent:.2f}" if live_brent else "—", "api_manager real-time", "#8b5cf6")
-    _card(c5, "OUR Live USD/INR",    f"{live_usd:.2f}" if live_usd else "—",    "RBI spot via api_manager", "#06b6d4")
+    _card(c4, "OUR Live Brent",      f"${live_brent:.2f}" if live_brent else "—", "Unified source · real-time", "#8b5cf6")
+    _card(c5, "OUR Live USD/INR",    f"{live_usd:.2f}" if live_usd else "—",    "Unified source · RBI spot", "#06b6d4")
 
     st.markdown("---")
 

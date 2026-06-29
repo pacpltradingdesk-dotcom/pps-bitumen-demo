@@ -10,16 +10,11 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from ui_badges import display_badge
 import datetime
 
-# ── Live data from api_manager (graceful fallback to defaults) ───────────────
-try:
-    from api_manager import get_brent_price, get_usdinr, get_india_vix
-    _LIVE_BRENT  = get_brent_price()   # USD/bbl
-    _LIVE_USDINR = get_usdinr()        # ₹ per USD
-    _LIVE_VIX    = get_india_vix()     # India VIX
-except Exception:
-    _LIVE_BRENT  = 80.0
-    _LIVE_USDINR = 83.25
-    _LIVE_VIX    = 15.0
+# NOTE: Brent/USD-INR/VIX are fetched fresh inside _get_active_alerts() per
+# render — NOT at module import. The old module-level constants ran once per
+# process and stayed frozen for the life of the long-lived Streamlit server,
+# and sourced from api_manager's own cache (not the unified price source), so
+# Alert Center could diverge from Command Center.
 
 # Alert thresholds
 BRENT_HIGH_THRESHOLD = 80.0   # USD/bbl — Critical if exceeded
@@ -89,10 +84,21 @@ def _get_active_alerts():
     - Standing business alerts (payment, shipment, GST, market)
     """
     now = datetime.datetime.now()
-    brent   = _LIVE_BRENT
-    usdinr  = _LIVE_USDINR
-    vix     = _LIVE_VIX
-    
+    # Fresh each render, from the single source of truth (agrees with every
+    # other screen). VIX has no unified field → pull it per-render from api_manager.
+    try:
+        from market_data import get_unified_prices
+        _p = get_unified_prices()
+        brent  = _p.get("brent") or 75.5
+        usdinr = _p.get("usdinr") or 86.8
+    except Exception:
+        brent, usdinr = 75.5, 86.8
+    try:
+        from api_manager import get_india_vix
+        vix = get_india_vix() or 15.0
+    except Exception:
+        vix = 15.0
+
     alerts = [
         {
             "id": "ALT-001",

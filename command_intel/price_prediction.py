@@ -454,6 +454,7 @@ def _render_future_view(df: pd.DataFrame):
         usdinr = float(_up.get("usdinr") or 86.8)
     except Exception:
         brent, usdinr = 72.5, 86.8
+        _up = {}
 
     # Industry-calibrated sensitivities (matches MEE/industry benchmarks)
     brent_impact  = round((brent - 70) * 450, 0)    # ₹450/MT per ₹ 1 Brent
@@ -463,7 +464,9 @@ def _render_future_view(df: pd.DataFrame):
 
     w1, w2 = st.columns([1.6, 1])
     with w1:
-        last_official = 76_870
+        # Anchor on the single-source VG30, not a literal — the hardcoded 76_870
+        # went stale silently after every fortnightly circular edit.
+        last_official = float(_up.get("vg30") or 76_870)
         final_pred    = df.iloc[0]["Predicted (₹/MT)"]
         st.markdown(
             f"| Driver | Impact (₹/MT) |\n|--------|---------------|\n"

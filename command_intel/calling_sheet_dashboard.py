@@ -139,22 +139,60 @@ def _render_today(user, name):
     m4.metric("Conversions", summ["conversions"])
 
     rows = eng.get_rows(sid)
-    if not rows:
-        st.info("Is sheet me koi lead nahi.")
-        _delete_control(sid, user, f"today_{sid}")
-        return
-    df = pd.DataFrame([{
-        "id": r["id"], "Name": r["lead_name"], "Phone": r["phone"],
-        "Company": r["company"], "Status": r["call_status"] or "Pending",
-        "Outcome": r["outcome"] or "", "Remark": r["remark"] or "",
-        "Follow-up": r["followup_date"] or "",
-    } for r in rows])
+    _COLS = ["id", "Name", "Phone", "Company", "Status", "Outcome",
+             "Remark", "Follow-up"]
 
+    if not rows:
+        # Empty sheet still gets an editable table so the sales team can add
+        # leads / themselves directly (no upload needed). + se rows add karo.
+        st.info("Is sheet me abhi koi lead nahi. Neeche table me **＋** se naye "
+                "leads/contacts add karo (sales team khud add kar sakti hai), "
+                "ya **📤 Upload** tab se Excel/CSV import karo. Add karke "
+                "**💾 Save changes** dabao.")
+        df = pd.DataFrame(columns=_COLS)
+    else:
+        # ── Resume where you left off ────────────────────────────────────────
+        # No saved cursor needed — each row's call_status/remark persists, so the
+        # first still-"Pending" lead IS where you stopped. Streamlit can't scroll
+        # a data_editor to a row, so "resume mode" floats pending leads to the top
+        # so reopening lands on the next lead, not row 1.
+        def _is_pending(r):
+            return (r.get("call_status") or "Pending") == "Pending" \
+                and not (r.get("remark") or "").strip()
+        next_pending = next((r for r in rows if _is_pending(r)), None)
+        resume_mode = st.toggle("▶️ Resume mode — pending leads sabse upar",
+                                value=True, key=f"cs_resume_{sid}")
+        if next_pending and summ["called"]:
+            nm = (next_pending.get("lead_name") or next_pending.get("company")
+                  or next_pending.get("phone") or "?")
+            st.info(f"📍 Pichli baar **{summ['called']}/{summ['total']}** ho chuke the. "
+                    f"Agli pending lead: **{nm}**"
+                    + (" — upar dikh rahi hai 👇" if resume_mode else "."))
+        elif not next_pending and summ["total"]:
+            st.success(f"🎉 Is sheet ke saare {summ['total']} leads ho gaye!")
+
+        if resume_mode:
+            # Stable deterministic order: pending first, then by id. Identical on
+            # every rerun for the same data, so it never smears in-grid edits.
+            rows = sorted(rows, key=lambda r: (0 if _is_pending(r) else 1, r["id"]))
+
+        df = pd.DataFrame([{
+            "id": r["id"], "Name": r["lead_name"], "Phone": r["phone"],
+            "Company": r["company"], "Status": r["call_status"] or "Pending",
+            "Outcome": r["outcome"] or "", "Remark": r["remark"] or "",
+            "Follow-up": r["followup_date"] or "",
+        } for r in rows])
+
+    st.caption("✏️ Excel jaisa: cell edit karo, neeche **＋** se nayi row add karo, "
+               "row select karke 🗑️ se delete. Phir **Save changes** dabao.")
     edited = st.data_editor(
         df, key="cs_editor", use_container_width=True, hide_index=True,
-        disabled=["id", "Name", "Phone", "Company"],
+        num_rows="dynamic",  # Excel-like: add new rows / delete rows inline
         column_config={
             "id": None,  # hidden
+            "Name": st.column_config.TextColumn(),
+            "Phone": st.column_config.TextColumn(),
+            "Company": st.column_config.TextColumn(),
             "Status": st.column_config.SelectboxColumn(options=eng.CALL_STATUSES),
             "Outcome": st.column_config.SelectboxColumn(options=eng.OUTCOMES),
             "Remark": st.column_config.TextColumn(),
@@ -162,27 +200,95 @@ def _render_today(user, name):
         })
 
     if st.button("💾 Save changes", type="primary", key="cs_save_today"):
-        before = {r["id"]: r for r in rows}
-        n = 0
-        for _, er in edited.iterrows():
-            rid = int(er["id"])
-            b = before.get(rid, {})
-            new = {
-                "call_status": er["Status"], "outcome": er["Outcome"],
-                "remark": er["Remark"],
-                "followup_date": er["Follow-up"] or None,
-            }
-            if (new["call_status"] != (b.get("call_status") or "Pending")
-                    or new["outcome"] != (b.get("outcome") or "")
-                    or new["remark"] != (b.get("remark") or "")
-                    or (new["followup_date"] or "") != (b.get("followup_date") or "")):
-                eng.update_row(rid, new)
-                n += 1
-        st.success(f"{n} rows updated.")
+        updated, added, deleted = _persist_editor_changes(edited, rows, sid, user)
+        st.success(f"✅ {updated} updated · {added} added · {deleted} removed.")
         st.rerun()
 
+    if rows:
+        with st.expander("🎨 Colored view (status-wise)"):
+            st.dataframe(_color_by_status(df.drop(columns=["id"])),
+                         use_container_width=True, hide_index=True)
+
+    _export_buttons(eng.get_rows(sid), f"calling_sheet_{today}", f"today_{sid}")
     _whatsapp_panel(user, rows)
     _delete_control(sid, user, f"today_{sid}")
+
+
+def _persist_editor_changes(edited, rows, sid, user):
+    """Reconcile the edited grid against the DB rows: update changed rows, insert
+    rows the user added, delete rows they removed. Returns (updated, added, del)."""
+    before = {r["id"]: r for r in rows}
+    seen_ids, updated, added = set(), 0, 0
+    for _, er in edited.iterrows():
+        rid = er.get("id")
+        has_id = pd.notna(rid) and str(rid).strip() != ""
+        if has_id:
+            rid = int(rid)
+            seen_ids.add(rid)
+            b = before.get(rid, {})
+            new = {
+                "lead_name": (er.get("Name") or "").strip(),
+                "phone": (er.get("Phone") or "").strip(),
+                "company": (er.get("Company") or "").strip(),
+                "call_status": er.get("Status") or "Pending",
+                "outcome": er.get("Outcome") or "",
+                "remark": er.get("Remark") or "",
+                "followup_date": (er.get("Follow-up") or "") or None,
+            }
+            changed = (
+                new["lead_name"] != (b.get("lead_name") or "")
+                or new["phone"] != (b.get("phone") or "")
+                or new["company"] != (b.get("company") or "")
+                or new["call_status"] != (b.get("call_status") or "Pending")
+                or new["outcome"] != (b.get("outcome") or "")
+                or new["remark"] != (b.get("remark") or "")
+                or (new["followup_date"] or "") != (b.get("followup_date") or ""))
+            if changed:
+                eng.update_row(rid, new)
+                updated += 1
+        else:
+            name = (er.get("Name") or "").strip()
+            phone = (er.get("Phone") or "").strip()
+            if not name and not phone:
+                continue  # skip blank scratch rows
+            eng.add_rows(sid, user, [{
+                "lead_name": name, "phone": phone,
+                "company": (er.get("Company") or "").strip(),
+                "call_status": er.get("Status") or "Pending",
+                "outcome": er.get("Outcome") or "",
+                "remark": er.get("Remark") or "",
+                "followup_date": (er.get("Follow-up") or "") or None,
+            }])
+            added += 1
+    deleted = 0
+    for rid in before:
+        if rid not in seen_ids:
+            eng.delete_row(rid)
+            deleted += 1
+    return updated, added, deleted
+
+
+_STATUS_COLORS = {
+    "Connected": "#d1f7d0", "Callback": "#fff3cd", "No answer": "#ffe5d0",
+    "Busy": "#ffe5d0", "Switched off": "#f3d6d6", "Wrong number": "#f3d6d6",
+    "Pending": "#eef0f2",
+}
+_OUTCOME_COLORS = {
+    "Deal": "#bde6b8", "Interested": "#d1f7d0", "Quote requested": "#d1f7d0",
+    "Follow-up": "#fff3cd", "Not interested": "#f3d6d6",
+}
+
+
+def _color_by_status(view):
+    """Excel-style row tinting by call status / outcome (read-only snapshot)."""
+    def _row_style(row):
+        bg = (_OUTCOME_COLORS.get(row.get("Outcome"))
+              or _STATUS_COLORS.get(row.get("Status"), ""))
+        return [f"background-color: {bg}" if bg else "" for _ in row]
+    try:
+        return view.style.apply(_row_style, axis=1)
+    except Exception:
+        return view
 
 
 def _render_history(user):
@@ -210,6 +316,7 @@ def _render_history(user):
         "Status": r["call_status"], "Outcome": r["outcome"],
         "Remark": r["remark"], "Follow-up": r["followup_date"] or "",
     } for r in rows]), use_container_width=True, hide_index=True)
+    _export_buttons(rows, f"calling_sheet_{pick}", f"hist_{ids[pick]}")
     _delete_control(ids[pick], user, f"hist_{ids[pick]}")
 
 
@@ -281,47 +388,111 @@ def _whatsapp_panel(user, rows):
             st.error(f"Send fail: {res.get('error', 'unknown')}")
 
 
+def _export_buttons(rows, base_name, key):
+    """Download the sheet (with remarks/status/outcome) as Excel or CSV.
+    Exports the SAVED DB rows — save your edits first to include them."""
+    if not rows:
+        return
+    import io
+    import re
+    safe = re.sub(r"[^A-Za-z0-9_-]+", "_", base_name).strip("_") or "calling_sheet"
+    ordered = sorted(rows, key=lambda r: r["id"])
+    exp = pd.DataFrame([{
+        "Name": r["lead_name"], "Phone": r["phone"], "Company": r["company"],
+        "City": r.get("city", ""), "Status": r["call_status"] or "Pending",
+        "Outcome": r["outcome"] or "", "Remark": r["remark"] or "",
+        "Follow-up": r["followup_date"] or "",
+    } for r in ordered])
+
+    st.markdown("##### ⬇️ Export sheet")
+    st.caption("Remarks/status export se pehle **Save changes** dabao.")
+    c1, c2 = st.columns(2)
+    try:
+        buf = io.BytesIO()
+        with pd.ExcelWriter(buf, engine="openpyxl") as xw:
+            exp.to_excel(xw, index=False, sheet_name="Calling Sheet")
+        c1.download_button(
+            "Excel (.xlsx)", buf.getvalue(), file_name=f"{safe}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            key=f"cs_xlsx_{key}", use_container_width=True)
+    except Exception:
+        c1.caption("Excel export unavailable (openpyxl missing).")
+    # utf-8-sig so ₹/Hindi names open cleanly in Excel.
+    c2.download_button(
+        "CSV (.csv)", exp.to_csv(index=False).encode("utf-8-sig"),
+        file_name=f"{safe}.csv", mime="text/csv",
+        key=f"cs_csv_{key}", use_container_width=True)
+
+
 def _delete_control(sid, user, key):
     # Two-step inline confirm (no expander — an expander collapses on the
     # confirm-rerun and hides the button, which made delete awkward).
-    flag = f"cs_delask_{key}"
+    #
+    # ⚠️ The confirm flag's session key MUST differ from every widget key here.
+    # Earlier the flag was f"cs_delask_{key}" — the SAME string as the remove
+    # button's key. Streamlit owns a button's session_state slot and resets it
+    # to False on the next run, so the manually-set True was wiped on the
+    # confirm-rerun → the confirm step never appeared and nothing ever deleted.
+    flag = f"cs_delflag_{key}"
     if not st.session_state.get(flag):
-        if st.button("🗑️ Remove this sheet", key=f"cs_delask_{key}"):
+        if st.button("🗑️ Remove this sheet", key=f"cs_delbtn_{key}"):
             st.session_state[flag] = True
             st.rerun()
-    else:
-        st.warning("Ye poori sheet + saare leads permanently delete ho jaayenge. "
-                   "Wapas nahi aayega.")
-        col1, col2 = st.columns(2)
-        if col1.button("✅ Haan, delete karo", key=f"cs_delyes_{key}",
-                       type="primary"):
-            ok = eng.delete_sheet(sid, owner_username=user)
-            st.session_state.pop(flag, None)
-            if ok:
-                st.success("Sheet deleted.")
-            else:
-                st.error("Delete nahi hua — ye sheet aapki nahi hai.")
+        return
+
+    st.warning("Ye poori sheet + saare leads permanently delete ho jaayenge. "
+               "Wapas nahi aayega.")
+    col1, col2 = st.columns(2)
+    if col1.button("✅ Haan, delete karo", key=f"cs_delyes_{key}",
+                   type="primary"):
+        ok = eng.delete_sheet(sid, owner_username=user)
+        st.session_state.pop(flag, None)
+        if ok:
+            # An immediate st.rerun() would wipe a st.success() before it's seen,
+            # so stash a one-shot toast that render() shows after the rerun.
+            st.session_state["cs_deleted_toast"] = True
+            # Drop any selection still pointing at the now-deleted sheet, else the
+            # selectbox keeps a stale value that isn't in its new options list.
+            st.session_state.pop("cs_today_pick", None)
+            st.session_state.pop("cs_hist_pick", None)
             st.rerun()
-        if col2.button("Cancel", key=f"cs_delno_{key}"):
-            st.session_state.pop(flag, None)
-            st.rerun()
+        else:
+            st.error("Delete nahi hua — ye sheet aapki nahi hai (owner mismatch).")
+    if col2.button("Cancel", key=f"cs_delno_{key}"):
+        st.session_state.pop(flag, None)
+        st.rerun()
 
 
 def render():
     st.header("📞 Daily Calling Sheet")
     st.caption("Apni daily calling list upload karo, har call pe remark/status/outcome "
                "set karo. Har din ki alag sheet, poora record save rehta hai.")
+    # One-shot toast survived from a delete on the previous run (the delete reruns
+    # immediately, which would otherwise wipe the success message before it shows).
+    if st.session_state.pop("cs_deleted_toast", False):
+        st.success("🗑️ Sheet deleted.")
     user, name = _current_user()
-    tabs = ["📤 Upload", "📋 Today's Calls", "🗂️ History"]
+    tab_labels = ["📤 Upload", "📋 Today's Calls", "🗂️ History"]
     if _is_director():
-        tabs.append("👥 Team")
-    selected = st.tabs(tabs)
-    with selected[0]:
+        tab_labels.append("👥 Team")
+    # Keyed selector instead of st.tabs: this app refreshes a sliding-session
+    # token in the URL on every rerun, which makes st.tabs (whose active tab is
+    # client-side only) snap back to the first tab. A keyed selector keeps the
+    # section in session_state, so delete/save/carry-over reruns stay put and
+    # the delete-confirm shows on the tab the user is actually looking at.
+    section = "📋 Today's Calls"
+    if hasattr(st, "segmented_control"):
+        section = st.segmented_control(
+            "Section", tab_labels, default="📋 Today's Calls",
+            key="cs_tab", label_visibility="collapsed") or "📋 Today's Calls"
+    else:  # older Streamlit fallback
+        section = st.radio("Section", tab_labels, index=1, horizontal=True,
+                           key="cs_tab", label_visibility="collapsed")
+    if section == "📤 Upload":
         _render_upload(user, name)
-    with selected[1]:
-        _render_today(user, name)
-    with selected[2]:
+    elif section == "🗂️ History":
         _render_history(user)
-    if _is_director():
-        with selected[3]:
-            _render_team()
+    elif section == "👥 Team" and _is_director():
+        _render_team()
+    else:
+        _render_today(user, name)

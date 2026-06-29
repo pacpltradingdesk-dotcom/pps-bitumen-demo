@@ -62,11 +62,19 @@ def _calculate_import_cost(params):
     cha = params["cha_per_mt"]
     handling = params["handling_per_mt"]
     
-    # Customs duty on CIF
-    customs_duty = cif_inr * (params["customs_duty_pct"] / 100)
-    
+    # Landing charges (1% of CIF) and assessable value. Indian customs is levied
+    # on the ASSESSABLE VALUE (CIF + landing), not bare CIF — the old code omitted
+    # both, so this model under-levied customs and undercounted the total vs
+    # calculation_engine.calculate_international_landed_cost.
+    landing_charges_inr = cif_inr * 0.01
+    assessable_value = cif_inr + landing_charges_inr
+
+    # Customs duty on assessable value
+    customs_duty = assessable_value * (params["customs_duty_pct"] / 100)
+
     # Total before GST
-    total_before_gst = cif_inr + switch_bl_inr + port_berthing_per_mt + cha + handling + customs_duty
+    total_before_gst = (cif_inr + landing_charges_inr + switch_bl_inr
+                        + port_berthing_per_mt + cha + handling + customs_duty)
     
     # GST
     gst = total_before_gst * (params["gst_pct"] / 100)
@@ -84,6 +92,8 @@ def _calculate_import_cost(params):
         "freight_inr": round(freight_inr, 2),
         "insurance_inr": round(insurance_inr, 2),
         "cif_inr": round(cif_inr, 2),
+        "landing_charges_inr": round(landing_charges_inr, 2),
+        "assessable_value": round(assessable_value, 2),
         "switch_bl_inr": round(switch_bl_inr, 2),
         "port_berthing_per_mt": round(port_berthing_per_mt, 2),
         "cha": cha,

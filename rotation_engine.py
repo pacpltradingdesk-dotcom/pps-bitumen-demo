@@ -491,16 +491,30 @@ class FestivalBroadcastEngine:
 
             try:
                 if channel == "whatsapp":
-                    from whatsapp_engine import queue_message
-                    queue_message(to=to, template="festival_greeting_v1",
-                                  body=text, contact_name=msg.get("name", ""))
-                    stats["sent_whatsapp"] += 1
+                    # queue_message is an *instance method* — the old
+                    # `from whatsapp_engine import queue_message` raised
+                    # ImportError on the first contact, so the whole broadcast
+                    # silently failed while reporting "completed". auto_send=True
+                    # routes through the unified QR number (or queues 'pending').
+                    from whatsapp_engine import WhatsAppEngine
+                    qid = WhatsAppEngine().queue_message(
+                        to_number=to, message_type="session",
+                        session_text=text, auto_send=True)
+                    if qid and qid > 0:
+                        stats["sent_whatsapp"] += 1
+                    else:
+                        stats["failed"] += 1
                 elif channel == "email":
-                    from email_engine import queue_email
-                    queue_email(to=to,
-                                subject=f"Happy {prepared.get('festival', 'Festival')}!",
-                                body=text, email_type="festival")
-                    stats["sent_email"] += 1
+                    from email_engine import EmailEngine
+                    qid = EmailEngine().queue_email(
+                        to_email=to,
+                        subject=f"Happy {prepared.get('festival', 'Festival')}!",
+                        body_html=text, body_text=text,
+                        email_type="festival", auto_send=True)
+                    if qid and qid > 0:
+                        stats["sent_email"] += 1
+                    else:
+                        stats["failed"] += 1
                 else:
                     stats["failed"] += 1
             except Exception as e:

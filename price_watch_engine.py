@@ -288,9 +288,16 @@ class PriceWatchEngine:
                          f"({c['change_pct']:+.1f}%)\n")
 
         try:
-            from email_engine import queue_email
-            queue_email(to=email_addr, subject=subject, body=body,
-                        email_type="price_update")
+            # queue_email is an instance method; the old module-level import
+            # raised ImportError → every price-alert email silently failed.
+            # auto_send=True is required or the row stays 'draft' and never sends.
+            from email_engine import EmailEngine
+            qid = EmailEngine().queue_email(
+                to_email=email_addr, subject=subject,
+                body_html=body, body_text=body,
+                email_type="price_update", auto_send=True)
+            if not (qid and qid > 0):
+                raise RuntimeError("email queue rejected the recipient")
         except Exception as e:
             logger.error(f"Email price update to {email_addr}: {e}")
             raise
@@ -300,13 +307,16 @@ class PriceWatchEngine:
         try:
             from database import insert_price_update_log
             for c in changes:
-                insert_price_update_log(
-                    price_key=c["key"],
-                    old_value=c["old_value"],
-                    new_value=c["new_value"],
-                    change_pct=c["change_pct"],
-                    broadcast_sent=True,
-                )
+                # insert_price_update_log takes a single dict, not kwargs — the
+                # old kwarg call raised TypeError (swallowed), so the audit log
+                # was never written.
+                insert_price_update_log({
+                    "price_key": c["key"],
+                    "old_value": c["old_value"],
+                    "new_value": c["new_value"],
+                    "change_pct": c["change_pct"],
+                    "broadcast_sent": True,
+                })
         except Exception as e:
             logger.error(f"Failed to log price changes: {e}")
 

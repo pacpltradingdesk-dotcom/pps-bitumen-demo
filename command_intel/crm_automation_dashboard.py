@@ -344,8 +344,10 @@ def _render_price_tab():
         if history:
             import pandas as pd
             df = pd.DataFrame(history)
+            # price_update_log's timestamp column is created_at, not changed_at —
+            # the "if in df.columns" guard silently dropped the typo'd column.
             display_cols = [c for c in ["price_key", "old_value", "new_value",
-                                        "change_pct", "broadcast_sent", "changed_at"]
+                                        "change_pct", "broadcast_sent", "created_at"]
                             if c in df.columns]
             st.dataframe(df[display_cols], use_container_width=True, hide_index=True)
         else:

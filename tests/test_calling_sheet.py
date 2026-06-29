@@ -240,3 +240,36 @@ def test_team_summary(monkeypatch):
     assert "total" in allrows[0] and "pct_called" in allrows[0]
     only1 = eng.team_summary("rep1")
     assert len(only1) == 1 and only1[0]["owner_username"] == "rep1"
+
+
+def test_delete_row_and_keeps_total_in_sync(monkeypatch):
+    """delete_row removes one lead and decrements the sheet's total_rows."""
+    database, path = _fresh_db(monkeypatch)
+    import calling_sheet_engine as eng
+    importlib.reload(eng)
+    sid = eng.create_sheet("rep1", "Rep One", "2026-06-29", "S", "", [
+        {"lead_name": "A", "phone": "1"}, {"lead_name": "B", "phone": "2"}])
+    rows = eng.get_rows(sid)
+    assert len(rows) == 2
+    assert eng.delete_row(rows[0]["id"]) is True
+    assert len(eng.get_rows(sid)) == 1
+    assert eng.get_sheet(sid)["total_rows"] == 1
+    # deleting a non-existent row is a no-op, returns False
+    assert eng.delete_row(999999) is False
+
+
+def test_update_row_can_edit_identity_columns(monkeypatch):
+    """Excel-like editing: lead_name/phone/company are now editable, not just outcome."""
+    database, path = _fresh_db(monkeypatch)
+    import calling_sheet_engine as eng
+    importlib.reload(eng)
+    sid = eng.create_sheet("rep1", "Rep One", "2026-06-29", "S", "", [
+        {"lead_name": "Old Name", "phone": "1", "company": "OldCo"}])
+    rid = eng.get_rows(sid)[0]["id"]
+    eng.update_row(rid, {"lead_name": "New Name", "phone": "9999",
+                         "company": "NewCo", "remark": "edited"})
+    r = eng.get_rows(sid)[0]
+    assert r["lead_name"] == "New Name"
+    assert r["phone"] == "9999"
+    assert r["company"] == "NewCo"
+    assert r["remark"] == "edited"
