@@ -331,11 +331,33 @@ def connect_comtrade_hs271320() -> dict:
 # Phase 1: no key needed
 # ─────────────────────────────────────────────────────────────────────────────
 
+def upsert_period_records(existing: List[dict], records: List[dict]) -> List[dict]:
+    """Merge period-labelled rows (monthly averages) into a table by UPSERT.
+
+    A row with the same (period_label, pair) is replaced in place; new periods
+    are appended; rows without period_label (live spot ticks) pass through
+    untouched. Returns a new list — inputs are not mutated. One period must
+    never occupy more than one row, no matter how often the connector runs.
+    """
+    def _pkey(r: dict):
+        return (r.get("period_label"), r.get("pair"))
+
+    incoming = {_pkey(r): r for r in records if r.get("period_label")}
+    merged: List[dict] = []
+    for row in existing:
+        if row.get("period_label") and _pkey(row) in incoming:
+            merged.append(dict(incoming.pop(_pkey(row))))
+        else:
+            merged.append(row)
+    merged.extend(dict(r) for r in incoming.values())
+    return merged
+
+
 def connect_rbi_fx_historical() -> dict:
     """
     Fetch 12-month USD/INR daily history via Frankfurter (ECB data).
     Labels output as 'RBI Reference Rate (ECB proxy)' for transparency.
-    Appends monthly averages to tbl_fx_rates.json.
+    Upserts monthly averages into tbl_fx_rates.json (one row per month).
     Source: api.frankfurter.app/{start}..?from=USD&to=INR
     """
     connector_id = "rbi_fx_historical"
@@ -377,7 +399,16 @@ def connect_rbi_fx_historical() -> dict:
         })
 
     from api_hub_engine import TBL_FX
-    _append_tbl(TBL_FX, records, max_records=1000)
+    # UPSERT, never append: re-appending 13 monthly rows per run flooded the
+    # table with stale-month duplicates and evicted live-spot rows (audit 09-07-2026).
+    with _lock:
+        existing = _load(TBL_FX, [])
+        if not isinstance(existing, list):
+            existing = []
+        merged = upsert_period_records(existing, records)
+        if len(merged) > 1000:
+            merged = merged[-1000:]
+        _save(TBL_FX, merged)
     HubCatalog.set_status(connector_id, "Live", success=True)
     _hub_log(connector_id, "OK",
              f"RBI FX historical: {len(records)} monthly records", len(records))

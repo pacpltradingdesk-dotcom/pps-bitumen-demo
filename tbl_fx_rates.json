@@ -1,54 +1,5 @@
 [
   {
-    "date_time": "04-03-2026 20:17:58 IST",
-    "period_label": "2025-03",
-    "pair": "USD/INR",
-    "rate": 86.4815,
-    "source": "RBI Reference Rate (ECB/Frankfurter proxy) — monthly avg"
-  },
-  {
-    "date_time": "04-03-2026 20:18:35 IST",
-    "period_label": "2025-03",
-    "pair": "USD/INR",
-    "rate": 86.4815,
-    "source": "RBI Reference Rate (ECB/Frankfurter proxy) — monthly avg"
-  },
-  {
-    "date_time": "04-03-2026 20:19:02 IST",
-    "period_label": "2025-03",
-    "pair": "USD/INR",
-    "rate": 86.4815,
-    "source": "RBI Reference Rate (ECB/Frankfurter proxy) — monthly avg"
-  },
-  {
-    "date_time": "04-03-2026 20:20:22 IST",
-    "period_label": "2025-03",
-    "pair": "USD/INR",
-    "rate": 86.4815,
-    "source": "RBI Reference Rate (ECB/Frankfurter proxy) — monthly avg"
-  },
-  {
-    "date_time": "04-03-2026 20:21:14 IST",
-    "period_label": "2025-03",
-    "pair": "USD/INR",
-    "rate": 86.4815,
-    "source": "RBI Reference Rate (ECB/Frankfurter proxy) — monthly avg"
-  },
-  {
-    "date_time": "04-03-2026 20:22:58 IST",
-    "period_label": "2025-03",
-    "pair": "USD/INR",
-    "rate": 86.4815,
-    "source": "RBI Reference Rate (ECB/Frankfurter proxy) — monthly avg"
-  },
-  {
-    "date_time": "04-03-2026 20:23:06 IST",
-    "period_label": "2025-03",
-    "pair": "USD/INR",
-    "rate": 86.4815,
-    "source": "RBI Reference Rate (ECB/Frankfurter proxy) — monthly avg"
-  },
-  {
     "date_time": "04-03-2026 21:57:58 IST",
     "pair": "USD/EUR",
     "rate": 0.85844,
@@ -65,13 +16,6 @@
     "_source_type": "live_api",
     "_source_confidence": 0.96,
     "_source_provider": "Frankfurter.app (ECB data)"
-  },
-  {
-    "date_time": "05-03-2026 08:43:44 IST",
-    "period_label": "2025-03",
-    "pair": "USD/INR",
-    "rate": 86.4468,
-    "source": "RBI Reference Rate (ECB/Frankfurter proxy) — monthly avg"
   },
   {
     "date_time": "05-03-2026 08:44:07 IST",
@@ -529,5 +473,273 @@
     "_source_type": "live_api",
     "_source_confidence": 0.96,
     "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-18 15:19:25 IST",
+    "pair": "USD/EUR",
+    "rate": 0.86274,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-20 15:11:44 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87207,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-20 16:12:42 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87207,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-20 17:13:31 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87207,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-20 18:13:40 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87207,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-22 09:48:23 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87207,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-22 11:01:35 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87207,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-24 15:41:05 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87781,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-24 17:15:58 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87781,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-24 18:17:15 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87781,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-26 13:04:24 IST",
+    "pair": "USD/EUR",
+    "rate": 0.88168,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-26 14:19:19 IST",
+    "pair": "USD/EUR",
+    "rate": 0.88168,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-26 15:21:07 IST",
+    "pair": "USD/EUR",
+    "rate": 0.88168,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-26 16:21:39 IST",
+    "pair": "USD/EUR",
+    "rate": 0.88168,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-26 17:21:50 IST",
+    "pair": "USD/EUR",
+    "rate": 0.88168,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-26 18:22:04 IST",
+    "pair": "USD/EUR",
+    "rate": 0.88168,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-27 09:47:12 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87712,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-27 11:13:37 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87712,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-27 12:14:15 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87712,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-27 13:14:26 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87712,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-29 10:04:39 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87712,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-29 11:04:44 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87712,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-29 12:23:52 IST",
+    "pair": "USD/EUR",
+    "rate": 0.87712,
+    "source": "Frankfurter (ECB)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-29 12:42:56 IST",
+    "pair": "USD/INR",
+    "rate": 94.34,
+    "source": "yfinance INR=X (live spot)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-29 13:51:55 IST",
+    "pair": "USD/INR",
+    "rate": 94.38,
+    "source": "yfinance INR=X (live spot)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-29 14:52:27 IST",
+    "pair": "USD/INR",
+    "rate": 94.4625,
+    "source": "yfinance INR=X (live spot)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-29 15:52:57 IST",
+    "pair": "USD/INR",
+    "rate": 94.54,
+    "source": "yfinance INR=X (live spot)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-29 16:53:10 IST",
+    "pair": "USD/INR",
+    "rate": 94.54,
+    "source": "yfinance INR=X (live spot)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-29 17:53:22 IST",
+    "pair": "USD/INR",
+    "rate": 94.53,
+    "source": "yfinance INR=X (live spot)",
+    "_source_type": "live_api",
+    "_source_confidence": 0.96,
+    "_source_provider": "Frankfurter.app (ECB data)"
+  },
+  {
+    "date_time": "2026-06-29 18:01:53 IST",
+    "period_label": "2025-06",
+    "pair": "USD/INR",
+    "rate": 85.655,
+    "source": "RBI Reference Rate (ECB/Frankfurter proxy) — monthly avg"
   }
 ]
