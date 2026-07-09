@@ -81,19 +81,41 @@ def _location_options() -> list:
 
 
 def _drum_prefix(location: str) -> str:
-    """Map a (possibly free-typed) location to a live_prices drum key prefix.
-    Gujarat/Kandla/Mundra region → DRUM_KANDLA, everything else → DRUM_MUMBAI."""
-    loc = (location or "").lower()
-    if any(k in loc for k in ("kandla", "mundra", "gujarat", "gandhidham")):
-        return "DRUM_KANDLA"
-    return "DRUM_MUMBAI"
+    """Delegates to manual_entry_engine (kept for backwards-compat tests)."""
+    import manual_entry_engine as mee
+    return mee._drum_prefix(location)
 
 
-def _update_live_prices(location, grade, price):
-    """Update a DRUM field-quote price so it reflects everywhere (Command
-    Center ticker, Market Snapshot, Pricing Calculator, Rate Broadcast)."""
-    prefix = _drum_prefix(location)
-    return _write_override_key(f"{prefix}_{grade.upper()}", price)
+def _auto_price_for(key: str):
+    """Current auto/derived price for an override key — used for the conflict
+    badge. VG30_BASE → unified VG30; board keys → derived board price;
+    DRUM keys → current pinned drum value (None if unset)."""
+    try:
+        from market_data import get_unified_prices
+        base = float(get_unified_prices().get("vg30") or 0)
+        if not key:
+            return base or None
+        if key == "VG30_BASE":
+            return base or None
+        if key.startswith("DRUM_"):
+            if LIVE_PRICES_PATH and LIVE_PRICES_PATH.exists():
+                lp = json.loads(LIVE_PRICES_PATH.read_text(encoding="utf-8"))
+                return float(lp.get(key)) if lp.get(key) else None
+            return None
+        from price_board import build_price_board, REFINERY_ITEMS, IMPORT_ITEMS
+        board = build_price_board(base)
+        key_to_name = {it.override_key: it.name for it in REFINERY_ITEMS}
+        key_to_name.update({it.override_key: it.name for it in IMPORT_ITEMS})
+        name = key_to_name.get(key)
+        for n, _g, p in board["refinery"]:
+            if n == name:
+                return float(p)
+        for n, p in board["imports"]:
+            if n == name:
+                return float(p)
+    except Exception:
+        pass
+    return None
 
 
 def _load_crude_prices():
@@ -152,53 +174,125 @@ def render():
             loc = _custom_loc.strip() or loc_pick
             grade = c3.selectbox("Grade", ["VG30", "VG10", "PMB", "CRMB"])
 
-            c4, c5, c6 = st.columns(3)
-            price = c4.number_input("Field Price Quote (₹/MT)", min_value=10000)
-            freight = c5.number_input("Freight Deductible (₹/MT)", value=0)
-            tax = c6.number_input("Include Tax/GST (%)", value=18.0)
+            price_type = st.radio(
+                "Price Type",
+                ["Bulk (rate-card / basic)", "Drum"],
+                horizontal=True,
+                help="Bulk updates the refinery/import board price for that city; "
+                     "Drum updates the regional drum price (Mumbai / Kandla).",
+            )
 
-            st.text_area("Observations / Remarks (Important for logging)")
-            st.file_uploader("Upload Quotation / Proof (PDF/IMG)")
+            c4, c5, c6 = st.columns(3)
+            price = c4.number_input("Field Price Quote (₹/MT)", min_value=10_000,
+                                    value=None, placeholder="e.g. 77640")
+            freight = c5.number_input("Freight Deductible (₹/MT)", min_value=0, value=0)
+            tax = c6.number_input("GST (%)", value=18.0, min_value=0.0, max_value=28.0)
+            gst_inclusive = st.checkbox(
+                "Quote includes GST (strip it before storing the basic price)",
+                value=False,
+                help="Rate-card prices are BASIC (ex-GST) — leave unticked. Tick only "
+                     "when the field quote you received already includes GST.",
+            )
+
+            remarks = st.text_area("Observations / Remarks (Important for logging)")
+            proof = st.file_uploader("Upload Quotation / Proof (PDF/IMG)")
 
             c_sub, _ = st.columns([1, 4])
             if c_sub.form_submit_button("Submit CRM Override"):
-                # Update live_prices.json so price reflects everywhere
-                updated = _update_live_prices(loc, grade, price)
-                if updated:
-                    # Reload calculation engine so calculator picks up new prices
+                import manual_entry_engine as mee
+                if not price:
+                    st.error("Field Price Quote bharna zaroori hai — koi default nahi.")
+                    st.stop()
+                try:
+                    basic = mee.compute_basic_price(price, freight=freight,
+                                                    gst_pct=tax,
+                                                    gst_inclusive=gst_inclusive)
+                except ValueError as exc:
+                    st.error(f"❌ {exc}")
+                    st.stop()
+
+                ptype = "drum" if price_type.startswith("Drum") else "bulk"
+                key = mee.resolve_override_key(loc, grade, ptype)
+                auto = _auto_price_for(key)
+
+                applied = bool(key) and _write_override_key(key, basic)
+                if applied:
                     try:
                         from calculation_engine import get_engine
                         get_engine().reload_prices()
                     except Exception:
                         pass
-                    st.success(f"✅ Entry logged + Live Price updated! {grade} @ ₹{price:,}/MT ({loc}) now reflects across Command Center, Market Snapshot, Pricing Calculator, Rate Broadcast & all pages.")
+
+                proof_name = ""
+                if proof is not None:
+                    try:
+                        proof_name = mee.save_proof(proof.getvalue(), proof.name)
+                    except Exception:
+                        st.warning("Proof file save nahi hua — entry phir bhi logged hai.")
+
+                user = (st.session_state.get("_auth_display")
+                        or st.session_state.get("_auth_username") or "unknown")
+                entry = mee.build_entry(
+                    user=user, location=loc, grade=grade, price_type=ptype,
+                    quote=price, freight=freight, gst_pct=tax,
+                    gst_inclusive=gst_inclusive, basic_price=basic,
+                    applied_key=key if applied else "",
+                    auto_price=auto,
+                    target_revision=rev_date.strftime("%d-%m-%Y"),
+                    remarks=remarks, proof_file=proof_name,
+                )
+                mee.append_entry(entry)
+
+                gst_note = (f" (quote ₹{price:,.0f} − GST {tax:.0f}%"
+                            f"{f' − freight ₹{freight:,}' if freight else ''}"
+                            f" = basic ₹{basic:,})") if gst_inclusive or freight else ""
+                if applied:
+                    st.success(
+                        f"✅ Entry logged + Live Price updated: {grade} {ptype.upper()} "
+                        f"@ ₹{basic:,}/MT ({loc} → `{key}`){gst_note}. "
+                        f"Reflects on Command Center, Calculator & Rate Broadcast."
+                    )
+                elif key:
+                    st.error("Live price write nahi hua (file permission?) — entry logged hai.")
                 else:
-                    st.success("Entry securely logged to the Database and Change History.")
+                    st.info(
+                        f"📓 Entry LOGGED (₹{basic:,}/MT basic{gst_note}) — is location/grade "
+                        f"ke liye koi live board key mapped nahi hai, isliye koi live price "
+                        f"change NAHI hua. Refinery/Import rate pin karne ke liye "
+                        f"'🏭 Refinery / Import Override' tab use karo."
+                    )
+                if entry["conflict"] and auto:
+                    st.warning(f"🚩 Conflict: entered basic ₹{basic:,} vs auto ₹{auto:,.0f} "
+                               f"(>±{mee.CONFLICT_THRESHOLD_PCT:.0f}%) — audit tracker me flag hoga.")
 
         st.markdown("---")
 
         st.markdown("#### 📓 Recent Uploads / Entries by Team")
-        # Mock entries prioritizing India format
-        if pd is not None:
+        try:
+            import manual_entry_engine as mee
+            real_entries = mee.load_entries(limit=25)
+        except Exception:
+            real_entries = []
+        if not real_entries:
+            st.info("Abhi tak koi entry nahi. Upar form se pehli entry submit karo — "
+                    "har entry yahan user, price aur conflict ke saath dikhegi.")
+        elif pd is not None:
             df_entries = pd.DataFrame([
                 {
-                    "Entry IST": format_datetime_ist(datetime.datetime.now()),
-                    "Target Revision": default_rev.strftime("%d-%m-%Y"),
-                    "Location": "Mumbai",
-                    "Grade": "VG30",
-                    "Entered Price": format_inr(41250),
-                    "Conflict": "🚩 Yes (Auto was ₹ 40,500)",
-                    "User": "Salesman A"
-                },
-                {
-                    "Entry IST": format_datetime_ist(datetime.datetime.now() - datetime.timedelta(hours=24)),
-                    "Target Revision": default_rev.strftime("%d-%m-%Y"),
-                    "Location": "Gujarat",
-                    "Grade": "VG10",
-                    "Entered Price": format_inr(39800),
-                    "Conflict": "✅ No Conflict",
-                    "User": "Manager B"
+                    "Entry IST": e.get("entry_ist", ""),
+                    "Target Revision": e.get("target_revision", ""),
+                    "Location": e.get("location", ""),
+                    "Grade": e.get("grade", ""),
+                    "Type": (e.get("price_type") or "").upper(),
+                    "Quote": format_inr(e.get("quote", 0)),
+                    "Stored Basic": format_inr(e.get("basic_price", 0)),
+                    "Conflict": (f"🚩 Yes (Auto ₹ {e['auto_price']:,.0f})"
+                                 if e.get("conflict") and e.get("auto_price")
+                                 else "✅ No Conflict"),
+                    "User": e.get("user", ""),
+                    "Remarks": e.get("remarks", ""),
                 }
+                for e in real_entries
             ])
             st.dataframe(df_entries, use_container_width=True, hide_index=True)
 
