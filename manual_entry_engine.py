@@ -101,6 +101,8 @@ def resolve_override_key(location: str, grade: str,
     grade = (grade or "").upper()
     ptype = (price_type or "").strip().lower()
     if ptype == "drum":
+        if grade not in ("VG30", "VG10"):
+            return None  # only seeded drum keys exist; others surface nowhere
         return f"{_drum_prefix(location)}_{grade}"
     if ptype == "bulk":
         if grade != "VG30":
@@ -113,6 +115,34 @@ def resolve_override_key(location: str, grade: str,
             if city in loc:
                 return key
     return None
+
+
+def write_override_key(key: str, price: float,
+                       path: Optional[Path] = None) -> bool:
+    """Locked read-merge-write of one live_prices.json override key.
+
+    All override writes (Entry Form + Refinery/Import Override tab) go through
+    this single locked path so near-simultaneous submits can't lose updates.
+    """
+    lp_path = path or (ROOT / "live_prices.json")
+    if not key:
+        return False
+    try:
+        with _lock:
+            lp: dict = {}
+            if lp_path.exists():
+                try:
+                    loaded = json.loads(lp_path.read_text(encoding="utf-8"))
+                    if isinstance(loaded, dict):
+                        lp = loaded
+                except Exception:
+                    lp = {}
+            lp[key] = int(price)
+            lp_path.write_text(json.dumps(lp, indent=4, ensure_ascii=False),
+                               encoding="utf-8")
+        return True
+    except Exception:
+        return False
 
 
 # ── conflict check ───────────────────────────────────────────────────────────

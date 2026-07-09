@@ -66,6 +66,34 @@ def test_bulk_unknown_city_or_grade_is_log_only():
     assert mee.resolve_override_key("Mumbai", "PMB", "bulk") is None
 
 
+def test_drum_non_seeded_grades_are_log_only():
+    # price_master seeds only DRUM_{MUMBAI,KANDLA}_{VG30,VG10} — a PMB/CRMB
+    # drum key would be written but surface nowhere (review finding M3).
+    assert mee.resolve_override_key("Mumbai", "PMB", "drum") is None
+    assert mee.resolve_override_key("Gujarat", "CRMB", "drum") is None
+    assert mee.resolve_override_key("Mumbai", "VG10", "drum") == "DRUM_MUMBAI_VG10"
+
+
+def test_write_override_key_merges_and_persists(tmp_path):
+    lp = tmp_path / "live_prices.json"
+    lp.write_text('{"VG30_BASE": 77640}', encoding="utf-8")
+
+    assert mee.write_override_key("BULK_KANDLA_IMPORT", 79000, path=lp) is True
+
+    import json
+    data = json.loads(lp.read_text(encoding="utf-8"))
+    assert data == {"VG30_BASE": 77640, "BULK_KANDLA_IMPORT": 79000}
+
+
+def test_write_override_key_survives_corrupt_file(tmp_path):
+    lp = tmp_path / "live_prices.json"
+    lp.write_text("[not, a, dict", encoding="utf-8")
+
+    assert mee.write_override_key("VG30_BASE", 77640, path=lp) is True
+    import json
+    assert json.loads(lp.read_text(encoding="utf-8")) == {"VG30_BASE": 77640}
+
+
 # ── real entry log ───────────────────────────────────────────────────────────
 
 def test_entries_roundtrip_newest_first(tmp_path):

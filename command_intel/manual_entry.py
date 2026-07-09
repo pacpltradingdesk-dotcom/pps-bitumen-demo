@@ -41,20 +41,12 @@ LIVE_PRICES_PATH = ROOT / "live_prices.json" if ROOT else None
 
 
 def _write_override_key(key, price):
-    """Write a single live_prices.json override key (read-merge-write)."""
-    if not LIVE_PRICES_PATH or not json or not key:
+    """Write a single live_prices.json override key via the engine's locked
+    read-merge-write, so near-simultaneous submits can't lose updates."""
+    if not LIVE_PRICES_PATH or not key:
         return False
-    try:
-        lp = {}
-        if LIVE_PRICES_PATH.exists():
-            with open(LIVE_PRICES_PATH, "r", encoding="utf-8") as f:
-                lp = json.load(f)
-        lp[key] = int(price)
-        with open(LIVE_PRICES_PATH, "w", encoding="utf-8") as f:
-            json.dump(lp, f, indent=4, ensure_ascii=False)
-        return True
-    except Exception:
-        return False
+    import manual_entry_engine as mee
+    return mee.write_override_key(key, price, path=LIVE_PRICES_PATH)
 
 
 def _location_options() -> list:
@@ -243,9 +235,13 @@ def render():
                 )
                 mee.append_entry(entry)
 
-                gst_note = (f" (quote ₹{price:,.0f} − GST {tax:.0f}%"
-                            f"{f' − freight ₹{freight:,}' if freight else ''}"
-                            f" = basic ₹{basic:,})") if gst_inclusive or freight else ""
+                _deductions = []
+                if gst_inclusive:
+                    _deductions.append(f"− GST {tax:.0f}%")
+                if freight:
+                    _deductions.append(f"− freight ₹{freight:,}")
+                gst_note = (f" (quote ₹{price:,.0f} {' '.join(_deductions)}"
+                            f" = basic ₹{basic:,})") if _deductions else ""
                 if applied:
                     st.success(
                         f"✅ Entry logged + Live Price updated: {grade} {ptype.upper()} "
