@@ -290,6 +290,30 @@ if _qm:
         st.session_state["selected_page"] = MODULE_NAV[_mk]["tabs"][0]["page"]
         st.rerun()
 
+# URL query-param PAGE deep-link: /?_p=Pricing Calculator jumps straight to
+# that page (emoji optional, case-insensitive). Used by the automated
+# full-dashboard sweep (scripts/one_shot/fallback_sweep.py) and handy for
+# sharing direct links to any of the 80+ pages.
+_qp = st.query_params.get("_p")
+if _qp:
+    try:
+        from nav_config import all_pages as _all_pages, get_module_for_page as _gmfp
+        _q = str(_qp).strip().lower()
+        _target = next((p for p in _all_pages() if _q == p.lower()), None) or \
+                  next((p for p in _all_pages() if _q in p.lower()), None)
+        if _target:
+            try:
+                del st.query_params["_p"]
+            except Exception:
+                pass
+            _mod = _gmfp(_target)
+            if _mod:
+                st.session_state["_active_module"] = _mod
+            st.session_state["selected_page"] = _target
+            st.rerun()
+    except Exception:
+        pass
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # COMMAND CENTER FAST PATH — render clean, skip all nav chrome
@@ -566,8 +590,8 @@ def _page_reports():
 
             elif "Financial Summary" in report_type:
                 try:
-                    from database import get_deals
-                    deals = get_deals(limit=500)
+                    from database import get_all_deals
+                    deals = get_all_deals()[:500]
                     if deals:
                         df = pd.DataFrame(deals)
                         csv = df.to_csv(index=False)
