@@ -195,8 +195,10 @@ def _alerts_count() -> int | None:
             return None
 
     sre = _load("sre_alerts.json")
-    market = _load("market_alerts.json")
-    return _count_active_alerts(sre, market, datetime.datetime.now())
+    # Market alerts intentionally excluded: the Command Center's OPEN ALERTS
+    # metric counts open SRE alerts only, and the ribbon must show the SAME
+    # number (85 vs 32 on one screen was still two truths).
+    return _count_active_alerts(sre, None, datetime.datetime.now())
 
 
 def _fmt_int(n: int | None) -> str:
