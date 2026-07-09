@@ -189,6 +189,23 @@ def _volatility_label(values: list[float]) -> str:
     return "HIGH"
 
 
+def _news_direction(sentiment: str, supply_risk: str) -> str:
+    """Price-direction label for the news signal from its own fields.
+
+    HIGH supply risk (refinery shutdown / geopolitics / port disruption)
+    constrains supply -> upward price pressure and dominates. Otherwise the
+    aggregate headline sentiment sets the direction. Exposed as the signal's
+    `direction` key so _direction_of()/signal_score() stop reading it as a
+    permanent 0.0/STABLE (news is a 15%-weighted composite input)."""
+    if supply_risk == "HIGH":
+        return "UP"
+    if sentiment == "POSITIVE":
+        return "UP"
+    if sentiment == "NEGATIVE":
+        return "DOWN"
+    return "STABLE"
+
+
 def _direction_of(sig: dict) -> float:
     """-1/0/+1 price-direction of one sub-signal, from its OWN semantic field
     (currency uses `pressure`, weather `road_condition`, govt `demand_trend`…).
@@ -549,6 +566,7 @@ class MarketIntelligenceEngine:
                 "signal_id": "news",
                 "signal_name": "News & Event Analysis",
                 "supply_risk": supply_risk,
+                "direction": _news_direction(sentiment, supply_risk),
                 "events": events[:10],
                 "sentiment": sentiment,
                 "avg_sentiment_score": round(avg_sent, 3),

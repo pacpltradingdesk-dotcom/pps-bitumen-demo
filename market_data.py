@@ -144,6 +144,7 @@ def get_unified_prices() -> dict:
     try:
         hub = json.loads(_HUB_CACHE_PATH.read_text(encoding="utf-8"))
         crude_rows = hub.get("eia_crude", {}).get("data", [])
+        brent_from_hub = wti_from_hub = usd_from_hub = False
         if isinstance(crude_rows, list):
             for rec in crude_rows:
                 if not isinstance(rec, dict):
@@ -157,8 +158,10 @@ def get_unified_prices() -> dict:
                 if "brent" in b and out["brent"] is None:
                     out["brent"] = float(p)
                     out["timestamp"] = rec.get("date_time", "")
+                    brent_from_hub = True
                 elif "wti" in b and out["wti"] is None:
                     out["wti"] = float(p)
+                    wti_from_hub = True
         fx_rows = hub.get("frankfurter_fx", hub.get("fx", {})).get("data", [])
         if isinstance(fx_rows, list):
             for rec in fx_rows:
@@ -168,6 +171,19 @@ def get_unified_prices() -> dict:
                     continue  # skip monthly-avg proxy; live spot only
                 if "INR" in rec.get("pair", "").upper() and out["usdinr"] is None:
                     out["usdinr"] = float(rec.get("rate", 0) or 0) or None
+                    usd_from_hub = out["usdinr"] is not None
+        # Recompute change % from the hub series for any benchmark whose price
+        # came from hub_cache — otherwise the pulse bar shows a live hub price
+        # with a frozen +0.00% (section-0 default that was never overwritten).
+        if brent_from_hub and isinstance(crude_rows, list):
+            out["brent_chg_pct"] = _series_change_pct(
+                crude_rows, lambda r: "brent" in str(r.get("benchmark", "")).lower())
+        if wti_from_hub and isinstance(crude_rows, list):
+            out["wti_chg_pct"] = _series_change_pct(
+                crude_rows, lambda r: "wti" in str(r.get("benchmark", "")).lower())
+        if usd_from_hub and isinstance(fx_rows, list):
+            out["usdinr_chg_pct"] = _series_change_pct(
+                fx_rows, lambda r: "INR" in str(r.get("pair", "")).upper(), "rate")
         if out["brent"] or out["wti"] or out["usdinr"]:
             out["source"] = "hub_cache"
     except Exception:

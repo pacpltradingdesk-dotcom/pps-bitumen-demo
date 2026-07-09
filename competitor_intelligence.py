@@ -626,6 +626,7 @@ def _tab_market_data():
     # Our live values — from the single source of truth so the "OUR Live" cards
     # agree with Command Center; api_manager only as a fallback.
     try:
+        from market_data import get_unified_prices
         _u = get_unified_prices()
         live_brent = _u.get("brent")
         live_wti   = _u.get("wti")
@@ -713,6 +714,7 @@ def _tab_intl_bitumen():
     st.caption("Approximate formula: FOB $/MT × USD/INR × 1.025 (freight+ins) × 1.075 (custom duty) × 1.18 (GST)")
 
     try:
+        from market_data import get_unified_prices
         live_usd = get_unified_prices().get("usdinr") or 86.8
     except Exception:
         live_usd = get_usdinr() or 86.8

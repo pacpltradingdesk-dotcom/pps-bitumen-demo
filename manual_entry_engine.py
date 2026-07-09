@@ -45,6 +45,8 @@ def compute_basic_price(quote: float, freight: float, gst_pct: float,
     """
     if quote is None or quote <= 0:
         raise ValueError("quote must be a positive number")
+    if gst_inclusive and (1 + gst_pct / 100.0) <= 0:
+        raise ValueError("gst_pct must be greater than -100")
     ex_gst = quote / (1 + gst_pct / 100.0) if gst_inclusive else float(quote)
     basic = ex_gst - (freight or 0)
     if basic <= 0:

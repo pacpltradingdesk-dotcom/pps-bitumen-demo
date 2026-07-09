@@ -1857,26 +1857,25 @@ def connect_nhai_tenders() -> dict:
     """Fetch NHAI highway construction tenders."""
     connector_id = "nhai_tenders"
     try:
-        # Use infra_demand_engine for NHAI/GDELT data
+        # Real source: infra_demand_engine's GDELT news DB. (The old code
+        # imported get_nhai_tender_summary / get_infra_demand_signal —
+        # functions that never existed — so this connector always served the
+        # static estimate; phantom-import sweep 09-07-2026.)
         try:
-            from infra_demand_engine import get_nhai_tender_summary
-            summary = get_nhai_tender_summary()
-            if summary:
+            from infra_demand_engine import get_news_stats
+            stats = get_news_stats()
+            if stats is not None and "tender_signals" in stats:
+                summary = {
+                    "total_tenders": stats["tender_signals"],
+                    "articles": stats.get("total_articles", 0),
+                    "states_covered": stats.get("states_covered", 0),
+                    "last_fetch": stats.get("last_fetch", ""),
+                    "source": "infra_demand_engine (GDELT live)",
+                }
                 HubCache.set(connector_id, summary)
                 HubCatalog.set_status(connector_id, "Live", success=True)
                 return {"ok": True, "connector_id": connector_id,
-                        "records": summary.get("total_tenders", 0)}
-        except (ImportError, AttributeError):
-            pass
-
-        # Fallback: use existing infra demand data
-        try:
-            from infra_demand_engine import get_infra_demand_signal
-            signal = get_infra_demand_signal()
-            if signal:
-                HubCache.set(connector_id, {"signal": signal, "source": "infra_demand_engine"})
-                HubCatalog.set_status(connector_id, "Live", success=True)
-                return {"ok": True, "connector_id": connector_id, "records": 1}
+                        "records": summary["total_tenders"]}
         except Exception:
             pass
 

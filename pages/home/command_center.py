@@ -6,6 +6,7 @@ No click buttons — everything visible directly.
 """
 import streamlit as st
 import datetime
+import html as html_mod
 import json
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -214,8 +215,10 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
                         _needed_fix = True
             if _needed_fix:
                 import json as _json_fix
-                from pathlib import Path as _Path_fix
-                _p = _Path_fix("tbl_news_feed.json")
+                # Write against ROOT, not the process CWD — under systemd/supervisor
+                # the CWD isn't the project root, so a bare relative path silently
+                # never persisted the migration (and re-ran every session).
+                _p = ROOT / "tbl_news_feed.json"
                 if _p.exists():
                     _p.write_text(
                         _json_fix.dumps(news_data, indent=2, ensure_ascii=False),
@@ -347,10 +350,11 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
         from news_engine import get_articles
         intl_arts = get_articles(region="International", max_age_hours=72, impact_min=0)
         if intl_arts:
-            intl_headlines = [a.get("headline", "")[:120] for a in intl_arts[:15] if a.get("headline")]
+            # escape: headlines are untrusted feed text going straight into ticker HTML
+            intl_headlines = [html_mod.escape(a.get("headline", "")[:120]) for a in intl_arts[:15] if a.get("headline")]
         dom_arts = get_articles(region="Domestic", max_age_hours=72, impact_min=0)
         if dom_arts:
-            dom_headlines = [a.get("headline", "")[:120] for a in dom_arts[:15] if a.get("headline")]
+            dom_headlines = [html_mod.escape(a.get("headline", "")[:120]) for a in dom_arts[:15] if a.get("headline")]
     except Exception:
         pass
     if not intl_headlines:
@@ -734,7 +738,28 @@ document.getElementById('btnR').onclick=function(e){{e.stopPropagation();if(froz
             img = article.get("image_url", article.get("image", article.get("urlToImage", ""))) or ""
             articles_js.append({"t": title, "s": source, "d": str(date) if date else "", "sum": summary, "u": url, "sc": sc, "sl": sl, "img": img})
 
-        articles_json_str = json_mod.dumps(articles_js, ensure_ascii=False).replace("'", "\\'")
+        # SECURITY: article fields come from untrusted external news feeds and are
+        # injected via innerHTML into window.parent.document (the real top-level
+        # page). Sanitize every field before it reaches the JS payload:
+        #  - text  -> html.escape so markup renders as text, not HTML/JS
+        #  - url    -> allow only http(s), escape quotes (blocks javascript: + attr breakout)
+        # The cards_html below stays on RAW articles_js because it escapes itself.
+        def _san_text(v):
+            return html_mod.escape(str(v or ""))
+
+        def _san_url(v):
+            v = str(v or "").strip()
+            return html_mod.escape(v, quote=True) if v[:8].lower().startswith(("http://", "https:/")) else ""
+
+        articles_js_safe = [{
+            "t": _san_text(a["t"]), "s": _san_text(a["s"]), "d": _san_text(a["d"]),
+            "sum": _san_text(a["sum"]), "u": _san_url(a["u"]),
+            "sc": a["sc"], "sl": _san_text(a["sl"]), "img": _san_url(a["img"]),
+        } for a in articles_js]
+        # `</` -> `<\/` stops a headline containing "</script>" from breaking out
+        # of the <script> block that embeds this JSON.
+        articles_json_str = (json_mod.dumps(articles_js_safe, ensure_ascii=False)
+                             .replace("</", "<\\/").replace("'", "\\'"))
 
         # Build card HTML
         cards_html = ""
@@ -940,7 +965,8 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
 
     # ═══ TICKER 6: TENDERS (before alerts) ═══
     if tender_headlines:
-        tnd_text = "  &bull;  ".join(tender_headlines)
+        # escape: tender headlines are untrusted feed text going into ticker HTML
+        tnd_text = "  &bull;  ".join(html_mod.escape(str(h)) for h in tender_headlines)
         _render_ticker("TENDERS", tnd_text,
                        bg="#7F1D1D", label_bg="#EF4444", text_color="#FECACA", speed=60)
 

@@ -560,7 +560,9 @@ def _save_json(path: Path, data: list, max_items: int = 5000):
 def load_articles() -> list[dict]:
     articles = _load_json(ARTICLES_FILE, [])
     if not articles:
-        return list(DEMO_ARTICLES)   # Return demo copy if empty
+        # Deep-enough copy: list(DEMO_ARTICLES) shares the inner dicts, so
+        # mark_article() would mutate the module constant for the whole process.
+        return [dict(a) for a in DEMO_ARTICLES]
     return articles
 
 def save_articles(articles: list[dict]):

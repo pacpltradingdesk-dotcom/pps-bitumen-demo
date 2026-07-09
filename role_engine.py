@@ -337,7 +337,8 @@ def login(username: str, pin: str) -> bool:
         import streamlit as st
         from database import get_user_by_username, update_user
         user = get_user_by_username(username)
-        if user and user.get("is_active") and user.get("pin_hash") == hash_pin(pin):
+        if user and user.get("is_active") and hmac.compare_digest(
+                str(user.get("pin_hash") or ""), hash_pin(pin)):
             # Normalize legacy admin role
             role = user.get("role", "viewer")
             if role == "admin":
