@@ -217,6 +217,42 @@ def load_entries(path: Path = ENTRIES_PATH, limit: int = 50) -> list:
     return []
 
 
+def field_price_signal(grade: str = "VG30", price_type: str = "bulk",
+                       max_age_days: int = 14,
+                       path: Path = ENTRIES_PATH,
+                       now: Optional[datetime.datetime] = None) -> dict:
+    """Aggregate recent field entries into a market signal for the predictor.
+
+    Returns {"count": int, "avg_basic": float|None, "latest_ist": str}.
+    Only entries of the given grade/price_type within max_age_days count —
+    this is the desk's ground truth that the Brent/FX model can't see.
+    """
+    now = now or datetime.datetime.now(_IST).replace(tzinfo=None)
+    prices: list[float] = []
+    latest = ""
+    for e in load_entries(path=path, limit=200):
+        if (e.get("grade") or "").upper() != grade.upper():
+            continue
+        if (e.get("price_type") or "").lower() != price_type.lower():
+            continue
+        try:
+            ts = datetime.datetime.strptime(e.get("entry_ist", ""),
+                                            "%d-%m-%Y %H:%M IST")
+        except ValueError:
+            continue
+        if (now - ts).days > max_age_days:
+            continue
+        basic = e.get("basic_price")
+        if basic:
+            prices.append(float(basic))
+            latest = latest or e.get("entry_ist", "")
+    if not prices:
+        return {"count": 0, "avg_basic": None, "latest_ist": ""}
+    return {"count": len(prices),
+            "avg_basic": round(sum(prices) / len(prices)),
+            "latest_ist": latest}
+
+
 def save_proof(data: bytes, original_name: str,
                directory: Path = PROOF_DIR) -> str:
     """Persist an uploaded quotation proof; returns the stored filename."""

@@ -202,6 +202,35 @@ def _fail_reason(error: float, error_pct: float) -> str:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# FIELD-INTEL BLEND + PENDING-ROW HELPERS (pure — tests/test_prediction_field_blend.py)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def blend_field_signal(model_price: float, field_avg, count: int):
+    """Blend the desk's field-entry average into the model prediction.
+
+    The Brent/FX model can't see rate cards the sales team is holding —
+    each recent field entry pulls the next-revision figure 15% toward the
+    field average, capped at 50% so the model always keeps half the vote.
+    Returns (blended_price, weight_used).
+    """
+    if not field_avg or not count or count <= 0:
+        return float(model_price), 0.0
+    weight = min(0.5, 0.15 * count)
+    return round(model_price * (1 - weight) + float(field_avg) * weight), weight
+
+
+def next_pending_row(df: pd.DataFrame):
+    """First PENDING revision — the number every 'next prediction' surface
+    must anchor on. df.iloc[0] was the already-Published previous revision,
+    which made the waterfall and the glance box disagree on the same page."""
+    if "Status" in df.columns:
+        pending = df[df["Status"] == "Pending"]
+        if not pending.empty:
+            return pending.iloc[0]
+    return df.iloc[0]
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # MODE 1 — FUTURE FORECAST DATA
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -462,12 +491,29 @@ def _render_future_view(df: pd.DataFrame):
     fo_impact     = round(-80.0, 0)                  # FO crack spread offset
     freight_impact = round(max(0, (brent - 80) * 5), 0)  # freight rises with crude
 
+    # Field intel from the desk's manual entries (last 14 days, bulk VG30)
+    try:
+        from manual_entry_engine import field_price_signal
+        _fs = field_price_signal()
+    except Exception:
+        _fs = {"count": 0, "avg_basic": None, "latest_ist": ""}
+
     w1, w2 = st.columns([1.6, 1])
     with w1:
         # Anchor on the single-source VG30, not a literal — the hardcoded 76_870
         # went stale silently after every fortnightly circular edit.
         last_official = float(_up.get("vg30") or 76_870)
-        final_pred    = df.iloc[0]["Predicted (₹/MT)"]
+        # Next PENDING revision — df.iloc[0] was the already-Published row,
+        # which contradicted "Next Revision at a Glance" on the same page.
+        _next_row  = next_pending_row(df)
+        model_pred = _next_row["Predicted (₹/MT)"]
+        final_pred, _fw = blend_field_signal(model_pred, _fs["avg_basic"], _fs["count"])
+        field_line = ""
+        if _fw > 0:
+            field_delta = final_pred - model_pred
+            field_line = (f"| 👥 Field Intel ({_fs['count']} entries, "
+                          f"avg {format_inr(_fs['avg_basic'])}) | "
+                          f"{'+' if field_delta >= 0 else ''}{format_inr(field_delta, False)} |\n")
         st.markdown(
             f"| Driver | Impact (₹/MT) |\n|--------|---------------|\n"
             f"| Last Official Price | {format_inr(last_official)} |\n"
@@ -475,11 +521,19 @@ def _render_future_view(df: pd.DataFrame):
             f"| 💵 USD/INR ({usdinr:.2f}) | +{format_inr(fx_impact, False)} |\n"
             f"| 🔥 FO Spread | {format_inr(fo_impact, False)} |\n"
             f"| 🚢 Freight Proxy | {format_inr(freight_impact, False)} |\n"
-            f"| **=> Next Predicted** | **{format_inr(final_pred)}** |"
+            + field_line +
+            f"| **=> Next Predicted ({_next_row['Revision Date']})** | **{format_inr(final_pred)}** |"
         )
     with w2:
         brent_dir = "rising" if brent_impact > 0 else "falling"
         fx_dir    = "depreciating" if fx_impact > 0 else "strengthening"
+        _field_note = ""
+        if _fw > 0:
+            _field_note = (
+                f"\n\n👥 **Field intel:** {_fs['count']} desk entries "
+                f"(avg {format_inr(_fs['avg_basic'])}) blended at "
+                f"{_fw * 100:.0f}% weight — ground truth the macro model can't see."
+            )
         st.info(
             f"**🔍 Model Rationale:**\n\n"
             f"Brent crude at **${brent:.2f}/bbl** ({brent_dir}), adding "
@@ -489,6 +543,7 @@ def _render_future_view(df: pd.DataFrame):
             f"**{format_inr(abs(fx_impact), False)} /MT** to landed cost.\n\n"
             f"Furnace oil parity offers minor offset. "
             f"Statistical lag model confirms upcoming cycle impact."
+            + _field_note
         )
 
     st.markdown("---")
@@ -878,9 +933,19 @@ def render():
     # ── Quick summary — always visible ────────────────────────────────────────
     if not next_revs.empty:
         nr = next_revs.iloc[0]
-        pred_price = nr["Predicted (₹/MT)"]
-        low_price = nr["Low Range"]
-        high_price = nr["High Range"]
+        model_price = nr["Predicted (₹/MT)"]
+        # Blend the desk's recent field entries — the macro model can't see
+        # the rate cards the sales team is holding (audit 09-07-2026).
+        try:
+            from manual_entry_engine import field_price_signal
+            _sig = field_price_signal()
+        except Exception:
+            _sig = {"count": 0, "avg_basic": None, "latest_ist": ""}
+        pred_price, _field_w = blend_field_signal(model_price,
+                                                  _sig["avg_basic"], _sig["count"])
+        _shift = pred_price - model_price
+        low_price = nr["Low Range"] + _shift
+        high_price = nr["High Range"] + _shift
         conf = nr["Confidence %"]
         # Anchor to the live VG30, not a literal — else this banner contradicts the
         # waterfall below (which already uses unified) after a circular updates VG30.
@@ -917,6 +982,13 @@ def render():
                   delta=f"{format_inr(high_price - last_price, False)}")
         s5.metric("Direction", direction,
                   delta=f"{conf}% confident")
+        if _field_w > 0:
+            st.caption(
+                f"👥 Field intel blended: {_sig['count']} desk "
+                f"{'entry' if _sig['count'] == 1 else 'entries'} "
+                f"(avg {format_inr(_sig['avg_basic'])}) at {_field_w * 100:.0f}% weight "
+                f"— macro model alone said {format_inr(model_price)}."
+            )
         st.markdown("---")
 
     # ── Mode toggle ───────────────────────────────────────────────────────────

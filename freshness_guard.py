@@ -170,7 +170,12 @@ PAGE_CACHES: dict[str, list[Path]] = {
     "live_market":       [MARKET_CACHE],
     "opportunities":     [ROOT / "opportunities.json"],
     "pricing_calculator":[MARKET_CACHE],
-    "price_prediction":  [MARKET_CACHE, ROOT / "ai_learned_weights.json"],
+    # Watch what the page actually renders from: unified market cache + the
+    # ML forecast's inputs. ai_learned_weights.json was watched here before,
+    # but the page never reads it and the learning engine writes it rarely —
+    # that produced a permanent bogus "Data stale · 31610 min" red badge.
+    "price_prediction":  [MARKET_CACHE, ROOT / "tbl_crude_prices.json",
+                          ROOT / "tbl_fx_rates.json"],
     "crm_tasks":         [ROOT / "crm_tasks.json", ROOT / "crm_activity.json"],
     "negotiation":       [],                               # DB-backed only
     "daily_log":         [ROOT / "daily_log.json"],
