@@ -250,37 +250,34 @@ def render_sidebar_features(module: str) -> str:
     return current_page
 
 
+def _market_ticker_items(unified: dict) -> list:
+    """Build sidebar LIVE MARKET rows from the unified price snapshot.
+
+    Every value comes from market_data.get_unified_prices() — the sidebar
+    must never read live_prices.json keys directly (a raw drum-key read once
+    showed ₹66,200 here while every other surface showed ₹77,640).
+    Guarded by tests/test_sidebar_ticker.py.
+    """
+    items = []
+    if unified.get("brent"):
+        items.append(("Brent", f"${round(unified['brent'], 2)}", "#111827"))
+    if unified.get("wti"):
+        items.append(("WTI", f"${round(unified['wti'], 2)}", "#111827"))
+    if unified.get("usdinr"):
+        items.append(("USD/INR", str(round(unified["usdinr"], 2)), "#059669"))  # Emerald 600
+    if unified.get("vg30"):
+        items.append(("VG30", f"₹{int(round(unified['vg30'])):,}", "var(--text-blue)"))
+    return items
+
+
 def _render_sticky_notes():
     """Render market ticker + news cards in sidebar using minimalist light aesthetic."""
 
-    # ── MARKET TICKER ──────────────────────────────────────────────────
+    # ── MARKET TICKER ──────────────────
     market_items = []
     try:
-        hub_path = _ROOT / "hub_cache.json"
-        if hub_path.exists():
-            with open(hub_path, "r", encoding="utf-8") as f:
-                hub = json.load(f)
-            from market_data import get_unified_prices as _gup
-            _u = _gup()
-            _crude = []
-            if _u.get("brent"): _crude.append({"benchmark": "Brent", "price": round(_u["brent"], 2)})
-            if _u.get("wti"): _crude.append({"benchmark": "WTI", "price": round(_u["wti"], 2)})
-            for c in _crude:
-                if isinstance(c, dict) and c.get("benchmark") and c.get("price"):
-                    market_items.append((c["benchmark"], f"${c['price']}", "#111827")) 
-            for r in ([{"pair": "USD/INR", "rate": round(_u["usdinr"], 2)}] if _u.get("usdinr") else []):
-                if isinstance(r, dict) and "INR" in r.get("pair", "").upper():
-                    market_items.append(("USD/INR", str(r.get("rate", "—")), "#059669")) # Emerald 600
-    except Exception:
-        pass
-    try:
-        lp_path = _ROOT / "live_prices.json"
-        if lp_path.exists():
-            with open(lp_path, "r", encoding="utf-8") as f:
-                lp = json.load(f)
-            vg30 = lp.get("DRUM_KANDLA_VG30", 0)
-            if vg30:
-                market_items.append(("VG30", f"\u20b9{vg30:,}", "var(--text-blue)"))
+        from market_data import get_unified_prices as _gup
+        market_items = _market_ticker_items(_gup())
     except Exception:
         pass
 
