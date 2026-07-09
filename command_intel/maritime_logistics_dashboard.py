@@ -146,7 +146,11 @@ letter-spacing:1px; text-transform:uppercase; margin-bottom:8px;">
             port_vessels = [v for v in vessels if v["destination_port"] == port["port"]]
             containers = sum(1 for v in port_vessels if v["cargo_type"] == "container")
             bulk = sum(1 for v in port_vessels if v["cargo_type"] == "bulk")
-            next_eta = min((v["eta_hours"] for v in port_vessels), default=0)
+            # Live AIS vessels can carry eta_hours=None — raw min() over
+            # Nones crashed the page ('<' not supported; 09-07-2026).
+            _known = [v.get("eta_hours") for v in port_vessels
+                      if v.get("eta_hours") is not None]
+            next_eta = min(_known, default=0)
 
             # Congestion color
             score = port["score"]

@@ -1307,7 +1307,11 @@ def generate_daily_summary(intel_data: dict | None = None) -> dict:
             port_vessels = [v for v in vessels if v.get("destination_port") == p["port"]]
             container_count = sum(1 for v in port_vessels if v["cargo_type"] == "container")
             bulk_count = sum(1 for v in port_vessels if v["cargo_type"] == "bulk")
-            next_eta = min((v["eta_hours"] for v in port_vessels), default=0)
+            # Live AIS vessels can carry eta_hours=None (anchored / no SOG) —
+            # raw min() over Nones crashed the whole page (09-07-2026).
+            _known_etas = [v.get("eta_hours") for v in port_vessels
+                           if v.get("eta_hours") is not None]
+            next_eta = min(_known_etas, default=0)
 
             priority_ports[p["port"]] = {
                 "congestion_score": p["score"],
@@ -1333,7 +1337,9 @@ def generate_daily_summary(intel_data: dict | None = None) -> dict:
                 "cargo_mt": v.get("cargo_mt", 0),
                 "grade": v.get("product_grade", ""),
             })
-    container_etas.sort(key=lambda x: x["eta_hours"])
+    # None-safe: unknown-ETA vessels sort last instead of crashing the sort.
+    container_etas.sort(key=lambda x: x["eta_hours"]
+                        if x.get("eta_hours") is not None else 9e9)
 
     # 3. Overall Delay Risk Score
     delayed_count = sum(1 for v in vessels if v["status"] == "delayed")
