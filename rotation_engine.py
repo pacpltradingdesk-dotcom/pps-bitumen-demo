@@ -355,6 +355,25 @@ class ContactRotationEngine:
 # ══════════════════════════════════════════════════════════════════════════════
 
 
+def upcoming_from_calendar(festivals, today: "datetime.date",
+                           days_ahead: int = 7) -> list[dict]:
+    """Pure: filter (month, day, name, duration) festival tuples to those
+    falling within days_ahead of today (handles year wrap via next-year check)."""
+    out = []
+    for month, day, name, duration in festivals or []:
+        for year in (today.year, today.year + 1):
+            try:
+                fdate = datetime.date(year, month, day)
+            except ValueError:
+                continue
+            delta = (fdate - today).days
+            if 0 <= delta <= days_ahead:
+                out.append({"name": name, "date": fdate.isoformat(),
+                            "duration_days": duration, "days_away": delta})
+                break
+    return sorted(out, key=lambda f: f["date"])
+
+
 class FestivalBroadcastEngine:
     """
     Detects upcoming festivals from sales_calendar.py and executes
@@ -372,39 +391,18 @@ class FestivalBroadcastEngine:
             return {}
 
     def get_upcoming_festivals(self, days_ahead: int = 7) -> list[dict]:
-        """Get festivals coming up within days_ahead days."""
+        """Festivals coming up within days_ahead days, from sales_calendar's
+        MAJOR_FESTIVALS_2026 data. (The old code imported get_festivals /
+        get_upcoming_festivals — functions that never existed — so festival
+        greetings silently returned [] forever; phantom-import sweep 09-07-2026.)
+        """
         try:
-            from sales_calendar import get_festivals, get_upcoming_festivals
+            from sales_calendar import MAJOR_FESTIVALS_2026
         except ImportError:
             return []
-
-        try:
-            # Try the specific function first
-            upcoming = get_upcoming_festivals(days=days_ahead)
-            if upcoming:
-                return upcoming
-        except Exception:
-            pass
-
-        try:
-            all_festivals = get_festivals()
-            today = datetime.date.today()
-            upcoming = []
-            for f in all_festivals:
-                fdate = None
-                date_str = f.get("date", "")
-                for fmt in ("%Y-%m-%d", "%Y-%m-%d", "%d/%m/%Y"):
-                    try:
-                        fdate = datetime.datetime.strptime(date_str, fmt).date()
-                        break
-                    except Exception:
-                        continue
-                if fdate and 0 <= (fdate - today).days <= days_ahead:
-                    f["parsed_date"] = fdate.isoformat()
-                    upcoming.append(f)
-            return upcoming
-        except Exception:
-            return []
+        return upcoming_from_calendar(MAJOR_FESTIVALS_2026,
+                                      today=datetime.date.today(),
+                                      days_ahead=days_ahead)
 
     def prepare_festival_messages(self, festival_name: str,
                                   festival_date: str) -> dict:

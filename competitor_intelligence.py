@@ -52,78 +52,56 @@ except ImportError:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# LIVE PSU RATE FETCH (via api_hub_engine)
+# LIVE PSU RATES — from the unified price board (single source of truth)
 # ─────────────────────────────────────────────────────────────────────────────
+# The old fetch chain imported feasibility_engine.get_psu_prices — a function
+# that never existed — and swallowed the ImportError, so this section always
+# showed "auto-fetch not available" (user report 09-07-2026). The board below
+# is the SAME live source the Command Center REFINERY ticker and the pricing
+# calculator use, so it can never be empty and never disagrees with them.
 
 import json as _json
 from pathlib import Path as _Path
 
-_COMPETITOR_CACHE = _Path(__file__).parent / "competitor_cache.json"
-_CACHE_TTL_HOURS = 6
+_LIVE_PRICES_PATH = _Path(__file__).parent / "live_prices.json"
+
+
+def _psu_records_from_board(board: dict, circular_date: str = "") -> list:
+    """Pure: map price_board refinery rows to PSU-rate records for the UI."""
+    return [
+        {
+            "refinery": name,
+            "grade": grade,
+            "price_inr_mt": price,
+            "effective_date": circular_date,
+            "source": "Unified price board (live)",
+        }
+        for name, grade, price in board.get("refinery", [])
+    ]
 
 
 def _fetch_live_psu_rates() -> list:
-    """
-    Fetch latest PSU bitumen rates from api_hub_engine IOCL connector.
-    Caches results for 6 hours to avoid repeated API calls.
+    """Live PSU refinery rates from the unified price board.
+
     Returns list of {refinery, grade, price_inr_mt, effective_date, source}.
     """
-    # Check cache first
-    if _COMPETITOR_CACHE.exists():
-        try:
-            with open(_COMPETITOR_CACHE, "r", encoding="utf-8") as f:
-                cache = _json.load(f)
-            cached_at = cache.get("cached_at", "")
-            if cached_at:
-                cached_dt = datetime.datetime.fromisoformat(cached_at)
-                age_hours = (datetime.datetime.now() - cached_dt).total_seconds() / 3600
-                if age_hours < _CACHE_TTL_HOURS and cache.get("records"):
-                    return cache["records"]
-        except Exception:
-            pass
-
-    # Fetch from api_hub_engine
-    records = []
     try:
-        from api_hub_engine import connect_iocl_circular, HubCache
-        result = connect_iocl_circular()
-        if result.get("ok"):
-            cached_data = HubCache.get("iocl_circular")
-            if cached_data and isinstance(cached_data, dict):
-                records = cached_data.get("records", [])
+        from market_data import get_unified_prices
+        from price_board import build_price_board
+
+        overrides, circular_date = {}, ""
+        try:
+            if _LIVE_PRICES_PATH.exists():
+                overrides = _json.loads(_LIVE_PRICES_PATH.read_text(encoding="utf-8"))
+                circular_date = str(overrides.get("LAST_CIRCULAR_DATE", ""))
+        except Exception:
+            overrides = {}
+
+        base = float(get_unified_prices().get("vg30") or 0)
+        board = build_price_board(base, overrides)
+        return _psu_records_from_board(board, circular_date)
     except Exception:
-        pass
-
-    # Fallback: try feasibility_engine directly
-    if not records:
-        try:
-            from feasibility_engine import get_psu_prices
-            prices = get_psu_prices()
-            if prices:
-                for refinery, data in prices.items():
-                    records.append({
-                        "refinery": refinery,
-                        "grade": "VG-30",
-                        "price_inr_mt": data.get("price") or data.get("vg30"),
-                        "effective_date": data.get("date", ""),
-                        "source": "PSU circular",
-                    })
-        except Exception:
-            pass
-
-    # Save to cache
-    if records:
-        try:
-            cache_data = {
-                "cached_at": datetime.datetime.now().isoformat(),
-                "records": records,
-            }
-            with open(_COMPETITOR_CACHE, "w", encoding="utf-8") as f:
-                _json.dump(cache_data, f, indent=2, ensure_ascii=False)
-        except Exception:
-            pass
-
-    return records
+        return []
 
 
 # ─────────────────────────────────────────────────────────────────────────────

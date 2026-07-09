@@ -1942,41 +1942,35 @@ def connect_iocl_circular() -> dict:
     """Fetch IOCL bitumen price circular data."""
     connector_id = "iocl_circular"
     try:
-        # IOCL publishes bitumen price circulars fortnightly
-        # Use existing feasibility engine PSU price data
-        try:
-            from feasibility_engine import get_psu_prices
-            prices = get_psu_prices()
-            if prices:
-                records = []
-                for refinery, price_data in prices.items():
-                    records.append({
-                        "refinery": refinery,
-                        "grade": "VG-30",
-                        "price_inr_mt": price_data.get("price") or price_data.get("vg30"),
-                        "effective_date": price_data.get("date", _ts()[:10]),
-                        "source": "IOCL/PSU circular",
-                    })
-                if records:
-                    HubCache.set(connector_id, {"records": records})
-                    HubCatalog.set_status(connector_id, "Live", success=True)
-                    return {"ok": True, "connector_id": connector_id,
-                            "records": len(records)}
-        except (ImportError, AttributeError):
-            pass
+        # PSU refinery rates come from the unified price board — the same
+        # live source as the Command Center REFINERY ticker. The old path
+        # imported feasibility_engine.get_psu_prices (a function that never
+        # existed) and this connector was permanently "Failing".
+        from market_data import get_unified_prices
+        from price_board import build_price_board
 
-        # Fallback: check existing price snapshot
-        try:
-            from ai_data_layer import get_price_snapshot
-            snapshot = get_price_snapshot()
-            if snapshot:
-                HubCache.set(connector_id, {"snapshot": snapshot, "source": "ai_data_layer"})
-                HubCatalog.set_status(connector_id, "Live", success=True)
-                return {"ok": True, "connector_id": connector_id, "records": 1}
-        except Exception:
-            pass
-
-        HubCatalog.set_status(connector_id, "Failing", error_msg="PSU price data unavailable")
+        overrides = _load(BASE / "live_prices.json", {})
+        if not isinstance(overrides, dict):
+            overrides = {}
+        base = float(get_unified_prices().get("vg30") or 0)
+        board = build_price_board(base, overrides)
+        circular_date = str(overrides.get("LAST_CIRCULAR_DATE", "")) or _ts()[:10]
+        records = [
+            {
+                "refinery": name,
+                "grade": grade,
+                "price_inr_mt": price,
+                "effective_date": circular_date,
+                "source": "Unified price board (live)",
+            }
+            for name, grade, price in board.get("refinery", [])
+        ]
+        if records:
+            HubCache.set(connector_id, {"records": records})
+            HubCatalog.set_status(connector_id, "Live", success=True)
+            return {"ok": True, "connector_id": connector_id,
+                    "records": len(records)}
+        HubCatalog.set_status(connector_id, "Failing", error_msg="Price board empty")
         return {"ok": False, "error": "IOCL circular data unavailable"}
     except Exception as e:
         HubCatalog.set_status(connector_id, "Failing", error_msg=str(e)[:80])
