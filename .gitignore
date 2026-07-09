@@ -118,3 +118,7 @@ whatsapp_outbox.json
 
 # Guided-tour per-user seen state (runtime, per-machine)
 tour_seen.json
+
+# Runtime logs and backup files (never commit)
+*.log
+*.bak
