@@ -1167,9 +1167,13 @@ def get_all_tags(region: str = "All") -> list[str]:
 import re as _re
 
 _TENDER_STRONG = _re.compile(
-    r"\b(nhai|nhidcl|morth|mord|tenders?|bitumen|expressway|gati\s*shakti|capex)\b", _re.I)
+    r"\b(nhai|nhidcl|morth|mord|tenders?|expressway|gati\s*shakti)\b", _re.I)
+# bitumen/capex are NOT strong: every article summary carries an "impact on
+# bitumen" boilerplate line and capex is routine finance news (review finding
+# — 15/17 live matches were unrelated). They need procurement context.
 _TENDER_GENERIC = _re.compile(
-    r"\b(highways?|roads?|construction|infra|infrastructure|bridge|corridor)\b", _re.I)
+    r"\b(highways?|roads?|construction|infra|infrastructure|bridge|corridor|"
+    r"bitumen|capex)\b", _re.I)
 _TENDER_CONTEXT = _re.compile(
     r"\b(contracts?|awards?|awarded|approv\w*|budget|crores?|km|lanes?|pwd|"
     r"projects?|floats?|bids?|procurement)\b", _re.I)

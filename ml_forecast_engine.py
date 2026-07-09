@@ -98,8 +98,11 @@ def get_ml_status() -> dict:
 # 2. CRUDE PRICE FORECASTING — Prophet → ARIMA → Heuristic
 # ═══════════════════════════════════════════════════════════════════════════════
 
+import threading
+
 PREDICTIONS_LOG = Path(__file__).parent / "ai_predictions_log.json"
 _PREDICTIONS_CAP = 500
+_pred_log_lock = threading.Lock()
 
 
 def log_crude_prediction(result: dict, path: Path = PREDICTIONS_LOG,
@@ -118,25 +121,34 @@ def log_crude_prediction(result: dict, path: Path = PREDICTIONS_LOG,
         if str(result.get("model", "")).lower() == "heuristic":
             return False
         today = today or datetime.now(IST).strftime("%Y-%m-%d")
-        entries = []
-        if path.exists():
-            loaded = json.loads(path.read_text(encoding="utf-8"))
-            if isinstance(loaded, list):
-                entries = loaded
-        if any(isinstance(e, dict) and e.get("type") == "crude_price"
-               and e.get("predicted_at") == today for e in entries):
-            return False
-        entries.append({
-            "type": "crude_price",
-            "predicted_at": today,
-            "predicted_for": str(dates[6])[:10],
-            "predicted_value": round(float(preds[6]), 2),
-            "model": result.get("model", ""),
-        })
-        if len(entries) > _PREDICTIONS_CAP:
-            entries = entries[-_PREDICTIONS_CAP:]
-        path.write_text(json.dumps(entries, indent=2, ensure_ascii=False),
-                        encoding="utf-8")
+        with _pred_log_lock:
+            entries = []
+            if path.exists():
+                try:
+                    loaded = json.loads(path.read_text(encoding="utf-8"))
+                    if isinstance(loaded, list):
+                        entries = loaded
+                except Exception:
+                    entries = []  # corrupt file self-heals on this write
+            if any(isinstance(e, dict) and e.get("type") == "crude_price"
+                   and e.get("predicted_at") == today for e in entries):
+                return False
+            entries.append({
+                "type": "crude_price",
+                "predicted_at": today,
+                "predicted_for": str(dates[6])[:10],
+                "predicted_value": round(float(preds[6]), 2),
+                "model": result.get("model", ""),
+            })
+            if len(entries) > _PREDICTIONS_CAP:
+                entries = entries[-_PREDICTIONS_CAP:]
+            # Atomic replace — matches ai_learning_engine._save_json, which
+            # also writes this file; a torn write here would otherwise disable
+            # logging permanently.
+            tmp = path.with_suffix(".tmp")
+            tmp.write_text(json.dumps(entries, indent=2, ensure_ascii=False),
+                           encoding="utf-8")
+            os.replace(tmp, path)
         return True
     except Exception:
         return False

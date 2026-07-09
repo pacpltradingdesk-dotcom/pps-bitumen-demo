@@ -54,3 +54,21 @@ def test_generic_word_needs_procurement_context():
 def test_reconstruction_does_not_match_construction():
     arts = _arts("Historic fort reconstruction project wins award")
     assert filter_tender_headlines(arts) == []
+
+
+def test_bitumen_and_capex_alone_are_not_tenders():
+    # Review finding: every article summary carries an "impact on bitumen"
+    # boilerplate line, and "capex" is routine finance news — neither may
+    # qualify without procurement context.
+    arts = [
+        {"headline": "USD/INR Weakens to 87.2 as Fed Holds Rates",
+         "summary": "raises bitumen import costs by Rs 800-1,200/MT"},
+        {"headline": "At Rs 1.5 trillion, Adani capex was a third of private sector",
+         "summary": ""},
+    ]
+    assert filter_tender_headlines(arts) == []
+
+
+def test_bitumen_with_procurement_context_passes():
+    arts = _arts("IOCL floats bitumen supply contract for Q3 procurement")
+    assert len(filter_tender_headlines(arts)) == 1

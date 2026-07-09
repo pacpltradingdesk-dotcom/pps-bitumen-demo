@@ -54,6 +54,18 @@ def test_short_or_heuristic_forecasts_not_logged(tmp_path):
     assert not log.exists()
 
 
+def test_corrupt_log_self_heals(tmp_path):
+    # Review finding: a truncated/corrupt file must not permanently disable
+    # logging (the silent no-op this feature exists to eliminate).
+    log = tmp_path / "preds.json"
+    log.write_text("[{corrupt json", encoding="utf-8")
+
+    assert log_crude_prediction(_result(), path=log, today="2026-07-09") is True
+    entries = json.loads(log.read_text(encoding="utf-8"))
+    assert len(entries) == 1
+    assert entries[0]["predicted_at"] == "2026-07-09"
+
+
 def test_log_capped_at_500(tmp_path):
     log = tmp_path / "preds.json"
     old = [{"type": "crude_price", "predicted_at": f"old-{i}"} for i in range(500)]
