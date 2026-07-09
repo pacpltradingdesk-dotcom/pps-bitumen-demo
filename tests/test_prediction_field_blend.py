@@ -80,6 +80,37 @@ def test_blend_weight_caps_at_50pct():
     assert blended == 76_000
 
 
+def test_blend_output_clamped_to_realistic_band():
+    # A fat-fingered field entry (7,187 instead of 71,877) must not drag the
+    # customer-facing prediction below the model path's own 25k-90k guard.
+    from command_intel.price_prediction import blend_field_signal
+    blended, _ = blend_field_signal(80_000, 7_187, 10)     # naive blend = 43,594
+    assert blended >= 25_000
+    blended_hi, _ = blend_field_signal(80_000, 500_000, 10)
+    assert blended_hi <= 90_000
+
+
+def test_field_signal_rejects_implausible_prices(tmp_path):
+    # Outlier entries (outside the 25k-90k bitumen band) are excluded from the
+    # average so one typo can't poison the signal for 14 days.
+    import json
+    log = tmp_path / "entries.json"
+    json.dump([
+        _entry(71_600, days_old=1),
+        _entry(7_187, days_old=1),        # typo — must be ignored
+    ], open(log, "w"))
+    now = datetime.datetime(2026, 7, 9, 12, 0)
+    sig = mee.field_price_signal(path=log, now=now)
+    assert sig["count"] == 1
+    assert sig["avg_basic"] == 71_600
+
+
+def test_next_pending_row_returns_none_on_empty():
+    import pandas as pd
+    from command_intel.price_prediction import next_pending_row
+    assert next_pending_row(pd.DataFrame()) is None
+
+
 # ── waterfall must anchor on the next PENDING revision ──────────────────────
 
 def test_next_pending_row_skips_published():

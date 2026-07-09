@@ -243,7 +243,9 @@ def field_price_signal(grade: str = "VG30", price_type: str = "bulk",
         if (now - ts).days > max_age_days:
             continue
         basic = e.get("basic_price")
-        if basic:
+        # Realistic bitumen band — a fat-fingered entry (₹7,187 for ₹71,870)
+        # must not poison the signal average for 14 days.
+        if basic and 25_000 <= float(basic) <= 90_000:
             prices.append(float(basic))
             latest = latest or e.get("entry_ist", "")
     if not prices:

@@ -216,13 +216,19 @@ def blend_field_signal(model_price: float, field_avg, count: int):
     if not field_avg or not count or count <= 0:
         return float(model_price), 0.0
     weight = min(0.5, 0.15 * count)
-    return round(model_price * (1 - weight) + float(field_avg) * weight), weight
+    blended = model_price * (1 - weight) + float(field_avg) * weight
+    # Same realistic band the model path enforces — one fat-fingered field
+    # entry must never drag a customer-facing figure outside it.
+    return round(max(25_000.0, min(90_000.0, blended))), weight
 
 
 def next_pending_row(df: pd.DataFrame):
     """First PENDING revision — the number every 'next prediction' surface
     must anchor on. df.iloc[0] was the already-Published previous revision,
-    which made the waterfall and the glance box disagree on the same page."""
+    which made the waterfall and the glance box disagree on the same page.
+    Returns None on an empty frame."""
+    if df is None or len(df) == 0:
+        return None
     if "Status" in df.columns:
         pending = df[df["Status"] == "Pending"]
         if not pending.empty:
@@ -498,16 +504,36 @@ def _render_future_view(df: pd.DataFrame):
     except Exception:
         _fs = {"count": 0, "avg_basic": None, "latest_ist": ""}
 
+    # Next PENDING revision — df.iloc[0] was the already-Published row,
+    # which contradicted "Next Revision at a Glance" on the same page.
+    df = df.copy()
+    _next_row = next_pending_row(df)
+    if _next_row is None:
+        st.info("Forecast data not available. Run the ML engine to generate predictions.")
+        return
+    model_pred = _next_row["Predicted (₹/MT)"]
+    final_pred, _fw = blend_field_signal(model_pred, _fs["avg_basic"], _fs["count"])
+    if _fw > 0:
+        # Write the blend back into the displayed frame so the 24-month table
+        # and per-revision expander show the SAME figure as the glance box and
+        # waterfall — otherwise the same-page contradiction returns.
+        _shift = final_pred - model_pred
+        _ix = _next_row.name
+        df.loc[_ix, "Predicted (₹/MT)"] = final_pred
+        df.loc[_ix, "Low Range"] = _next_row["Low Range"] + _shift
+        df.loc[_ix, "High Range"] = _next_row["High Range"] + _shift
+        if "Remarks" in df.columns:
+            df.loc[_ix, "Remarks"] = (
+                f"Field intel blended ({_fs['count']} entries, "
+                f"avg {format_inr(_fs['avg_basic'])}). "
+                + str(df.loc[_ix, "Remarks"] or "")
+            )
+
     w1, w2 = st.columns([1.6, 1])
     with w1:
         # Anchor on the single-source VG30, not a literal — the hardcoded 76_870
         # went stale silently after every fortnightly circular edit.
         last_official = float(_up.get("vg30") or 76_870)
-        # Next PENDING revision — df.iloc[0] was the already-Published row,
-        # which contradicted "Next Revision at a Glance" on the same page.
-        _next_row  = next_pending_row(df)
-        model_pred = _next_row["Predicted (₹/MT)"]
-        final_pred, _fw = blend_field_signal(model_pred, _fs["avg_basic"], _fs["count"])
         field_line = ""
         if _fw > 0:
             field_delta = final_pred - model_pred
