@@ -953,20 +953,40 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
 
     with col_alerts:
         st.markdown('<div style="font-size:0.9rem;font-weight:800;color:#0F172A;margin-bottom:8px;">🔔 Active Alerts</div>', unsafe_allow_html=True)
-        display_alerts = active_alerts[:8]
+        # Sales/ops see business alerts; internal system-health noise
+        # (API degraded / cache freshness / scheduler late) is for
+        # admin & director only. Counts stay unified — only the panel filters.
+        _display_pool, _sys_hidden = active_alerts, 0
+        try:
+            from role_engine import get_current_role
+            from sre_engine import is_system_alert as _is_sys
+            if str(get_current_role()).lower() not in ("admin", "director"):
+                _biz = [a for a in active_alerts if not _is_sys(a)]
+                _sys_hidden = len(active_alerts) - len(_biz)
+                _display_pool = _biz
+        except Exception:
+            pass
+        display_alerts = _display_pool[:8]
         if display_alerts:
+            try:
+                from sre_engine import alert_dot as _alert_dot
+            except Exception:
+                def _alert_dot(s):
+                    return "🔴" if str(s).upper() in ("P0", "CRITICAL") else "🟡"
+            _dot_styles = {
+                "🔴": ("#FEF2F2", "#FCA5A5"),
+                "🟠": ("#FFF7ED", "#FDBA74"),
+                "🟡": ("#FFFBEB", "#FDE68A"),
+                "🔵": ("#EFF6FF", "#BFDBFE"),
+            }
             for al in display_alerts:
                 sev = al.get("severity", al.get("priority", "info"))
                 title = al.get("title", al.get("message", "Alert"))[:70]
                 ts = al.get("created_at", al.get("timestamp", ""))
                 if isinstance(ts, str) and len(ts) > 10:
                     ts = ts[:10]
-                if sev in ("critical", "P0"):
-                    dot, bg, border = "🔴", "#FEF2F2", "#FCA5A5"
-                elif sev in ("warning", "P1"):
-                    dot, bg, border = "🟡", "#FFFBEB", "#FDE68A"
-                else:
-                    dot, bg, border = "🟢", "#F0FDF4", "#BBF7D0"
+                dot = _alert_dot(sev)
+                bg, border = _dot_styles.get(dot, ("#EFF6FF", "#BFDBFE"))
 
                 st.markdown(f"""
 <div style="background:{bg};border:1px solid {border};border-radius:8px;padding:10px 14px;margin-bottom:5px;display:flex;align-items:center;gap:8px;">
@@ -976,6 +996,9 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
 </div>""", unsafe_allow_html=True)
         else:
             st.markdown('<div style="background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px;padding:16px;text-align:center;font-size:0.82rem;color:#059669;font-weight:600;">✅ All Clear — No active alerts</div>', unsafe_allow_html=True)
+        if _sys_hidden:
+            st.caption(f"🔧 {_sys_hidden} system-health alert"
+                       f"{'s' if _sys_hidden != 1 else ''} hidden (visible to admin/director)")
 
         # Quick action row under alerts
         st.markdown("")
@@ -1019,8 +1042,12 @@ body{{font-family:Inter,-apple-system,Segoe UI,sans-serif;background:transparent
                 _cus_label,
                 "#8B5CF6",
                 None if _cus else "Add via Import Wizard"),
-            ("📋", "Tasks Today", tasks_today, "#F59E0B" if tasks_overdue > 0 else "#10B981", None),
-            ("⚠️", "Overdue", tasks_overdue, "#EF4444" if tasks_overdue > 0 else "#10B981", None),
+            # "Due Today" (not "Tasks Today"): 0-due-today next to 32-overdue
+            # read as a contradiction — these are tasks whose due date is today.
+            ("📋", "Due Today", tasks_today, "#F59E0B" if tasks_overdue > 0 else "#10B981", None),
+            ("⚠️", "Overdue", tasks_overdue,
+                "#EF4444" if tasks_overdue > 0 else "#10B981",
+                "Clear in CRM Tasks" if tasks_overdue > 0 else None),
             ("💼", "Active Deals",
                 _deals if _deals else "—",
                 "#0EA5E9",

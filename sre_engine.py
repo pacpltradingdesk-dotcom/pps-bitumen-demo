@@ -24,6 +24,7 @@ India format  : ₹, DD-MM-YYYY, 24-hour IST
 """
 
 import json
+import re
 import time
 import math
 import uuid
@@ -146,6 +147,38 @@ def _append(path: Path, record: dict, max_records: int = 2000) -> None:
         if len(data) > max_records:
             data = data[-max_records:]
         _save(path, data)
+
+
+def alert_dot(severity) -> str:
+    """Severity dot for alert panels. An OPEN alert must never render the
+    green all-good dot — P2 'Data quality WARN' rows once showed 🟢
+    (Command Center audit 09-07-2026). Unknown/low severities get info-blue."""
+    s = str(severity or "").upper()
+    if s in ("P0", "CRITICAL"):
+        return "🔴"
+    if s in ("P1", "WARNING", "HIGH"):
+        return "🟠"
+    if s in ("P2", "MEDIUM", "WARN"):
+        return "🟡"
+    return "🔵"
+
+
+_SYSTEM_ALERT_PAT = re.compile(
+    r"(data quality|degraded performance|cache|scheduler|health check|"
+    r"latency|freshness|heartbeat|api key|sre)", re.I)
+_SYSTEM_ENTITIES = {"api_cache_freshness", "live_prices", "price_anomalies",
+                    "scheduler", "health_check", "api_cache"}
+
+
+def is_system_alert(alert: dict) -> bool:
+    """True for internal system-health alerts (API/cache/scheduler/data
+    quality) — ops noise meant for admin/director, not the sales desk."""
+    if not isinstance(alert, dict):
+        return False
+    if str(alert.get("entity", "")).lower() in _SYSTEM_ENTITIES:
+        return True
+    text = f"{alert.get('message', '')} {alert.get('what_happened', '')}"
+    return bool(_SYSTEM_ALERT_PAT.search(text))
 
 
 def _cfg() -> Dict:
