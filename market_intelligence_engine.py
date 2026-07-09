@@ -189,6 +189,43 @@ def _volatility_label(values: list[float]) -> str:
     return "HIGH"
 
 
+def _direction_of(sig: dict) -> float:
+    """-1/0/+1 price-direction of one sub-signal, from its OWN semantic field
+    (currency uses `pressure`, weather `road_condition`, govt `demand_trend`…).
+    Shared by the master composite and the public signal_score() so every
+    surface reads the same direction for the same signal."""
+    d = (sig.get("direction") or sig.get("pressure") or
+         sig.get("demand_level") or sig.get("economic_trend") or
+         sig.get("demand_interest") or sig.get("volume_trend") or
+         sig.get("demand_trend") or sig.get("road_condition") or
+         "STABLE")
+    up_set = {"UP", "HIGH", "POSITIVE", "RISING", "GROWING", "GOOD"}
+    down_set = {"DOWN", "LOW", "NEGATIVE", "FALLING", "CONTRACTING", "POOR"}
+    if d in up_set:
+        return 1.0
+    if d in down_set:
+        return -1.0
+    return 0.0
+
+
+def signal_score(sig: dict) -> float:
+    """0-100 bullish score for one sub-signal — for display grids.
+
+    50 = neutral; direction comes from _direction_of (same semantics as the
+    master composite), scaled by the signal's confidence (default 60 for
+    signals that don't publish one). The Command Center grid used to map only
+    a `direction` key, collapsing 8 of 9 signals to a flat 'Neutral 50%'.
+    """
+    if not isinstance(sig, dict):
+        return 50.0
+    direction = _direction_of(sig)
+    try:
+        conf = float(sig.get("confidence", 60) or 60)
+    except (TypeError, ValueError):
+        conf = 60.0
+    return round(min(100.0, max(0.0, 50 + direction * conf / 2)), 1)
+
+
 def _neutral_signal(signal_id: str, reason: str = "") -> dict:
     """Neutral / fallback signal when computation fails."""
     return {
@@ -848,19 +885,7 @@ class MarketIntelligenceEngine:
         Weighted composite of all 9 signals.
         Output: market_direction, confidence, demand_outlook, risk_level, action.
         """
-        def _direction_score(sig: dict) -> float:
-            d = (sig.get("direction") or sig.get("pressure") or
-                 sig.get("demand_level") or sig.get("economic_trend") or
-                 sig.get("demand_interest") or sig.get("volume_trend") or
-                 sig.get("demand_trend") or sig.get("road_condition") or
-                 "STABLE")
-            up_set = {"UP", "HIGH", "POSITIVE", "RISING", "GROWING", "GOOD"}
-            down_set = {"DOWN", "LOW", "NEGATIVE", "FALLING", "CONTRACTING", "POOR"}
-            if d in up_set:
-                return 1.0
-            elif d in down_set:
-                return -1.0
-            return 0.0
+        _direction_score = _direction_of  # shared with signal_score()
 
         weighted_sum = 0.0
         confidences: list[int] = []

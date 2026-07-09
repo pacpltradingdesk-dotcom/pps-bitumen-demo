@@ -1157,3 +1157,39 @@ def get_all_tags(region: str = "All") -> list[str]:
             continue
         seen.update(a.get("tags", []))
     return sorted(seen)
+
+
+# ── TENDERS ticker filter ────────────────────────────────────────────────────
+# Live audit 09-07-2026: the old keyword regex had no word boundaries and
+# matched any disaster/crime story mentioning a road ("Roads waterlogged",
+# "crime scene reconstruction"). Strong procurement terms pass alone; generic
+# infra words need procurement context; disaster/crime stories never pass.
+import re as _re
+
+_TENDER_STRONG = _re.compile(
+    r"\b(nhai|nhidcl|morth|mord|tenders?|bitumen|expressway|gati\s*shakti|capex)\b", _re.I)
+_TENDER_GENERIC = _re.compile(
+    r"\b(highways?|roads?|construction|infra|infrastructure|bridge|corridor)\b", _re.I)
+_TENDER_CONTEXT = _re.compile(
+    r"\b(contracts?|awards?|awarded|approv\w*|budget|crores?|km|lanes?|pwd|"
+    r"projects?|floats?|bids?|procurement)\b", _re.I)
+_TENDER_EXCLUDE = _re.compile(
+    r"\b(rains?|flood\w*|landslides?|waterlogg\w*|traffic|accidents?|crash|"
+    r"murder|rape|crime|evacuat\w*|collapse|buckled|earthquake|storms?)\b", _re.I)
+
+
+def filter_tender_headlines(articles: list, limit: int = 15) -> list:
+    """Headlines fit for the TENDERS ticker: procurement/infra-tender news only."""
+    out = []
+    for a in articles or []:
+        if not isinstance(a, dict):
+            continue
+        text = f"{a.get('headline', '')} {a.get('summary', '')}"
+        if _TENDER_EXCLUDE.search(text):
+            continue
+        if _TENDER_STRONG.search(text) or (
+                _TENDER_GENERIC.search(text) and _TENDER_CONTEXT.search(text)):
+            out.append(a.get("headline", "")[:120])
+        if len(out) >= limit:
+            break
+    return out

@@ -153,7 +153,10 @@ def _market_alert_active(alert: dict, now: datetime.datetime) -> bool:
 
 def _count_active_alerts(sre_data, market_data,
                          now: datetime.datetime) -> int | None:
-    """Pure counter: SRE alerts (non-dismissed) + non-expired market alerts.
+    """Pure counter matching the Command Center's definition exactly:
+    SRE alerts with status == "Open" deduped by message, plus non-expired
+    market alerts. (Counting everything "not dismissed" once showed 1855 in
+    the ribbon against 32 OPEN ALERTS on the same screen.)
 
     Returns None only when neither source is available at all.
     """
@@ -161,8 +164,15 @@ def _count_active_alerts(sre_data, market_data,
         return None
     total = 0
     if isinstance(sre_data, list):
-        total += sum(1 for a in sre_data
-                     if isinstance(a, dict) and a.get("status") != "dismissed")
+        seen_msgs = set()
+        for a in sre_data:
+            if not isinstance(a, dict) or a.get("status") != "Open":
+                continue
+            msg = a.get("what_happened") or a.get("message") or ""
+            if msg in seen_msgs:
+                continue
+            seen_msgs.add(msg)
+            total += 1
     elif isinstance(sre_data, dict):
         total += len(sre_data.get("active", []))
     if isinstance(market_data, list):

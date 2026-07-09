@@ -174,28 +174,18 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
     except Exception:
         pass
 
-    # Tender headlines
+    # Tender headlines — strict procurement filter (news_engine). The old
+    # boundary-less regex let "Roads waterlogged" / "crime scene
+    # reconstruction" scroll under a TENDERS label, and a hardcoded demo
+    # fallback list showed fake NHAI awards when nothing matched. If there is
+    # no real tender news the ticker simply doesn't render.
     tender_headlines = []
     try:
-        from news_engine import get_articles
+        from news_engine import get_articles, filter_tender_headlines
         articles = get_articles(region="Domestic", max_age_hours=72, impact_min=0)
-        if articles:
-            import re
-            kw = re.compile(r'(nhai|highway|road|tender|infra|bitumen|construction|morth)', re.I)
-            for a in articles:
-                text = a.get("headline", "") + " " + a.get("summary", "")
-                if kw.search(text):
-                    tender_headlines.append(a.get("headline", "")[:120])
+        tender_headlines = filter_tender_headlines(articles)
     except Exception:
         pass
-    if not tender_headlines:
-        tender_headlines = [
-            "NHAI awards 120km highway contract in Bihar worth Rs 2,400 Cr",
-            "MoRTH approves 6-lane expressway connecting Vadodara to Mumbai",
-            "Gujarat state PWD floats tender for 80km rural road upgrade",
-            "NHIDCL announces bridge construction tender in Northeast India",
-            "PM Gati Shakti: 15 new highway projects approved for FY2026",
-        ]
 
     # News
     news_data = _load_json("tbl_news_feed.json", [])
@@ -254,14 +244,21 @@ section.main .block-container > div > div:nth-child(n+7) { animation-delay: 0.3s
     # snapshots ([{computed_at, signals:{crude_market:{direction,confidence}, ...,
     # master:{...}}}]). Take the latest record and map each signal to a 0-100
     # bullish score (UP -> high, DOWN -> low, SIDEWAYS -> mid) the grid expects.
-    def _signal_score(d):
-        conf = float(d.get("confidence", 50) or 50)
-        direction = str(d.get("direction") or d.get("market_direction") or "SIDEWAYS").upper()
-        if direction in ("UP", "BULLISH"):
-            return min(100.0, 50 + conf / 2)
-        if direction in ("DOWN", "BEARISH"):
-            return max(0.0, 50 - conf / 2)
-        return 50.0
+    # Score comes from the ENGINE (same semantics as the master composite) —
+    # a local direction-only mapper here once collapsed 8 of 9 sub-signals to
+    # a flat "Neutral 50%" because currency publishes `pressure`, weather
+    # `road_condition`, govt `demand_trend`, etc. Guarded by test_signal_scores.
+    try:
+        from market_intelligence_engine import signal_score as _signal_score
+    except Exception:
+        def _signal_score(d):
+            conf = float(d.get("confidence", 50) or 50)
+            direction = str(d.get("direction") or d.get("market_direction") or "SIDEWAYS").upper()
+            if direction in ("UP", "BULLISH"):
+                return min(100.0, 50 + conf / 2)
+            if direction in ("DOWN", "BEARISH"):
+                return max(0.0, 50 - conf / 2)
+            return 50.0
 
     # Use the LIVE MarketIntelligenceEngine — the same source the dedicated
     # Market Signals page uses — so the Command Center composite MATCHES it.

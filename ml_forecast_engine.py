@@ -98,6 +98,50 @@ def get_ml_status() -> dict:
 # 2. CRUDE PRICE FORECASTING — Prophet → ARIMA → Heuristic
 # ═══════════════════════════════════════════════════════════════════════════════
 
+PREDICTIONS_LOG = Path(__file__).parent / "ai_predictions_log.json"
+_PREDICTIONS_CAP = 500
+
+
+def log_crude_prediction(result: dict, path: Path = PREDICTIONS_LOG,
+                         today: str = "") -> bool:
+    """Log the 7-day-ahead crude prediction — once per day — for the learning
+    loop. ai_learning_engine.daily_learn() evaluates these against actuals;
+    without them it silently no-oped and the learned weights never updated.
+    Heuristic forecasts are not logged (nothing to learn from a constant).
+    Returns True when a new record was written.
+    """
+    try:
+        preds = result.get("predicted") or []
+        dates = result.get("dates") or []
+        if len(preds) < 7 or len(dates) < 7:
+            return False
+        if str(result.get("model", "")).lower() == "heuristic":
+            return False
+        today = today or datetime.now(IST).strftime("%Y-%m-%d")
+        entries = []
+        if path.exists():
+            loaded = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(loaded, list):
+                entries = loaded
+        if any(isinstance(e, dict) and e.get("type") == "crude_price"
+               and e.get("predicted_at") == today for e in entries):
+            return False
+        entries.append({
+            "type": "crude_price",
+            "predicted_at": today,
+            "predicted_for": str(dates[6])[:10],
+            "predicted_value": round(float(preds[6]), 2),
+            "model": result.get("model", ""),
+        })
+        if len(entries) > _PREDICTIONS_CAP:
+            entries = entries[-_PREDICTIONS_CAP:]
+        path.write_text(json.dumps(entries, indent=2, ensure_ascii=False),
+                        encoding="utf-8")
+        return True
+    except Exception:
+        return False
+
+
 def forecast_crude_price(days_ahead: int = 90) -> dict:
     """
     Forecast crude oil prices.
@@ -145,16 +189,23 @@ def forecast_crude_price(days_ahead: int = 90) -> dict:
                     pass
 
         if len(forecasts) >= 2:
-            return _ensemble_forecast(forecasts, weights)
+            result = _ensemble_forecast(forecasts, weights)
+            log_crude_prediction(result)   # feed the daily learning loop
+            return result
         if forecasts:
+            log_crude_prediction(forecasts[0])
             return forecasts[0]
 
     # Single-model fallback
     if df is not None and len(df) >= 10 and _HAS_PROPHET:
-        return _forecast_prophet(df, days_ahead, "crude_price")
+        result = _forecast_prophet(df, days_ahead, "crude_price")
+        log_crude_prediction(result)
+        return result
 
     if df is not None and len(df) >= 10 and _HAS_STATSMODELS:
-        return _forecast_arima(df, days_ahead, "crude_price")
+        result = _forecast_arima(df, days_ahead, "crude_price")
+        log_crude_prediction(result)
+        return result
 
     return _forecast_heuristic_crude(records, days_ahead)
 

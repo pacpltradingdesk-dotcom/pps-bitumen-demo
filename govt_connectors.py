@@ -283,7 +283,8 @@ def connect_comtrade_hs271320() -> dict:
             })
 
         if records:
-            _append_tbl(TBL_IMP_CTRY, records, max_records=2000)
+            _upsert_tbl(TBL_IMP_CTRY, records,
+                        key_fields=("period_label", "origin_country"))
             records_written = len(records)
             HubCatalog.set_status(connector_id, "Live", success=True)
             _hub_log(connector_id, "OK",
@@ -317,7 +318,8 @@ def connect_comtrade_hs271320() -> dict:
          "qty_kg": 410000000.0, "value_usd": 148000000.0,
          "flow": "Import", "source": "Static reference (Comtrade unavailable)"},
     ]
-    _append_tbl(TBL_IMP_CTRY, static_fallback, max_records=2000)
+    _upsert_tbl(TBL_IMP_CTRY, static_fallback,
+                key_fields=("period_label", "origin_country"))
     HubCatalog.set_status(connector_id, "Live", success=True,
                           error_msg=f"upstream unavailable — using static fallback ({last_err})")
     _log_api_run(connector_id, "OK (static fallback)", 4, last_err, url)
@@ -331,26 +333,41 @@ def connect_comtrade_hs271320() -> dict:
 # Phase 1: no key needed
 # ─────────────────────────────────────────────────────────────────────────────
 
-def upsert_period_records(existing: List[dict], records: List[dict]) -> List[dict]:
-    """Merge period-labelled rows (monthly averages) into a table by UPSERT.
+def upsert_period_records(existing: List[dict], records: List[dict],
+                          key_fields: tuple = ("period_label", "pair")) -> List[dict]:
+    """Merge period-labelled rows into a table by UPSERT.
 
-    A row with the same (period_label, pair) is replaced in place; new periods
-    are appended; rows without period_label (live spot ticks) pass through
-    untouched. Returns a new list — inputs are not mutated. One period must
-    never occupy more than one row, no matter how often the connector runs.
+    A row with the same key (default: period_label+pair; comtrade uses
+    period_label+origin_country, highways period_label+state+agency, …) is
+    replaced in place; new keys are appended; rows without period_label (live
+    ticks) pass through untouched. Returns a new list — inputs not mutated.
+    Blind appends here once grew 407 duplicate monthly fx rows on the VPS.
     """
     def _pkey(r: dict):
-        return (r.get("period_label"), r.get("pair"))
+        return tuple(r.get(f) for f in key_fields)
 
     incoming = {_pkey(r): r for r in records if r.get("period_label")}
     merged: List[dict] = []
     for row in existing:
-        if row.get("period_label") and _pkey(row) in incoming:
+        if isinstance(row, dict) and row.get("period_label") and _pkey(row) in incoming:
             merged.append(dict(incoming.pop(_pkey(row))))
         else:
             merged.append(row)
     merged.extend(dict(r) for r in incoming.values())
     return merged
+
+
+def _upsert_tbl(path: Path, records: List[dict], key_fields: tuple,
+                max_records: int = 2000) -> None:
+    """Locked load → upsert_period_records → trim → save for one table."""
+    with _lock:
+        existing = _load(path, [])
+        if not isinstance(existing, list):
+            existing = []
+        merged = upsert_period_records(existing, records, key_fields=key_fields)
+        if len(merged) > max_records:
+            merged = merged[-max_records:]
+        _save(path, merged)
 
 
 def connect_rbi_fx_historical() -> dict:
@@ -401,14 +418,7 @@ def connect_rbi_fx_historical() -> dict:
     from api_hub_engine import TBL_FX
     # UPSERT, never append: re-appending 13 monthly rows per run flooded the
     # table with stale-month duplicates and evicted live-spot rows (audit 09-07-2026).
-    with _lock:
-        existing = _load(TBL_FX, [])
-        if not isinstance(existing, list):
-            existing = []
-        merged = upsert_period_records(existing, records)
-        if len(merged) > 1000:
-            merged = merged[-1000:]
-        _save(TBL_FX, merged)
+    _upsert_tbl(TBL_FX, records, key_fields=("period_label", "pair"), max_records=1000)
     HubCatalog.set_status(connector_id, "Live", success=True)
     _hub_log(connector_id, "OK",
              f"RBI FX historical: {len(records)} monthly records", len(records))
@@ -441,7 +451,8 @@ def connect_ppac_proxy() -> dict:
         r["date"]           = _date_str()
         records.append(r)
 
-    _append_tbl(TBL_REFINERY, records, max_records=500)
+    _upsert_tbl(TBL_REFINERY, records,
+                key_fields=("period_label", "refinery_or_region"), max_records=500)
     HubCatalog.set_status(connector_id, "Live", success=True)
     _hub_log(connector_id, "OK",
              f"PPAC static proxy: {len(records)} rows written", len(records))
@@ -470,7 +481,8 @@ def connect_data_gov_in_highways() -> dict:
         # No key → write static fallback so the connector still reports OK.
         # User can plug a real key in Settings → API Hub later for live data.
         static_hw = _build_static_highway_reference()
-        _append_tbl(TBL_HIGHWAY, static_hw, max_records=2000)
+        _upsert_tbl(TBL_HIGHWAY, static_hw,
+                    key_fields=("period_label", "state", "agency"))
         msg = "no API key — using static fallback (add key in Settings → API Hub for live)"
         HubCatalog.set_status(connector_id, "Live", success=True, error_msg=msg)
         _log_api_run(connector_id, "OK (static fallback)", len(static_hw), msg, "")
@@ -538,7 +550,8 @@ def connect_data_gov_in_highways() -> dict:
             })
 
         if records:
-            _append_tbl(TBL_HIGHWAY, records, max_records=2000)
+            _upsert_tbl(TBL_HIGHWAY, records,
+                        key_fields=("period_label", "state", "agency"))
             records_written += len(records)
 
     if records_written > 0:
@@ -552,7 +565,8 @@ def connect_data_gov_in_highways() -> dict:
 
     # Write static highway reference if API data unavailable
     static_hw = _build_static_highway_reference()
-    _append_tbl(TBL_HIGHWAY, static_hw, max_records=2000)
+    _upsert_tbl(TBL_HIGHWAY, static_hw,
+                key_fields=("period_label", "state", "agency"))
     HubCatalog.set_status(connector_id, "Live", success=True,
                           error_msg=f"upstream unavailable — using static highway ref ({last_err})")
     _log_api_run(connector_id, "OK (static fallback)", len(static_hw),
@@ -668,7 +682,8 @@ def connect_fred(series_ids: Optional[List[str]] = None) -> dict:
                     })
 
         if proxy_records:
-            _append_tbl(TBL_DEMAND, proxy_records, max_records=2000)
+            _upsert_tbl(TBL_DEMAND, proxy_records,
+                        key_fields=("period_label", "proxy_name"))
             msg = f"no FRED key — {len(proxy_records)} proxy points from FX/crude (add key for full series)"
             HubCatalog.set_status(connector_id, "Live", success=True, error_msg=msg)
             _log_api_run(connector_id, "OK (proxy)", len(proxy_records), msg, "")
@@ -685,7 +700,8 @@ def connect_fred(series_ids: Optional[List[str]] = None) -> dict:
              "proxy_name": "FRED_BRENT_USD_static", "value": 78.0,
              "unit": "USD per barrel", "source": "Static fallback"},
         ]
-        _append_tbl(TBL_DEMAND, static_recs, max_records=2000)
+        _upsert_tbl(TBL_DEMAND, static_recs,
+                    key_fields=("period_label", "proxy_name"))
         HubCatalog.set_status(connector_id, "Live", success=True, error_msg=msg)
         _log_api_run(connector_id, "OK (static)", len(static_recs), msg, "")
         return {"ok": True, "records": len(static_recs),
@@ -750,7 +766,8 @@ def connect_fred(series_ids: Optional[List[str]] = None) -> dict:
             })
 
         if records:
-            _append_tbl(TBL_DEMAND, records, max_records=2000)
+            _upsert_tbl(TBL_DEMAND, records,
+                        key_fields=("period_label", "proxy_name"))
             records_written += len(records)
 
     if records_written > 0:

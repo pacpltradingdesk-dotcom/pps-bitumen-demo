@@ -78,3 +78,31 @@ def test_upsert_does_not_mutate_inputs():
     upsert_period_records(existing, [_monthly("2026-06", 91.0)])
 
     assert existing == snapshot
+
+
+def _ctry(period, country, qty):
+    return {"period_label": period, "origin_country": country, "qty_kg": qty}
+
+
+def test_upsert_custom_key_fields_keeps_rows_per_country():
+    # Comtrade rows share a period but differ by origin_country — a
+    # (period, pair) key would wrongly collapse them into one row.
+    existing = [_ctry("2026-05", "Saudi Arabia", 100), _ctry("2026-05", "Iran", 200)]
+    fresh = [_ctry("2026-05", "Iran", 250), _ctry("2026-05", "Kuwait", 50)]
+
+    out = upsert_period_records(existing, fresh,
+                                key_fields=("period_label", "origin_country"))
+
+    by_key = {(r["period_label"], r["origin_country"]): r["qty_kg"] for r in out}
+    assert by_key == {
+        ("2026-05", "Saudi Arabia"): 100,
+        ("2026-05", "Iran"): 250,          # replaced in place
+        ("2026-05", "Kuwait"): 50,          # appended
+    }
+
+
+def test_upsert_custom_key_is_idempotent():
+    fresh = [_ctry("2026-05", "Iran", 250)]
+    once = upsert_period_records([], fresh, key_fields=("period_label", "origin_country"))
+    twice = upsert_period_records(once, fresh, key_fields=("period_label", "origin_country"))
+    assert len(twice) == 1
