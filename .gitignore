@@ -115,3 +115,6 @@ demo_pdfs/
 
 # Client Chat WhatsApp bridge runtime queue (never commit)
 whatsapp_outbox.json
+
+# Guided-tour per-user seen state (runtime, per-machine)
+tour_seen.json

@@ -82,14 +82,25 @@ def render_sidebar_features(module: str) -> str:
 
     with st.sidebar:
         # ── Active Tour (floating tooltip — rendered near actual button) ──
-        # Auto-open tutorial on first login (welcome flow)
+        import tutorial_engine as _te
+        _username = st.session_state.get("_auth_username", "")
+        # Auto-open tutorial on first login — but only once per user, ever.
         if st.session_state.pop("_welcome_pending", False):
-            st.session_state["_show_tutorial"] = True
-            st.session_state["_tour_step"] = 0
+            if _te.should_open_welcome_tour(_username):
+                st.session_state["_show_tutorial"] = True
+                st.session_state["_tour_step"] = 0
+                st.session_state["_tour_opened_page"] = current_page
+        # JS-independent dismissal: if the user navigated to a different page
+        # while the tour was open, end it (Next never changes the page).
+        if _te.should_end_tour_on_nav(
+            st.session_state.get("_show_tutorial", False),
+            st.session_state.get("_tour_opened_page"),
+            current_page,
+        ):
+            _te._end_tour()
         if st.session_state.get("_show_tutorial"):
             try:
-                from tutorial_engine import render_tour
-                render_tour()
+                _te.render_tour()
             except Exception as _e:
                 st.error(f"Tour failed: {_e}")
                 st.session_state["_show_tutorial"] = False
@@ -214,6 +225,7 @@ def render_sidebar_features(module: str) -> str:
                      use_container_width=True, help="Guided tour phir se shuru karo"):
             st.session_state["_show_tutorial"] = True
             st.session_state["_tour_step"] = 0
+            st.session_state["_tour_opened_page"] = current_page
             st.rerun()
 
         # ── Sticky Notes (News + Market) ──────────────────────────────────

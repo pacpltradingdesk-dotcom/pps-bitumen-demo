@@ -20,8 +20,13 @@ Entry points:
 from __future__ import annotations
 
 import json as _json
+from pathlib import Path as _Path
 import streamlit as st
 import streamlit.components.v1 as _components
+
+# Persistent per-user "has seen the welcome tour" store. Keeps the tour from
+# auto-opening again in later sessions once a user has skipped/finished it.
+_TOUR_SEEN_FILE = _Path(__file__).parent / "tour_seen.json"
 
 
 # ── Tour Steps ──────────────────────────────────────────────────────────────
@@ -484,10 +489,67 @@ def _render_control_buttons(idx: int, total: int):
 
 
 def _end_tour():
-    """Clear tour state + DOM."""
+    """Clear tour state + DOM, and remember this user has seen the tour."""
     st.session_state["_tour_step"] = 0
     st.session_state["_show_tutorial"] = False
+    st.session_state.pop("_tour_opened_page", None)
+    mark_tour_seen(st.session_state.get("_auth_username", ""))
     _inject_cleanup_js()
+
+
+# ── Persistent "seen" flag + JS-independent dismissal guards ─────────────────
+
+def _load_seen() -> dict:
+    """Load the seen-store; tolerate a missing or corrupt file."""
+    try:
+        with open(_TOUR_SEEN_FILE, "r", encoding="utf-8") as fh:
+            data = _json.load(fh)
+        return data if isinstance(data, dict) else {}
+    except (FileNotFoundError, ValueError, OSError):
+        return {}
+
+
+def has_seen_tour(username: str) -> bool:
+    """True if this user has already skipped/finished the welcome tour."""
+    username = (username or "").strip().lower()
+    if not username:
+        return False
+    return bool(_load_seen().get(username))
+
+
+def mark_tour_seen(username: str) -> None:
+    """Persist that this user has seen the welcome tour (idempotent, safe)."""
+    username = (username or "").strip().lower()
+    if not username:
+        return
+    seen = _load_seen()
+    if seen.get(username):
+        return
+    seen[username] = True
+    try:
+        with open(_TOUR_SEEN_FILE, "w", encoding="utf-8") as fh:
+            _json.dump(seen, fh)
+    except OSError:
+        pass
+
+
+def should_open_welcome_tour(username: str) -> bool:
+    """Auto-open the welcome tour only for users who have not seen it."""
+    return not has_seen_tour(username)
+
+
+def should_end_tour_on_nav(show_tutorial: bool,
+                           opened_page: str | None,
+                           current_page: str) -> bool:
+    """End the tour when the user navigates to a different page while it is open.
+
+    The Next button only advances _tour_step (it never changes the page), so a
+    page change is an unambiguous "user moved on" signal. This is the reliable,
+    JS-bridge-independent dismissal path.
+    """
+    if not show_tutorial or not opened_page:
+        return False
+    return current_page != opened_page
 
 
 # ── Public entry ────────────────────────────────────────────────────────────
