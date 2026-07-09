@@ -537,7 +537,8 @@ def _render_future_view(df: pd.DataFrame):
         field_line = ""
         if _fw > 0:
             field_delta = final_pred - model_pred
-            field_line = (f"| 👥 Field Intel ({_fs['count']} entries, "
+            field_line = (f"| 👥 Field Intel ({_fs['count']} "
+                          f"{'entry' if _fs['count'] == 1 else 'entries'}, "
                           f"avg {format_inr(_fs['avg_basic'])}) | "
                           f"{'+' if field_delta >= 0 else ''}{format_inr(field_delta, False)} |\n")
         st.markdown(
@@ -556,7 +557,8 @@ def _render_future_view(df: pd.DataFrame):
         _field_note = ""
         if _fw > 0:
             _field_note = (
-                f"\n\n👥 **Field intel:** {_fs['count']} desk entries "
+                f"\n\n👥 **Field intel:** {_fs['count']} desk "
+                f"{'entry' if _fs['count'] == 1 else 'entries'} "
                 f"(avg {format_inr(_fs['avg_basic'])}) blended at "
                 f"{_fw * 100:.0f}% weight — ground truth the macro model can't see."
             )
