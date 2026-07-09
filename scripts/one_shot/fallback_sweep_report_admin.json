@@ -1,0 +1,462 @@
+{
+ "user": "admin",
+ "pages": {
+  "🎯 Command Center": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🏠 Home": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📡 Market Signals": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📰 News Intelligence": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📡 Telegram Analyzer": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🔮 Price Prediction": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📞 Daily Calling Sheet": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📋 Director Briefing": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🕵️ Competitor Intelligence": {
+   "status": "FLAGGED",
+   "landed": true,
+   "hits": [
+    {
+     "type": "FALLBACK",
+     "line": "🏭 Live PSU Bitumen Rates (Auto-Fetch)"
+    }
+   ]
+  },
+  "🔴 Real-time Insights": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🧑‍💼 Business Advisor": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🛒 Purchase Advisor": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "💡 Recommendations": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🌐 Global Markets": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🏗️ NHAI Tenders": {
+   "status": "FLAGGED",
+   "landed": true,
+   "hits": [
+    {
+     "type": "FALLBACK",
+     "line": "Showing demo tender data — live tender feed unavailable."
+    }
+   ]
+  },
+  "📦 Import Cost Model": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "⏳ Past Predictions": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "👷 Demand Analytics": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📈 Demand Correlation": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🛣️ Road Budget & Demand": {
+   "status": "FLAGGED",
+   "landed": true,
+   "hits": [
+    {
+     "type": "ERROR",
+     "line": "Road Budget failed to load: Invalid element(s) received for the 'size' property of scatter.marker Invalid elements include: [nan, nan, nan, nan, nan, nan, nan, "
+    }
+   ]
+  },
+  "🚨 Alert Center": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🧮 Pricing Calculator": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🎯 CRM & Tasks": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🔍 Opportunities": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🤝 Negotiation Assistant": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📓 Daily Log": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "💎 One-Click Quote": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "💼 Sales Workspace": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "💬 Communication Hub": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "💬 Client Chat": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🤖 CRM Automation": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "💳 Credit & Aging": {
+   "status": "FLAGGED",
+   "landed": true,
+   "hits": [
+    {
+     "type": "FALLBACK",
+     "line": "Showing demo credit data — customer credit database unavailable."
+    }
+   ]
+  },
+  "🚨 SPECIAL PRICE (SOS)": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "💰 Financial Intelligence": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🎯 Strategy Panel": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "⚡ Risk Scoring": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "💰 Profitability Analytics": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📅 Sales Calendar": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🚢 Maritime Logistics": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🚢 Supply Chain": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "⚓ Port Import Tracker": {
+   "status": "FLAGGED",
+   "landed": true,
+   "hits": [
+    {
+     "type": "ERROR",
+     "line": "Port Tracker failed to load: Import matplotlib failed. Styler.background_gradient requires matplotlib. Use pip or conda to install the matplotlib package."
+    }
+   ]
+  },
+  "🏭 Feasibility": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "👥 Ecosystem Management": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🏭 Refinery Supply": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🚛 Tanker Tracking": {
+   "status": "FLAGGED",
+   "landed": true,
+   "hits": [
+    {
+     "type": "FALLBACK",
+     "line": "Showing demo tanker data — live tracking source unavailable."
+    }
+   ]
+  },
+  "📄 E-Way Bills": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📋 Purchase Orders": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📋 Sales Orders": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "💳 Payment Orders": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "👥 Party Master": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📁 PDF Archive": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📱 Contacts Directory": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📝 Manual Price Entry": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📋 Update from Circular": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🏗️ Govt Data Hub": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🛡️ GST & Legal Monitor": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🗂️ India Procurement Directory": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🛠️ Data Manager": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📤 Share Center": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📡 Rate Broadcast": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📊 Comm Tracking": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🌐 Client Showcase": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "💎 Subscription Pricing": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📤 Reports": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "⚙️ Settings": {
+   "status": "FLAGGED",
+   "landed": true,
+   "hits": [
+    {
+     "type": "FALLBACK",
+     "line": "Auto-Switch if Stock Unavailable"
+    }
+   ]
+  },
+  "👥 User Management": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📥 Import Wizard": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🗂️ Import History": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "💬 Trading Chatbot": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🔄 AI Fallback Engine": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "📚 Knowledge Base": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🤖 AI Learning": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🎛️ System Control Center": {
+   "status": "FLAGGED",
+   "landed": true,
+   "hits": [
+    {
+     "type": "FALLBACK",
+     "line": "● Prophet Forecasting   FREE   Type: ML · Status: unavailable · Not installed"
+    },
+    {
+     "type": "FALLBACK",
+     "line": "● LightGBM/XGBoost Boost   FREE   Type: ML · Status: unavailable · sklearn"
+    },
+    {
+     "type": "FALLBACK",
+     "line": "● SHAP Explainability   FREE   Type: ML · Status: unavailable · Feature importance fallback"
+    },
+    {
+     "type": "FALLBACK",
+     "line": "● spaCy NER   FREE   Type: NLP · Status: unavailable · Not installed"
+    }
+   ]
+  },
+  "🌐 API Dashboard": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🔗 API HUB": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🏥 Health Monitor": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🐞 Bug Tracker": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🛠️ Developer Ops Map": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🗺️ Dashboard Flow Map": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🔔 Alert System": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  },
+  "🔔 Change Notifications": {
+   "status": "OK",
+   "landed": true,
+   "hits": []
+  }
+ }
+}

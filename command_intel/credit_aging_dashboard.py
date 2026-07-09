@@ -8,31 +8,41 @@ import pandas as pd
 
 
 def _get_credit_data():
-    """Return (credits, is_demo). is_demo=True when falling back to mock data."""
+    """Real credit records from the credit_limits table only. No mock
+    fallback — fake customers with fake outstandings once rendered as if
+    real (sweep 09-07-2026); an empty table shows an honest CTA instead."""
     try:
         from credit_engine import get_all_credits
-        data = get_all_credits()
-        if data:
-            return data, False
+        return get_all_credits() or []
     except Exception:
-        pass
-    try:
-        from credit_engine import get_mock_credits
-        return get_mock_credits(), True
-    except Exception:
-        return [], False
+        return []
 
 
 def render():
     st.header("💳 Credit Limit & Aging")
     st.caption("Customer credit tracking, aging buckets, and overdue alerts.")
 
-    credits, is_demo = _get_credit_data()
+    credits = _get_credit_data()
     if not credits:
-        st.info("No credit data available. Add customer credit limits to get started.")
+        st.info("Abhi koi credit record nahi. Pehla credit limit set karo — "
+                "niche form se, ya CRM se customer select karke.")
+        with st.form("first_credit"):
+            c1, c2 = st.columns(2)
+            _cust = c1.text_input("Customer Name")
+            _limit = c2.number_input("Credit Limit (₹)", min_value=0, value=500000,
+                                     step=50000)
+            if st.form_submit_button("💾 Set Credit Limit", type="primary"):
+                if _cust.strip():
+                    try:
+                        from credit_engine import set_credit_limit
+                        set_credit_limit(_cust.strip(), _limit)
+                        st.success(f"Credit limit set: {_cust} → ₹{_limit:,}")
+                        st.rerun()
+                    except Exception as _e:
+                        st.error(f"Save failed: {_e}")
+                else:
+                    st.warning("Customer name likhna zaroori hai.")
         return
-    if is_demo:
-        st.warning("⚠️ Showing **demo** credit data — customer credit database unavailable.")
 
     df = pd.DataFrame(credits)
     for col in ["credit_limit", "outstanding", "days_outstanding", "last_payment_amount"]:

@@ -126,6 +126,17 @@ def render():
             import plotly.express as px
             hw_df = pd.DataFrame(highway_data)
             if "nhai_km_target" in hw_df.columns and "bitumen_demand_mt" in hw_df.columns:
+                # NaN bubble sizes crash plotly ("Invalid element(s) received
+                # for the 'size' property" — sweep 09-07-2026): coerce to
+                # numeric and drop rows without both values.
+                for _c in ("nhai_km_target", "bitumen_demand_mt"):
+                    hw_df[_c] = pd.to_numeric(hw_df[_c], errors="coerce")
+                hw_df = hw_df.dropna(subset=["nhai_km_target", "bitumen_demand_mt"])
+                hw_df = hw_df[hw_df["bitumen_demand_mt"] >= 0]
+            if hw_df.empty:
+                st.info("Highway/demand rows me abhi usable numbers nahi hain — "
+                        "Govt Data Hub sync ke baad chart yahan aayega.")
+            elif "nhai_km_target" in hw_df.columns and "bitumen_demand_mt" in hw_df.columns:
                 # The OLS trendline is rendered by plotly via statsmodels. That
                 # dependency is optional (and absent on some deploys), so degrade
                 # gracefully to a plain scatter instead of crashing the page.

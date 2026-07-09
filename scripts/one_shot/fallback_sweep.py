@@ -42,6 +42,13 @@ ALLOWLIST = [
     "hidden (visible to admin/director)",
     "No data available",              # legit empty states
     "Abhi tak koi entry nahi",
+    "Abhi koi",                       # honest empty-state CTAs (Hinglish)
+    "Koi tracked tender nahi",
+    "Auto-Switch if Stock Unavailable",       # a real settings toggle label
+    "Status: unavailable",                    # honest ML-package status (System Control)
+    "Not installed",                          # honest ML-package status
+    "Feature importance fallback",            # honest SHAP degradation note
+    "Unified Price Board",                    # renamed PSU section (real data)
 ]
 
 

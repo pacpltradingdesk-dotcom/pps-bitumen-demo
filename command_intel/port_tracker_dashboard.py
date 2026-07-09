@@ -196,7 +196,12 @@ def _render_country_port_flow() -> None:
         df = df.sort_values("TOTAL MT", ascending=False)
 
         st.markdown("##### Country → Port Flow Matrix (MT)")
+        # Styler.background_gradient is LAZY — it only touches matplotlib when
+        # st.dataframe renders it, so wrapping the creation in try/except never
+        # caught the missing dependency and the page died at render (sweep
+        # 09-07-2026). Probe the import up front instead.
         try:
+            import matplotlib  # noqa: F401
             _styled = df.style.format("{:.1f}").background_gradient(cmap="Blues", axis=None)
         except Exception:
             _styled = df.style.format("{:.1f}")  # matplotlib missing → plain table

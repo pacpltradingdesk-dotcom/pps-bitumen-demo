@@ -9,31 +9,86 @@ import datetime
 
 
 def _get_tenders():
-    """Return (tenders, is_demo). is_demo=True when falling back to mock data."""
+    """Tracked tenders from the tenders DB (added via the ➕ Add Tender tab).
+    No mock fallback — fake NHAI awards once scrolled as if real (sweep
+    09-07-2026); an empty desk shows live tender NEWS + a CTA instead."""
     try:
         from tender_engine import get_tenders
-        data = get_tenders()
-        if data:
-            return data, False
+        return get_tenders() or []
     except Exception:
-        pass
+        return []
+
+
+def _render_live_tender_news():
+    """Real tender signals from the GDELT infra news DB — shown when the
+    desk hasn't logged any tenders of its own yet."""
     try:
-        from tender_engine import get_mock_tenders
-        return get_mock_tenders(), True
+        from infra_demand_engine import get_live_feed
+        rows = get_live_feed(limit=25, category="tender")
     except Exception:
-        return [], False
+        rows = []
+    if not rows:
+        return False
+    st.subheader("📰 Live Tender Signals (news)")
+    st.caption("Auto-detected tender/procurement news — GDELT infra feed. "
+               "Track a specific tender via the ➕ Add Tender tab.")
+    df = pd.DataFrame([{
+        "Date": str(r.get("published_at", ""))[:10],
+        "Headline": r.get("title", ""),
+        "State": r.get("state") or "—",
+        "City": r.get("city") or "—",
+        "Dept": r.get("department") or "—",
+    } for r in rows])
+    st.dataframe(df, use_container_width=True, hide_index=True, height=420)
+    return True
+
+
+def _render_add_tender_form():
+    st.subheader("Add New Tender")
+    ac1, ac2 = st.columns(2)
+    with ac1:
+        title = st.text_input("Tender Title", key="td_title")
+        try:
+            from components.autosuggest import state_picker
+            state = state_picker(key="td_state", label="State")
+        except Exception:
+            state = st.text_input("State", key="td_state")
+        authority = st.selectbox("Authority", ["NHAI", "MoRTH", "State PWD", "NHIDCL"], key="td_auth")
+    with ac2:
+        length = st.number_input("Road Length (km)", min_value=0, value=50, key="td_km")
+        value = st.number_input("Project Value (₹ Cr)", min_value=0.0, value=100.0, step=10.0, key="td_val")
+        deadline = st.date_input("Deadline", key="td_dead")
+
+    if st.button("Add Tender", type="primary"):
+        if title and state:
+            try:
+                from tender_engine import add_tender
+                add_tender({
+                    "title": title, "state": state, "authority": authority,
+                    "road_length_km": length, "value_cr": value,
+                    "deadline": deadline.strftime("%Y-%m-%d"),
+                })
+                st.success(f"Tender added! Est. bitumen: {length * 45:,.0f} MT")
+            except Exception as e:
+                st.error(f"Failed: {e}")
+        else:
+            st.warning("Enter title and state.")
 
 
 def render():
     st.header("🏗️ NHAI Tender Feed")
     st.caption("Track road project tenders and estimate bitumen demand opportunities.")
 
-    tenders, is_demo = _get_tenders()
+    tenders = _get_tenders()
     if not tenders:
-        st.info("No tender data available.")
+        st.info("Koi tracked tender nahi — niche LIVE tender news dekho, ya "
+                "apna tender **➕ Add Tender** se add karo (demand estimate ke liye).")
+        if not _render_live_tender_news():
+            st.caption("Live tender news feed bhi khali hai — infra news sync "
+                       "chalne par yahan signals aayenge.")
+        with st.expander("➕ Add Tender (track your first tender)"):
+            _render_add_tender_form()
         return
-    if is_demo:
-        st.warning("⚠️ Showing **demo** tender data — live tender feed unavailable.")
 
     df = pd.DataFrame(tenders)
     for col in ["road_length_km", "estimated_bitumen_mt", "value_cr"]:
@@ -129,32 +184,4 @@ def render():
 
     # ── Tab 4: Add Tender ──
     with tabs[3]:
-        st.subheader("Add New Tender")
-        ac1, ac2 = st.columns(2)
-        with ac1:
-            title = st.text_input("Tender Title", key="td_title")
-            try:
-                from components.autosuggest import state_picker
-                state = state_picker(key="td_state", label="State")
-            except Exception:
-                state = st.text_input("State", key="td_state")
-            authority = st.selectbox("Authority", ["NHAI", "MoRTH", "State PWD", "NHIDCL"], key="td_auth")
-        with ac2:
-            length = st.number_input("Road Length (km)", min_value=0, value=50, key="td_km")
-            value = st.number_input("Project Value (₹ Cr)", min_value=0.0, value=100.0, step=10.0, key="td_val")
-            deadline = st.date_input("Deadline", key="td_dead")
-
-        if st.button("Add Tender", type="primary"):
-            if title and state:
-                try:
-                    from tender_engine import add_tender
-                    add_tender({
-                        "title": title, "state": state, "authority": authority,
-                        "road_length_km": length, "value_cr": value,
-                        "deadline": deadline.strftime("%Y-%m-%d"),
-                    })
-                    st.success(f"Tender added! Est. bitumen: {length * 45:,.0f} MT")
-                except Exception as e:
-                    st.error(f"Failed: {e}")
-            else:
-                st.warning("Enter title and state.")
+        _render_add_tender_form()

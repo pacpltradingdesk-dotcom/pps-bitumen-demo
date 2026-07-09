@@ -533,7 +533,7 @@ Use our live `api_manager` USD/INR for actual.
 
     # Live PSU Rates from api_hub_engine
     st.markdown("---")
-    _hdr("🏭", "Live PSU Bitumen Rates (Auto-Fetch)", "#10b981")
+    _hdr("🏭", "Live PSU Bitumen Rates (Unified Price Board)", "#10b981")
     live_rates = _fetch_live_psu_rates()
     if live_rates:
         for rate in live_rates[:6]:

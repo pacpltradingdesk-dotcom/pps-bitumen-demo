@@ -9,31 +9,64 @@ import datetime
 
 
 def _get_tankers():
-    """Return (tankers, is_demo). is_demo=True when falling back to mock data."""
+    """Real dispatches from the tankers table only. No mock fallback — fake
+    trucks with fake ETAs once rendered as if real (sweep 09-07-2026); an
+    empty table shows an honest CTA + the dispatch form instead."""
     try:
         from tanker_engine import get_all_tankers
-        data = get_all_tankers()
-        if data:
-            return data, False
+        return get_all_tankers() or []
     except Exception:
-        pass
-    try:
-        from tanker_engine import get_mock_tankers
-        return get_mock_tankers(), True
-    except Exception:
-        return [], False
+        return []
+
+
+def _render_add_dispatch_form():
+    st.subheader("New Tanker Dispatch")
+    dc1, dc2 = st.columns(2)
+    with dc1:
+        vehicle = st.text_input("Vehicle No", key="tk_veh", placeholder="GJ05AB1234")
+        source = st.text_input("Source", key="tk_src", placeholder="Kandla Terminal")
+        destination = st.text_input("Destination", key="tk_dest", placeholder="Ahmedabad")
+        try:
+            from components.autosuggest import customer_picker
+            customer = customer_picker(key="tk_cust", label="Customer")
+        except Exception:
+            customer = st.text_input("Customer", key="tk_cust")
+    with dc2:
+        driver = st.text_input("Driver Name", key="tk_drv")
+        phone = st.text_input("Driver Phone", key="tk_ph")
+        grade = st.selectbox("Grade", ["VG30", "VG10", "VG40", "CRMB-55"], key="tk_gr")
+        qty = st.number_input("Qty (MT)", min_value=1, value=20, key="tk_qty")
+        distance = st.number_input("Distance (km)", min_value=1, value=500, key="tk_dist")
+
+    if st.button("Dispatch Tanker", type="primary"):
+        if vehicle and source and destination:
+            try:
+                from tanker_engine import add_tanker
+                add_tanker({
+                    "vehicle_no": vehicle, "source": source, "destination": destination,
+                    "customer": customer, "driver_name": driver, "driver_phone": phone,
+                    "grade": grade, "qty_mt": qty, "distance_km": distance,
+                    "status": "in_transit", "departed_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                })
+                st.success(f"Tanker {vehicle} dispatched! ETA: ~{distance / 40:.0f} hours")
+            except Exception as e:
+                st.error(f"Failed: {e}")
+        else:
+            st.warning("Enter vehicle, source, and destination.")
+
+# ── Tab 4: Delivery Log ──
 
 
 def render():
     st.header("🚛 Tanker Tracking")
     st.caption("Real-time tracking of bulk tankers and drum trucks.")
 
-    tankers, is_demo = _get_tankers()
+    tankers = _get_tankers()
     if not tankers:
-        st.info("No tanker data available.")
+        st.info("Abhi koi dispatch tracked nahi. Pehla tanker dispatch karo — "
+                "trip yahan live track hogi (ETA, delay alerts, delivery log).")
+        _render_add_dispatch_form()
         return
-    if is_demo:
-        st.warning("⚠️ Showing **demo** tanker data — live tracking source unavailable.")
 
     df = pd.DataFrame(tankers)
 
@@ -111,41 +144,8 @@ def render():
 
     # ── Tab 3: Add Dispatch ──
     with tabs[2]:
-        st.subheader("New Tanker Dispatch")
-        dc1, dc2 = st.columns(2)
-        with dc1:
-            vehicle = st.text_input("Vehicle No", key="tk_veh", placeholder="GJ05AB1234")
-            source = st.text_input("Source", key="tk_src", placeholder="Kandla Terminal")
-            destination = st.text_input("Destination", key="tk_dest", placeholder="Ahmedabad")
-            try:
-                from components.autosuggest import customer_picker
-                customer = customer_picker(key="tk_cust", label="Customer")
-            except Exception:
-                customer = st.text_input("Customer", key="tk_cust")
-        with dc2:
-            driver = st.text_input("Driver Name", key="tk_drv")
-            phone = st.text_input("Driver Phone", key="tk_ph")
-            grade = st.selectbox("Grade", ["VG30", "VG10", "VG40", "CRMB-55"], key="tk_gr")
-            qty = st.number_input("Qty (MT)", min_value=1, value=20, key="tk_qty")
-            distance = st.number_input("Distance (km)", min_value=1, value=500, key="tk_dist")
+        _render_add_dispatch_form()
 
-        if st.button("Dispatch Tanker", type="primary"):
-            if vehicle and source and destination:
-                try:
-                    from tanker_engine import add_tanker
-                    add_tanker({
-                        "vehicle_no": vehicle, "source": source, "destination": destination,
-                        "customer": customer, "driver_name": driver, "driver_phone": phone,
-                        "grade": grade, "qty_mt": qty, "distance_km": distance,
-                        "status": "in_transit", "departed_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                    })
-                    st.success(f"Tanker {vehicle} dispatched! ETA: ~{distance / 40:.0f} hours")
-                except Exception as e:
-                    st.error(f"Failed: {e}")
-            else:
-                st.warning("Enter vehicle, source, and destination.")
-
-    # ── Tab 4: Delivery Log ──
     with tabs[3]:
         st.subheader("Completed Deliveries")
         delivered_df = df[df["status"] == "delivered"] if "status" in df.columns else pd.DataFrame()
