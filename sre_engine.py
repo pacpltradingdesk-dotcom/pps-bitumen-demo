@@ -165,7 +165,8 @@ def alert_dot(severity) -> str:
 
 _SYSTEM_ALERT_PAT = re.compile(
     r"(data quality|degraded performance|cache|scheduler|health check|"
-    r"latency|freshness|heartbeat|api key|sre)", re.I)
+    r"latency|freshness|heartbeat|api key|sre|"
+    r"api \S+ is (down|failing|erroring)|non-critical feed)", re.I)
 _SYSTEM_ENTITIES = {"api_cache_freshness", "live_prices", "price_anomalies",
                     "scheduler", "health_check", "api_cache"}
 

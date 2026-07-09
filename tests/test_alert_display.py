@@ -44,6 +44,9 @@ def test_system_health_alerts_detected():
                             "message": "Health check scheduler running late"})
     assert is_system_alert({"entity": "live_prices",
                             "message": "Data quality WARN: live_prices"})
+    # Leaked on first live check (janki login): API-down feed alerts
+    assert is_system_alert({"entity": "world_bank_cpi_india",
+                            "message": "API world_bank_cpi_india is DOWN (non-critical feed)"})
 
 
 def test_business_alerts_not_flagged_system():
