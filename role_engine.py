@@ -184,6 +184,13 @@ _failed_attempts: dict[str, list[float]] = {}  # username → [timestamps]
 _RATE_LIMIT_MAX = 5
 _RATE_LIMIT_WINDOW = 300  # 5 minutes
 
+# (threshold_fails, window_sec, lockout_sec) — evaluated strictest first
+_THROTTLE_TIERS = [
+    (15, 7200, 7200),
+    (10, 1800, 1800),
+    (5, 300, 300),
+]
+
 # ── PIN Hashing (PBKDF2) ─────────────────────────────────────────────────────
 _PBKDF2_ALGO = "pbkdf2_sha256"
 _PBKDF2_ITERATIONS = 200_000
@@ -242,13 +249,26 @@ def _attempts_table(conn):
                  "(username TEXT, attempted_at REAL)")
 
 
-def _is_rate_limited(username: str) -> bool:
-    """Check if username has exceeded failed login attempts. DB-backed so the
+def _evaluate_throttle(timestamps: list[float], now: float) -> tuple[bool, int]:
+    """Given failed-attempt timestamps, return (locked, retry_after_sec)."""
+    for threshold, window_sec, lockout_sec in _THROTTLE_TIERS:
+        recent = [t for t in timestamps if now - t < window_sec]
+        if len(recent) >= threshold:
+            retry = int(max(recent) + lockout_sec - now)
+            if retry > 0:
+                return (True, retry)
+    return (False, 0)
+
+
+def _is_rate_limited(username: str) -> tuple[bool, int]:
+    """Return (locked, retry_after_sec) using escalating tiers. DB-backed so the
     lockout SURVIVES a Streamlit restart (the in-memory dict reset on every
     deploy/restart, handing an attacker a fresh window). Falls back to memory
     only if the DB is unreachable."""
     key = username.lower().strip()
-    cutoff = time.time() - _RATE_LIMIT_WINDOW
+    now = time.time()
+    max_window = _THROTTLE_TIERS[0][1]
+    cutoff = now - max_window
     try:
         from database import _get_conn
         conn = _get_conn()
@@ -256,17 +276,16 @@ def _is_rate_limited(username: str) -> bool:
             _attempts_table(conn)
             conn.execute("DELETE FROM login_attempts WHERE attempted_at < ?", (cutoff,))
             conn.commit()
-            n = conn.execute(
-                "SELECT COUNT(*) FROM login_attempts WHERE username = ? AND attempted_at >= ?",
-                (key, cutoff)).fetchone()[0]
-            return n >= _RATE_LIMIT_MAX
+            rows = conn.execute(
+                "SELECT attempted_at FROM login_attempts WHERE username = ? AND attempted_at >= ?",
+                (key, cutoff)).fetchall()
+            timestamps = [r[0] for r in rows]
         finally:
             conn.close()
     except Exception:
-        now = time.time()
-        attempts = [t for t in _failed_attempts.get(key, []) if now - t < _RATE_LIMIT_WINDOW]
-        _failed_attempts[key] = attempts
-        return len(attempts) >= _RATE_LIMIT_MAX
+        timestamps = [t for t in _failed_attempts.get(key, []) if now - t < max_window]
+        _failed_attempts[key] = timestamps
+    return _evaluate_throttle(timestamps, now)
 
 
 def _record_failed_attempt(username: str):
@@ -373,15 +392,17 @@ def login(username: str, pin: str) -> bool:
     username = username.strip().lower()
 
     # Rate limiting check
-    if _is_rate_limited(username):
+    if _is_rate_limited(username)[0]:
         return False
 
     try:
         import streamlit as st
         from database import get_user_by_username, update_user
         user = get_user_by_username(username)
-        if user and user.get("is_active") and hmac.compare_digest(
-                str(user.get("pin_hash") or ""), hash_pin(pin)):
+        _valid, _needs_upgrade = (False, False)
+        if user and user.get("is_active"):
+            _valid, _needs_upgrade = verify_pin(pin, str(user.get("pin_hash") or ""))
+        if user and user.get("is_active") and _valid:
             # Normalize legacy admin role
             role = user.get("role", "viewer")
             if role == "admin":
@@ -394,6 +415,11 @@ def login(username: str, pin: str) -> bool:
             # First-login welcome flag — tutorial auto-opens once per session
             st.session_state["_welcome_pending"] = True
             update_user(user["id"], {"last_login": _now_ist()})
+            if _needs_upgrade:
+                try:
+                    update_user(user["id"], {"pin_hash": hash_pin(pin)})
+                except Exception:
+                    pass
             _clear_failed_attempts(username)
             _write_token_to_url(user["username"])
             # Audit log
@@ -538,8 +564,10 @@ def render_login_form() -> bool:
         pin = st.text_input("PIN", type="password", key="_rbac_pin", placeholder="Enter PIN")
         if st.button("Login", type="primary", key="_rbac_login_btn", use_container_width=True):
             uname = username.strip().lower()
-            if _is_rate_limited(uname):
-                st.error("Too many failed attempts. Please wait 5 minutes.")
+            _locked, _retry = _is_rate_limited(uname)
+            if _locked:
+                _mins = max(1, _retry // 60)
+                st.error(f"Too many failed attempts. Try again in ~{_mins} min.")
             elif login(username, pin):
                 st.rerun()
             else:
