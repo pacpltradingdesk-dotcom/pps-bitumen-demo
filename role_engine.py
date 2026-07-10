@@ -184,14 +184,57 @@ _failed_attempts: dict[str, list[float]] = {}  # username → [timestamps]
 _RATE_LIMIT_MAX = 5
 _RATE_LIMIT_WINDOW = 300  # 5 minutes
 
+# ── PIN Hashing (PBKDF2) ─────────────────────────────────────────────────────
+_PBKDF2_ALGO = "pbkdf2_sha256"
+_PBKDF2_ITERATIONS = 200_000
+_PBKDF2_SALT_BYTES = 16
+
 
 def _now_ist() -> str:
     return datetime.now(IST).strftime("%Y-%m-%d %H:%M:%S")
 
 
 def hash_pin(pin: str) -> str:
-    """SHA-256 hash of PIN string."""
-    return hashlib.sha256(pin.encode("utf-8")).hexdigest()
+    """Return a salted PBKDF2-SHA256 hash: pbkdf2_sha256$<iters>$<salt_b64>$<hash_b64>."""
+    salt = secrets.token_bytes(_PBKDF2_SALT_BYTES)
+    dk = hashlib.pbkdf2_hmac("sha256", pin.encode("utf-8"), salt, _PBKDF2_ITERATIONS)
+    return "{}${}${}${}".format(
+        _PBKDF2_ALGO,
+        _PBKDF2_ITERATIONS,
+        base64.b64encode(salt).decode("ascii"),
+        base64.b64encode(dk).decode("ascii"),
+    )
+
+
+def _is_legacy_hash(stored: str) -> bool:
+    """True if `stored` is a bare legacy SHA-256 hex digest (64 hex chars, no '$')."""
+    return len(stored) == 64 and all(c in "0123456789abcdef" for c in stored.lower())
+
+
+def verify_pin(pin: str, stored: str) -> tuple[bool, bool]:
+    """Verify `pin` against `stored`. Returns (is_valid, needs_upgrade).
+
+    needs_upgrade is True only on a *successful* match against a legacy hash
+    or a PBKDF2 hash with fewer than the current iteration count.
+    """
+    if not stored:
+        return (False, False)
+    if _is_legacy_hash(stored):
+        match = hmac.compare_digest(
+            stored, hashlib.sha256(pin.encode("utf-8")).hexdigest())
+        return (match, match)
+    if stored.startswith(_PBKDF2_ALGO + "$"):
+        try:
+            _algo, iters_s, salt_b64, hash_b64 = stored.split("$")
+            iters = int(iters_s)
+            salt = base64.b64decode(salt_b64)
+            expected = base64.b64decode(hash_b64)
+            dk = hashlib.pbkdf2_hmac("sha256", pin.encode("utf-8"), salt, iters)
+            match = hmac.compare_digest(dk, expected)
+            return (match, match and iters < _PBKDF2_ITERATIONS)
+        except Exception:
+            return (False, False)
+    return (False, False)
 
 
 def _attempts_table(conn):
