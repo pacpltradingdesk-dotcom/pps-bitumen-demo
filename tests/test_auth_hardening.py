@@ -147,3 +147,17 @@ def test_throttle_stale_attempts_ignored():
     now = 1_000_000.0
     ts = [now - 400 - i for i in range(5)]  # 5 fails, all older than 5-min window
     assert re._evaluate_throttle(ts, now) == (False, 0)
+
+
+def test_token_ttl_default(monkeypatch):
+    import settings_engine
+    monkeypatch.setattr(settings_engine, "get", lambda k, d=None: d, raising=False)
+    assert re._get_token_ttl_minutes() == 720
+
+
+def test_token_ttl_honors_setting(monkeypatch):
+    import settings_engine
+    monkeypatch.setattr(
+        settings_engine, "get",
+        lambda k, d=None: 480 if k == "rbac_token_ttl_min" else d, raising=False)
+    assert re._get_token_ttl_minutes() == 480

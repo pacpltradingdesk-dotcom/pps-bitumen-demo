@@ -126,6 +126,7 @@ DEFAULT_SETTINGS = {
     "rbac_enabled": False,
     "rbac_default_role": "viewer",
     "rbac_session_timeout_min": 1440,
+    "rbac_token_ttl_min": 720,
 
     # Universal Action Bar
     "action_bar_enabled": True,

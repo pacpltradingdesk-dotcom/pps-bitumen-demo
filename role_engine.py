@@ -119,7 +119,7 @@ def _write_token_to_url(username: str):
     can auto-restore the session."""
     try:
         import streamlit as st
-        expiry_ts = int(time.time() + _get_session_timeout_minutes() * 60)
+        expiry_ts = int(time.time() + _get_token_ttl_minutes() * 60)
         token = _make_auth_token(username, expiry_ts)
         st.query_params[_AUTH_TOKEN_KEY] = token
     except Exception:
@@ -330,6 +330,16 @@ def _get_session_timeout_minutes() -> int:
         return int(get_setting("rbac_session_timeout_min", 1440))
     except Exception:
         return 1440
+
+
+def _get_token_ttl_minutes() -> int:
+    """Auth-token lifetime in minutes. Shorter than the session timeout so a
+    leaked ?auth_t= URL expires faster. Default 12h."""
+    try:
+        from settings_engine import get as get_setting
+        return int(get_setting("rbac_token_ttl_min", 720))
+    except Exception:
+        return 720
 
 
 def _check_session_timeout() -> bool:
