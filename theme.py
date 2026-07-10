@@ -526,6 +526,13 @@ def inject_theme() -> None:
                 vp.content = 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover';
                 document.head.appendChild(vp);
             }
+            // Referrer policy — keep the ?auth_t= token out of the Referer header
+            if (!document.querySelector('meta[name="referrer"]')) {
+                var rf = document.createElement('meta');
+                rf.name = 'referrer';
+                rf.content = 'no-referrer';
+                document.head.appendChild(rf);
+            }
             // Theme color
             if (!document.querySelector('meta[name="theme-color"]')) {
                 var tc = document.createElement('meta');

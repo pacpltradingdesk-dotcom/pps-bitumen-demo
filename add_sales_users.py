@@ -2,7 +2,7 @@
 import sys, io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
-from role_engine import init_roles, hash_pin
+from role_engine import init_roles, hash_pin, verify_pin
 from database import get_user_by_username, insert_user, update_user, get_all_users
 
 init_roles()
@@ -33,10 +33,10 @@ for u in USERS:
             "pin_hash":     payload["pin_hash"],
             "is_active":    1,
         })
-        print(f"  🔄 UPDATED  {u['username']:8s}  (id={existing['id']}, role=sales, PIN={u['pin']})")
+        print(f"  🔄 UPDATED  {u['username']:8s}  (id={existing['id']}, role=sales)")
     else:
         new_id = insert_user(payload)
-        print(f"  ➕ CREATED  {u['username']:8s}  (id={new_id}, role=sales, PIN={u['pin']})")
+        print(f"  ➕ CREATED  {u['username']:8s}  (id={new_id}, role=sales)")
 
 # ── Verify: read back + simulate login (PIN hash match) ──
 print()
@@ -51,7 +51,7 @@ for u in USERS:
         print(f"  ❌ {u['username']}: not found after insert")
         all_ok = False
         continue
-    pin_ok  = rec["pin_hash"] == hash_pin(u["pin"])
+    pin_ok  = verify_pin(u["pin"], rec["pin_hash"] or "")[0]
     role_ok = rec["role"] == "sales"
     active  = bool(rec.get("is_active"))
     status = "✅" if (pin_ok and role_ok and active) else "❌"
@@ -75,8 +75,8 @@ print("=" * 70)
 print(f"RESULT: {'✅ ALL 3 SALES USERS WORKING' if all_ok else '❌ SOMETHING FAILED'}")
 print("=" * 70)
 print()
-print("Login credentials:")
+print("Users configured (PINs set as specified — not displayed):")
 for u in USERS:
-    print(f"  • {u['username']:8s}  PIN: {u['pin']}  (Sales role)")
+    print(f"  • {u['username']:8s}  (Sales role)")
 print()
 print("PIN change karne ke liye: ⚙️ Settings → 👥 User Management page")

@@ -184,12 +184,22 @@ systemctl restart "$SVC_NAME"
 log "Configuring nginx reverse proxy"
 SERVER_NAME="${DOMAIN:-_}"
 NGINX_CONF="/etc/nginx/sites-available/${SVC_NAME}"
+# Query-string-free log format so ?auth_t= tokens never hit the access log
+cat > /etc/nginx/conf.d/pps_logformat.conf <<'EOF'
+log_format pps_noqs '$remote_addr - $remote_user [$time_local] '
+                    '"$request_method $uri $server_protocol" '
+                    '$status $body_bytes_sent "$http_referer" "$http_user_agent"';
+EOF
 cat > "$NGINX_CONF" <<EOF
 server {
     listen 80;
     server_name ${SERVER_NAME};
 
     client_max_body_size 50M;
+
+    # Round-2 auth hardening
+    add_header Referrer-Policy "no-referrer" always;
+    access_log /var/log/nginx/${SVC_NAME}.access.log pps_noqs;
 
     # Streamlit WebSocket support
     location / {

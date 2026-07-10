@@ -161,3 +161,26 @@ def test_token_ttl_honors_setting(monkeypatch):
         settings_engine, "get",
         lambda k, d=None: 480 if k == "rbac_token_ttl_min" else d, raising=False)
     assert re._get_token_ttl_minutes() == 480
+
+
+def test_theme_injects_referrer_meta():
+    root = Path(__file__).resolve().parents[1]
+    src = (root / "theme.py").read_text(encoding="utf-8")
+    assert "name=\"referrer\"" in src or "name='referrer'" in src
+    assert "no-referrer" in src
+
+
+def test_nginx_referrer_and_logformat():
+    root = Path(__file__).resolve().parents[1]
+    src = (root / "deploy" / "hostinger_setup.sh").read_text(encoding="utf-8")
+    assert 'Referrer-Policy "no-referrer"' in src
+    assert "pps_noqs" in src
+
+
+def test_add_sales_users_no_plaintext_pin_and_uses_verify():
+    root = Path(__file__).resolve().parents[1]
+    src = (root / "add_sales_users.py").read_text(encoding="utf-8")
+    assert "PIN={u['pin']}" not in src
+    assert "PIN: {u['pin']}" not in src
+    assert "verify_pin(" in src
+    assert 'rec["pin_hash"] == hash_pin(' not in src
