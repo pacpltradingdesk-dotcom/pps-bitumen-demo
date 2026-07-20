@@ -22,8 +22,41 @@ import secrets
 import time
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from typing import NamedTuple
 
 IST = timezone(timedelta(hours=5, minutes=30))
+
+
+# ── Auth result types ────────────────────────────────────────────────────────
+# These are tuples (callers may still unpack them), but each defines __bool__ so
+# that using one directly in a condition means the SAFE thing.
+#
+# Why: on 20-Jul-2026 login_page.py did `elif _is_rate_limited(uname):`. A bare
+# non-empty tuple is always truthy, so (False, 0) read as "locked" and NOBODY
+# could log in for 10 days — no crash, no warning, just a plausible-looking
+# "Too many failed attempts" message. Defining __bool__ makes that mistake
+# impossible to write: the bare call now evaluates to the field that matters.
+
+class RateLimit(NamedTuple):
+    """Result of a rate-limit check. Truthy only when actually locked."""
+    locked: bool
+    retry_after_sec: int
+
+    def __bool__(self) -> bool:
+        return bool(self.locked)
+
+
+class PinCheck(NamedTuple):
+    """Result of a PIN/password check. Truthy only when the secret is correct.
+
+    Guards against an auth bypass: `if verify_pin(pin, stored):` on a bare
+    2-tuple would accept every password.
+    """
+    is_valid: bool
+    needs_upgrade: bool
+
+    def __bool__(self) -> bool:
+        return bool(self.is_valid)
 
 # ── Persistent Auth Token (URL-based, survives tab/browser close) ────────────
 
@@ -218,18 +251,18 @@ def _is_legacy_hash(stored: str) -> bool:
     return len(stored) == 64 and all(c in "0123456789abcdef" for c in stored.lower())
 
 
-def verify_pin(pin: str, stored: str) -> tuple[bool, bool]:
-    """Verify `pin` against `stored`. Returns (is_valid, needs_upgrade).
+def verify_pin(pin: str, stored: str) -> PinCheck:
+    """Verify `pin` against `stored`. Returns PinCheck(is_valid, needs_upgrade).
 
     needs_upgrade is True only on a *successful* match against a legacy hash
     or a PBKDF2 hash with fewer than the current iteration count.
     """
     if not stored:
-        return (False, False)
+        return PinCheck(False, False)
     if _is_legacy_hash(stored):
         match = hmac.compare_digest(
             stored, hashlib.sha256(pin.encode("utf-8")).hexdigest())
-        return (match, match)
+        return PinCheck(match, match)
     if stored.startswith(_PBKDF2_ALGO + "$"):
         try:
             _algo, iters_s, salt_b64, hash_b64 = stored.split("$")
@@ -238,10 +271,10 @@ def verify_pin(pin: str, stored: str) -> tuple[bool, bool]:
             expected = base64.b64decode(hash_b64)
             dk = hashlib.pbkdf2_hmac("sha256", pin.encode("utf-8"), salt, iters)
             match = hmac.compare_digest(dk, expected)
-            return (match, match and iters < _PBKDF2_ITERATIONS)
+            return PinCheck(match, bool(match and iters < _PBKDF2_ITERATIONS))
         except Exception:
-            return (False, False)
-    return (False, False)
+            return PinCheck(False, False)
+    return PinCheck(False, False)
 
 
 def _attempts_table(conn):
@@ -249,18 +282,18 @@ def _attempts_table(conn):
                  "(username TEXT, attempted_at REAL)")
 
 
-def _evaluate_throttle(timestamps: list[float], now: float) -> tuple[bool, int]:
-    """Given failed-attempt timestamps, return (locked, retry_after_sec)."""
+def _evaluate_throttle(timestamps: list[float], now: float) -> RateLimit:
+    """Given failed-attempt timestamps, return RateLimit(locked, retry_after_sec)."""
     for threshold, window_sec, lockout_sec in _THROTTLE_TIERS:
         recent = [t for t in timestamps if now - t < window_sec]
         if len(recent) >= threshold:
             retry = int(max(recent) + lockout_sec - now)
             if retry > 0:
-                return (True, retry)
-    return (False, 0)
+                return RateLimit(True, retry)
+    return RateLimit(False, 0)
 
 
-def _is_rate_limited(username: str) -> tuple[bool, int]:
+def _is_rate_limited(username: str) -> RateLimit:
     """Return (locked, retry_after_sec) using escalating tiers. DB-backed so the
     lockout SURVIVES a Streamlit restart (the in-memory dict reset on every
     deploy/restart, handing an attacker a fresh window). Falls back to memory
@@ -557,32 +590,15 @@ def render_login_form() -> bool:
             _clear_token_from_url()
             st.info("Session expired. Please login again.")
 
-    st.markdown("""
-    <div style="max-width:420px;margin:80px auto;padding:30px 36px;
-                background:#0d1b2e;border:1px solid #1e3a5f;border-radius:12px;">
-      <div style="text-align:center;margin-bottom:18px;">
-        <span style="font-size:2rem;">🏛️</span><br>
-        <span style="font-size:1.1rem;font-weight:700;color:#c9a84c;">PPS Anantam</span><br>
-        <span style="font-size:0.75rem;color:#94a3b8;">Agentic AI Eco System — Login</span>
-      </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-    col_l, col_c, col_r = st.columns([1, 2, 1])
-    with col_c:
-        username = st.text_input("Username", key="_rbac_user", placeholder="admin")
-        pin = st.text_input("PIN", type="password", key="_rbac_pin", placeholder="Enter PIN")
-        if st.button("Login", type="primary", key="_rbac_login_btn", use_container_width=True):
-            uname = username.strip().lower()
-            _locked, _retry = _is_rate_limited(uname)
-            if _locked:
-                _mins = max(1, _retry // 60)
-                st.error(f"Too many failed attempts. Try again in ~{_mins} min.")
-            elif login(username, pin):
-                st.rerun()
-            else:
-                st.error("Invalid username or PIN.")
-    return False
+    # There is exactly ONE login UI in this app: login_page.render_login().
+    # This function used to render a second, near-identical form. Because
+    # dashboard.py gates on login_page.render_login() ~100 lines earlier and
+    # st.stop()s when unauthenticated, that form was unreachable — so the
+    # 09-Jul-2026 lockout fix was applied HERE and silently never shipped,
+    # leaving the real page broken for 10 days. Delegating keeps a single
+    # implementation, so a fix can no longer land on the wrong copy.
+    from login_page import render_login  # local import: login_page imports us
+    return render_login()
 
 
 def render_user_management():
