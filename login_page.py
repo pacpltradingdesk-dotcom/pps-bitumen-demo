@@ -78,10 +78,12 @@ div[data-testid="stForm"] .stTextInput div[data-testid="InputInstructions"] {
 
         if submitted:
             uname = username.strip().lower()
+            _locked, _retry = _is_rate_limited(uname)
             if not uname or not pin:
                 st.error("Please enter username and PIN")
-            elif _is_rate_limited(uname):
-                st.error("Too many failed attempts. Please wait a few minutes before trying again.")
+            elif _locked:
+                _mins = max(1, _retry // 60)
+                st.error(f"Too many failed attempts. Try again in ~{_mins} min.")
             elif login(uname, pin):
                 st.rerun()
             else:
