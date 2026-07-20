@@ -73,7 +73,7 @@ div[data-testid="stForm"] .stTextInput div[data-testid="InputInstructions"] {
         # Streamlit form (prevents rerun on each keystroke)
         with st.form("login_form"):
             username = st.text_input("Username", placeholder="Enter username")
-            pin = st.text_input("Password / PIN", type="password", placeholder="Enter 4-digit PIN")
+            pin = st.text_input("Password / PIN", type="password", placeholder="Enter password")
             submitted = st.form_submit_button("Sign In", type="primary", use_container_width=True)
 
         if submitted:

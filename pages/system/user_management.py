@@ -287,8 +287,8 @@ def _render_add_user_tab():
             if not display_name.strip():
                 errors.append("Display name required.")
             p = (pin or "").strip()
-            if not p or not p.isdigit() or not (4 <= len(p) <= 8):
-                errors.append("PIN must be 4-8 digits.")
+            if not p or " " in p or not (4 <= len(p) <= 32):
+                errors.append("Password must be 4-32 characters, no spaces.")
             if u and get_user_by_username(u):
                 errors.append(f"Username '{u}' already exists.")
 
@@ -340,9 +340,9 @@ def _render_add_user_tab():
                         skipped_reasons.append(f"{uname}: invalid role {role_val}")
                         continue
                     pin_val = str(row["pin"]).strip()
-                    if not pin_val.isdigit() or not (4 <= len(pin_val) <= 8):
+                    if not pin_val or " " in pin_val or not (4 <= len(pin_val) <= 32):
                         skipped += 1
-                        skipped_reasons.append(f"{uname}: invalid PIN")
+                        skipped_reasons.append(f"{uname}: invalid password")
                         continue
                     insert_user({
                         "username": uname,
